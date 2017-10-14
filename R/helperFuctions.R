@@ -1,0 +1,92 @@
+#' Obtain summary measures of minimap output.
+#'
+#' Takes imported data table and export relevant data quality measures.
+#'
+#' @param data.tab Imported data table.
+#' @author David Porubsky
+#' @export
+
+getQualMeasure <- function(data.tab) {
+  #get number of SS reads per PB read
+  SSread.perPB <- sort(table(data.tab$PBreadNames), decreasing = T)
+  summary.df <- data.frame(PBreadNames = names(SSread.perPB), SSread.perPB = as.vector(SSread.perPB), stringsAsFactors = F)
+  
+  #get number of SS libs per PB read
+  SSlib.perPB <- split(as.factor(data.tab$SSlibNames), data.tab$PBreadNames)
+  SSlib.perPB.counts <- lapply(SSlib.perPB, function(x) table(x))
+  SSlib.perPB.m <- do.call(rbind,SSlib.perPB.counts)
+  
+  SSlib.perPB.counts <- sapply(SSlib.perPB, function(x) length(unique(x)))
+  summary.df$SSlib.perPB <- SSlib.perPB.counts[summary.df$PBreadNames]
+  
+  #get logical vector comapring mapping accuracy
+  mapp.accur.comp <- data.tab$SSchrom == data.tab$PBchrom
+  mapp.gaps <- data.tab$MatchedBasesWithGaps 
+  mapp.gaps.df <- data.frame(matchWithgaps=mapp.gaps, mapp.accur=mapp.accur.comp)
+  mapp.gaps.df <- mapp.gaps.df[order(mapp.gaps.df$matchWithgaps, decreasing = T),]
+  mapp.accur <- table(mapp.accur.comp)
+  
+  #get number of gaps in SS read alignments
+  match.gaps <- split(data.tab$MatchedBasesWithGaps, data.tab$PBreadNames)
+  match.gaps.sums <- sapply(match.gaps, sum)
+  summary.df$gaps.perPB <- match.gaps.sums[summary.df$PBreadNames]
+  summary.df$gaps.perPB.norm <- summary.df$gaps.perPB / as.vector(SSread.perPB)
+  
+  return(list(mapp.stat.counts = summary.df, mapp.gaps.stat=mapp.gaps.df, mapp.accur=mapp.accur, SScov.stat=SSlib.perPB.m))
+}
+
+#' Check clustering accuracy
+#'
+#' Takes assigned identity of each PB read and compares it to known location.
+#'
+#' @param clusters List of clusters with predicted chromosome identity for each PB read
+#' @author David Porubsky
+#' @export
+
+getClusterAcc <- function(clusters) {
+  stat <- list()
+  miss.reads <- list()
+  for (i in 1:length(clusters)) { 
+    cluster <- clusters[[i]]
+    max.chr <- names(which.max(table(cluster)))
+    trues <- length(cluster[cluster == max.chr])
+    miss <- length(cluster[cluster != max.chr])
+    stat.df <- data.frame(trues=trues, miss=miss, id=i)
+    
+    miss.PBreads <- names(cluster[cluster != max.chr])
+    miss.chr <- unname(cluster[cluster != max.chr])
+    if (length(miss.PBreads)>0) {
+      tab <- data.frame(miss.PBreads=miss.PBreads, miss.chr=miss.chr, id=i)
+      miss.reads[[length(miss.reads)+1]] <- tab
+    }
+    stat[[length(stat)+1]] <- stat.df  
+  }
+  stat <- do.call(rbind, stat)
+  miss.reads <- do.call(rbind, miss.reads)
+  return(list(stat=stat, miss.reads=miss.reads))
+}
+
+
+#' Rescale theta values for WC cell type
+#'
+#' Set WC probs based on WW and CC probs distribution (if ratio of WW and CC == 1 then WC region with high prob)
+#'
+#' @param theta.l List of estmated theta values for every single cell.
+#' @author David Porubsky
+#' @export
+
+
+rescaleTheta <- function(theta.l) {
+
+  new.theta <- list()
+  for (i in 1:length(theta.l)) {
+    theta.cell <- theta.l[[i]]
+    ratios <- theta.cell[,1] / theta.cell[,2]
+    mask <- ratios>0.9 & ratios<1.1
+    theta.cell[mask,1] <- 0.05
+    theta.cell[mask,2] <- 0.05
+    theta.cell[mask,3] <- 0.9
+    new.theta[[i]] <- theta.cell
+  }
+  return(new.theta)
+}  

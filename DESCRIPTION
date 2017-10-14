@@ -1,0 +1,25 @@
+Package: SaaRclust
+Type: Package
+Title: R Package for pre genome assembly of long reads
+Version: 0.1
+Date: 2017-11-10
+Author: David Porubsky, Maryam Ghareghani and Tobias Marschall
+Maintainer: David Porubsky <david.porubsky@gmail.com>
+	    Maryam Ghareghani <maryam.ghareghani@gmail.com>	
+Description: This package implements functions for pre genome assembly of long reads.
+Depends:
+  R (>= 3.3.0),
+  ggplot2,
+  ComplexHeatmap,
+  cowplot,
+  gsubfn,
+  data.table 
+Imports:
+  car
+Suggests:
+  knitr,
+  testthat
+License: 
+LazyLoad: yes
+VignetteBuilder: knitr
+RoxygenNote: 5.0.1
