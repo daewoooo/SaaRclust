@@ -2,7 +2,7 @@
 =========================================================================
 
 # SaaRclust
-R Package for pre genome assembly of long reads
+R Package to cluster long sequencing reads into chromosomes to facilitate de novo genome assembly.
 
 Collaborators: David Porubsky, Maryam Ghareghani and Tobias Marschall
 

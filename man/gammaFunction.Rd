@@ -4,10 +4,10 @@
 \alias{gammaFunction}
 \title{Calculate gamma function of EM algorithm}
 \usage{
-gammaFunction(clust.prob = NULL, pi = NULL)
+gammaFunction(clust.prob = NULL, pi = NULL, cellNum = NULL)
 }
 \arguments{
-\item{clust.prob}{A \code{list} of binomial probabilities of each PB read in every possible cluster}
+\item{clust.prob}{A \code{list} of binomial probabilities (multiplied by theta & pi) of each PB read in every possible cluster}
 
 \item{pi}{Paramter estimate of the size of each cluster}
 }

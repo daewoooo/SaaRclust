@@ -4,7 +4,7 @@
 \alias{filterInput}
 \title{Filter input data from the minimap}
 \usage{
-filterInput(inputData = NULL, quantileSSreads = c(0.4, 0.6))
+filterInput(inputData = NULL, quantileSSreads = c(0.1, 0.9))
 }
 \arguments{
 \item{inputData}{A \code{data.frame} loaded by \code{\link[SaaRclust]{importTestData}}}

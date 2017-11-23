@@ -75,14 +75,13 @@ getClusterAcc <- function(clusters) {
 #' @author David Porubsky
 #' @export
 
-
 rescaleTheta <- function(theta.l) {
 
   new.theta <- list()
   for (i in 1:length(theta.l)) {
     theta.cell <- theta.l[[i]]
     ratios <- theta.cell[,1] / theta.cell[,2]
-    mask <- ratios>0.9 & ratios<1.1
+    mask <- ratios>0.8 & ratios<1.2
     theta.cell[mask,1] <- 0.05
     theta.cell[mask,2] <- 0.05
     theta.cell[mask,3] <- 0.9
@@ -90,3 +89,75 @@ rescaleTheta <- function(theta.l) {
   }
   return(new.theta)
 }  
+
+
+
+#' Simulate random theta estimates for cell type
+#'
+#' Function to simulate random theta values in order to initialize EM algorithm.
+#'
+#' @param num.cells Number of cells used in the analysis.
+#' @param num.clusters Expected number of clusters. (for 22 autosomes == 44 clusters)
+#' @author David Porubsky
+#' @export
+
+randomTheta <- function(num.cells=100, num.clusters=44) {
+  theta.l <- list()
+  for (j in 1:num.cells) {
+    cell.theta <- list()
+    for (k in 1:num.clusters) {
+      random.type <- runif(3)
+      max.type <- which.max(random.type)
+      if (max.type == 1) {
+        theta <- c(0.9, 0.05, 0.05)
+      } else if (max.type == 2) {
+        theta <- c(0.05, 0.9, 0.05)
+      } else {
+        theta <- c(0.05, 0.05, 0.9)
+      }
+      cell.theta[[k]] <- theta
+    }
+    theta.l[[j]] <- do.call(rbind, cell.theta)
+  }
+  return(theta.l)
+}
+
+
+#' Rescale theta values for WC cell type.
+#'
+#' Adjust estimated theta values based on expected number of WC chromosomes given random segregation of parental homologues.
+#'
+#' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
+#' @param theta.Expected A \code{vector} of expected sums of probabilities to observe WW,CC or WC chromosomes across all cells.
+#' @author David Porubsky
+#' @export
+
+thetaRescale <- function(theta.param, theta.Expected) {
+  theta.rescaled <- list()
+  for (i in 1:length(theta.param)) {
+    theta.cell <- theta.param[[i]]
+    theta.ObservedSums <- colSums(theta.cell)
+    corr.factor <- theta.Expected / theta.ObservedSums
+    theta.param.rescaled <- t(t(theta.cell) * corr.factor)
+    theta.param.rescaled.norm <- theta.param.rescaled / rowSums(theta.param.rescaled)
+    theta.rescaled[[i]] <- theta.param.rescaled.norm
+  }
+  return(theta.rescaled)
+}
+
+#' Alternative sum function to reduce numerical error caused by finite precision of floating point numbers.
+#'
+#' @param x A \code{vector} of values tp sum up.
+#' @export
+
+kahansum <- function(x) {
+  ks <- 0
+  c <- 0
+  for(i in 1:length(x)) {
+    y <- x[i] - c
+    kt <- ks + y
+    c = (kt - ks) - y
+    ks = kt
+  }
+  ks
+}

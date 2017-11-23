@@ -4,12 +4,14 @@
 \alias{countProb}
 \title{Calculate probability of PacBio reads having WW, CC or WC state.}
 \usage{
-countProb(minusCounts, plusCounts)
+countProb(minusCounts, plusCounts, alpha = 0.1)
 }
 \arguments{
 \item{minusCounts}{Minus (Watson) read counts aligned to PacBio reads.}
 
 \item{plusCounts}{Plus (Crick) read counts aligned to PacBio reads.}
+
+\item{alpha}{Estimated level of background Strand-seq reads.}
 }
 \value{
 A \code{list} of binomial probabilities for a given counts of plus and minus reads
