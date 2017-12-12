@@ -7,7 +7,7 @@
 #' @author David Porubsky
 #' @export
 
-importTestData <- function(infile=NULL) {  #TODO modify this function for input where genomic location of PB reads is unknown
+importTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO modify this function for input where genomic location of PB reads is unknown
 
   ptm <- startTimedMessage("Reading the data ...") 
   #data <- read.table(infile, header=F) #TODO test data.table package for faster data import
@@ -58,6 +58,13 @@ importTestData <- function(infile=NULL) {  #TODO modify this function for input 
                   MatchedBasesWithGaps=data$V11,
                   stringsAsFactors = F
   )
+  
+  if (removeDuplicates) {
+    bit.flag <- bitwAnd(1024, as.numeric(tab$SSflag))
+    mask <- bit.flag == 0 	
+    tab <- tab[mask,]
+  }  	
+
   stopTimedMessage(ptm)
   return(tab)
 }
