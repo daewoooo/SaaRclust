@@ -13,9 +13,12 @@ importTestData <- function(infile=NULL) {  #TODO modify this function for input 
   #data <- read.table(infile, header=F) #TODO test data.table package for faster data import
   
   #filetype = summary( file(infile) )$class #If it's gzipped, filetype will be gzfile
-  #x = fread('gunzip -cq test/allRequests.csv.gz')
-  data <- data.table::fread(infile, header=F, verbose = F, showProgress = F)
-  
+  if (summary( file(infile) )$class == 'gzfile') {
+    data <- data.table::fread(paste0('gunzip -cq ',infile), header=F, verbose = F, showProgress = F)
+  } else {
+    data <- data.table::fread(infile, header=F, verbose = F, showProgress = F)
+  }
+    
   SSreadIDs <- as.character(data$V1)
   PBreadIDs <- as.character(data$V6)
   #SSreadIDs <- as.character(data$V6)
@@ -25,11 +28,15 @@ importTestData <- function(infile=NULL) {  #TODO modify this function for input 
   PBreadNames.fields <- data.table::tstrsplit(PBreadIDs, "_")
 
   SSreadNames <-  SSreadNames.fields[[1]] 
-  SSlibNames <- paste(SSreadNames.fields[[2]], SSreadNames.fields[[3]], SSreadNames.fields[[4]], sep="_")
+  #SSlibNames <- paste(SSreadNames.fields[[2]], SSreadNames.fields[[3]], SSreadNames.fields[[4]], sep="_")
+  SSlibNames <- paste(SSreadNames.fields[[2]], SSreadNames.fields[[3]], sep="_")
 
-  SSflag <- SSreadNames.fields[[5]] 
-  SSchrom <- SSreadNames.fields[[6]] 
-  SSpos <- SSreadNames.fields[[7]] 
+  #SSflag <- SSreadNames.fields[[5]] 
+  #SSchrom <- SSreadNames.fields[[6]] 
+  #SSpos <- SSreadNames.fields[[7]] 
+  SSflag <- SSreadNames.fields[[4]] 
+  SSchrom <- SSreadNames.fields[[5]] 
+  SSpos <- SSreadNames.fields[[6]] 
 
   PBreadNames <-  paste(PBreadNames.fields[[1]], PBreadNames.fields[[2]], PBreadNames.fields[[3]], PBreadNames.fields[[4]], PBreadNames.fields[[5]], PBreadNames.fields[[6]], PBreadNames.fields[[7]], sep="_")       
   PBflag <- PBreadNames.fields[[8]] 

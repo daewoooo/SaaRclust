@@ -15,20 +15,49 @@
 #minimap test files are present in TestData folder
 #minimap.file <- "/media/daewoooo/WORK/SS2PacBio_alignment_HG00733/WholeGenomeAnalysis/subsetMinimap.txt"
 #minimap.file <- "/media/daewoooo/WORK/SS2PacBio_alignment_HG00733/Test_cluster_chr21&chr22/Minimap_out/SS2Pacbio_minimap_HG00733_k13_w1_L70_f0.01_Chr21andChr22_allSSreads"
+#minimap.file <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/NA12878_WashU_PBreads_chunk14.maf.gz"
 
 #load the function below into R if you want to run all steps in one command
 
-SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.clusters=44, EM.iter=100, chunk.size=20000, alpha=0.01, logL.th=1, theta.constrain=FALSE) {
+SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.clusters=44, EM.iter=100, chunk.size=20000, alpha=0.1, logL.th=1, theta.constrain=FALSE) {
   
-  #Create an output directory
+  #=========================#
+  ### Create directiories ###
+  #=========================#
+  
+  #Create a master output directory
   if (!file.exists(outputfolder)) {
     dir.create(outputfolder)
   }
   
+  #Directory to store raw read counts
+  rawcounts.store <- file.path(outputfolder, 'RawCounts')
+  if (!file.exists(rawcounts.store)) {
+    dir.create(rawcounts.store)
+  }
+  
+  #Directory to stare processed/clustered data
+  Clusters.store <- file.path(outputfolder, 'Clusters')
+  if (!file.exists(Clusters.store)) {
+    dir.create(Clusters.store)
+  }
+  
+  #Directory to store 'difficult' PacBio reads for later processing
+  trashbin.store <- file.path(outputfolder, 'TrashBin')
+  if (!file.exists(trashbin.store)) {
+    dir.create(trashbin.store)
+  }
+  
   #read in minimap output file
-  tab.in <- importTestData(infile = minimap.file) #SLOW because test data have to be processed differently
-  tab.in <- tab.in[tab.in$SSchrom != 'chrUn' & tab.in$SSchrom != 'chrX',] #applies only for test data
+  suppressWarnings( tab.in <- importTestData(infile = minimap.file, removeDuplicates = TRUE) )#SLOW because test data have to be processed differently
+  #tab.in <- tab.in[tab.in$SSchrom != 'chrUn' & tab.in$SSchrom != 'chrX',] #applies only for test data
   #tab.in <- tab.in[tab.in$PBchrom %in% paste0('chr', c(18:22)),] #run only sertain chromosomes
+  
+  #get some quality measures on imported data [OPTIONAL]
+  #tab.in.quals <- getQualMeasure(tab.in) #time consuming!!!
+  #qual.plt <- plotQualMeasure(tab.in.quals)
+  
+  #filter imported data
   tab.filt <- filterInput(inputData=tab.in, quantileSSreads=c(0.3,0.9))
 
   #take a smaller chunk of PB reads to process
@@ -59,7 +88,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   tab.l <- split(tab.filt, tab.filt$SSlibNames)
 
   ### Hard clustering ###
-  hard.clust <- hardClust(tab.l, clusters=num.clusters)
+  hard.clust <- hardClust(tab.l, num.clusters=num.clusters, alpha=alpha)
   
   #get accuracy of hard clustering [OPTIONAL]
   #chr.clusts <- split(chr.rows, hard.clust$clust.id)

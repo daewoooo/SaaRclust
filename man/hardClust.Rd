@@ -4,12 +4,14 @@
 \alias{hardClust}
 \title{Hard clustering using k-means}
 \usage{
-hardClust(tab.l = NULL, clusters = NULL)
+hardClust(tab.l = NULL, num.clusters = NULL, alpha = 0.1)
 }
 \arguments{
 \item{tab.l}{A \code{list} of PB alignmetns separated per cell.}
 
-\item{clusters}{Desired number of clusters.}
+\item{num.clusters}{Expected number of clusters. (for 22 autosomes == 44 clusters)}
+
+\item{alpha}{Estimated level of background Strand-seq reads.}
 }
 \value{
 A \code{list} of estimated theta values for every cluster and cell.

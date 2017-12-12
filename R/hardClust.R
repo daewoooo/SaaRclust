@@ -3,12 +3,12 @@
 #' This function expects output from custom minimap test dataset that contains original locations of mapped reads in the genome.
 #'
 #' @param tab.l A \code{list} of PB alignmetns separated per cell.
-#' @param clusters Desired number of clusters.
+#' @inheritParams SaaRclust
 #' @return A \code{list} of estimated theta values for every cluster and cell.
 #' @author David Porubsky
 #' @export
 
-hardClust <- function(tab.l=NULL, clusters=NULL) {
+hardClust <- function(tab.l=NULL, num.clusters=NULL, alpha=0.1) {
 
   message("Hard clustering")
   ptm <- startTimedMessage("    Counting directional reads ...") 
@@ -74,11 +74,11 @@ hardClust <- function(tab.l=NULL, clusters=NULL) {
     for (i in 1:length(clust.prob)) {
       estim <- estimates[i]
       if (estim == 1) {
-        theta <- c(0.9, 0.05, 0.05)
+        theta <- c(1-alpha, alpha/2, alpha/2)
       } else if (estim == 2) {
-        theta <- c(0.05, 0.9, 0.05)
+        theta <- c(alpha/2, 1-alpha, alpha/2)
       } else {
-        theta <- c(0.05, 0.05, 0.9)
+        theta <- c(alpha/2, alpha/2, 1-alpha)
       }
       probs[[i]] <- theta
     }
