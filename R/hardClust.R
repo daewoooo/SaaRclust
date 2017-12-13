@@ -46,11 +46,11 @@ hardClust <- function(tab.l=NULL, num.clusters=NULL, alpha=0.1) {
   }
   stopTimedMessage(ptm)
 
-  ptm <- startTimedMessage("    Kmeans clustering for ",clusters," clusters ...") 
+  ptm <- startTimedMessage("    Kmeans clustering for ",num.clusters," clusters ...") 
   ratios.m <- do.call(cbind, ratios.l)
   ratios.m[ratios.m<0] <- -1
   ratios.m[ratios.m>0] <- 1
-  km <- suppressWarnings( kmeans(ratios.m, centers = clusters, nstart = 100) )
+  km <- suppressWarnings( kmeans(ratios.m, centers = num.clusters, nstart = 100) )
   ord <- km$cluster
   #ratios.m.ord <- ratios.m[order(ord),]
   stopTimedMessage(ptm)
