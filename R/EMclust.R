@@ -2,7 +2,7 @@
 #'
 #' This function performs basic steps of EM algorithm.
 #'
-#' @param tab.l A \code{list} of PB alignmetns separated per cell.
+#' @param counts.l A \code{list} of PB alignmetns separated per cell.
 #' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
 #' @param pi.param A \code{vector} of estimated sizes of each cluster based on initial hard clustering.
 #' @param num.iter Set number of iteration to EM algorithm.
@@ -12,7 +12,7 @@
 #' @export
 
 #saarclust <- function(tab.l, theta.l=NULL, pi.param=NULL, num.iter=100, raw.counts=NULL) {
-EMclust <- function(tab.l, theta.l=NULL, pi.param=NULL, num.iter=100, alpha=0.1, logL.th=1) {
+EMclust <- function(counts.l, theta.l=NULL, pi.param=NULL, num.iter=100, alpha=0.1, logL.th=1) {
 
   if (num.iter>1) {
     message("Running EM") 
@@ -20,7 +20,7 @@ EMclust <- function(tab.l, theta.l=NULL, pi.param=NULL, num.iter=100, alpha=0.1,
     message("Soft clustering")
   }  
   
-  counts.l <- list()
+  #counts.l <- list()
   BN.probs.l <- list()
   log.like.l <- list()
 
@@ -33,32 +33,16 @@ EMclust <- function(tab.l, theta.l=NULL, pi.param=NULL, num.iter=100, alpha=0.1,
     clust.gammas.rowsums.l <- list()
     clust.gammas.norm.l <- list()
     #loop to obtain initial prob measures
-    for (j in 1:length(tab.l)) {
-      lib.name <- names(tab.l[j])
+    for (j in 1:length(counts.l)) {
+      #lib.name <- names(tab.l[j])
       #message("\tWorking on ",lib.name)
       #lib.aligns <- tab.l[[j]]
       #aligns.per.read <- split(lib.aligns$strand, lib.aligns$PBreadNames)
   
       params <- theta.l[[j]]
   
-      #count number of W and C readc per PB read (only in first iteration)
-      if (i == 1) {
-        lib.aligns <- tab.l[[j]]
-        #aligns.per.read <- split(lib.aligns$strand, lib.aligns$PBreadNames)  
-        #counts <- t(sapply(aligns.per.read, function(x) table(x))) #TODO explore perhaps more efficient way to count +/- reads
-        
-        #count directional reads per PB read (FASTEST)  
-        counts <- data.table(lib.aligns)[,table(strand),by=PBreadNames]
-        cov.PBreads <- counts$PBreadNames
-        uncov.PBreads <- levels(cov.PBreads)[!levels(cov.PBreads) %in% cov.PBreads]
-        counts <- rbind(matrix(counts$V1, ncol=2, byrow = T), matrix(rep(0, 2*length(uncov.PBreads)), ncol=2) )
-        rownames(counts) <- c(as.character(unique(cov.PBreads)), uncov.PBreads)
-        counts <- counts[order(match(rownames(counts),levels(lib.aligns$PBreadNames))),]
-        
-      } else {
-        counts <- counts.l[[j]]
-      }
-      #counts <- raw.counts[[j]]  
+      #get counts of W and C reads per PB read
+      counts <- counts.l[[j]]
   
       #calc BN probs
       if (i == 1) {
@@ -85,7 +69,7 @@ EMclust <- function(tab.l, theta.l=NULL, pi.param=NULL, num.iter=100, alpha=0.1,
       #clust.gammas.norm <- clust.gammas$gammas.colsums/rowSums(clust.gammas$gammas.colsums)
       clust.gammas.norm <- clust.gammas/rowSums(clust.gammas) #normalize gammas to 1
       
-      counts.l[[j]] <- counts  #store raw SS reads counts per PB read per SS library
+      #counts.l[[j]] <- counts  #store raw SS reads counts per PB read per SS library
       #clust.gammas.colsums.l[[j]] <- clust.gammas$gammas.colsums
       clust.gammas.colsums.l[[j]] <- clust.gammas
       #clust.gammas.rowsums.l[[j]] <- clust.gammas$gammas.rowsums

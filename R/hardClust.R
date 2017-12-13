@@ -2,51 +2,28 @@
 #'
 #' This function expects output from custom minimap test dataset that contains original locations of mapped reads in the genome.
 #'
-#' @param tab.l A \code{list} of PB alignmetns separated per cell.
+#' @param counts.l A \code{list} of directional read counts per PB read per library.
 #' @inheritParams SaaRclust
 #' @return A \code{list} of estimated theta values for every cluster and cell.
 #' @author David Porubsky
 #' @export
 
-hardClust <- function(tab.l=NULL, num.clusters=NULL, alpha=0.1) {
+hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1) {
 
   message("Hard clustering")
-  ptm <- startTimedMessage("    Counting directional reads ...") 
+  ptm <- startTimedMessage("    Kmeans clustering for ",num.clusters," clusters ...") 
+  
   ratios.l <- list()
-  counts.l <- list()
-  for (j in 1:length(tab.l)) {
-    lib.name <- names(tab.l[j])
+  for (j in 1:length(counts.l)) {
+    #lib.name <- names(tab.l[j])
     #message("\tWorking on ",lib.name)
-    lib.aligns <- tab.l[[j]]
-    
-    #count directional reads per PB read (SLOWEST)
-    #aligns.per.read <- split(lib.aligns$strand, lib.aligns$PBreadNames)
-    #counts <- t(sapply(aligns.per.read, function(x) table(x)))
-
-    #count directional reads per PB read (FASTEST)  
-    counts <- data.table(lib.aligns)[,table(strand),by=PBreadNames] #even faster option TEST
-    cov.PBreads <- counts$PBreadNames
-    uncov.PBreads <- levels(cov.PBreads)[!levels(cov.PBreads) %in% cov.PBreads]
-    counts <- rbind(matrix(counts$V1, ncol=2, byrow = T), matrix(rep(0, 2*length(uncov.PBreads)), ncol=2) )
-    rownames(counts) <- c(as.character(unique(cov.PBreads)), uncov.PBreads)
-    counts <- counts[order(match(rownames(counts),levels(lib.aligns$PBreadNames))),]
-    
-    #count directional reads per PB read (MEDIUM)
-    #counts <- aggregate(strand ~ PBreadNames, data=lib.aligns, FUN=table)
-    #cov.PBreads <- counts$PBreadNames
-    #uncov.PBreads <- levels(cov.PBreads)[!levels(cov.PBreads) %in% cov.PBreads]
-    #counts <- rbind(counts[,2], matrix(rep(0, 2*length(uncov.PBreads)), ncol=2) )
-    #rownames(counts) <- c(as.character(cov.PBreads), uncov.PBreads)
-    #counts <- counts[order(match(rownames(counts),levels(lib.aligns$PBreadNames))),]
+    counts <- counts.l[[j]]
   
     ratios <- (counts[,2]-counts[,1])/(counts[,2]+counts[,1]) #calculate ratio of WW reads
     ratios[is.nan(ratios)] <- 0
     ratios.l[[j]] <- ratios
-    counts.l[[j]] <- counts
   }
-  stopTimedMessage(ptm)
 
-  ptm <- startTimedMessage("    Kmeans clustering for ",num.clusters," clusters ...") 
   ratios.m <- do.call(cbind, ratios.l)
   ratios.m[ratios.m<0] <- -1
   ratios.m[ratios.m>0] <- 1
