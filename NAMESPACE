@@ -2,6 +2,7 @@
 
 export(EMclust)
 export(SaaRclust)
+export(countDirectionalReads)
 export(countProb)
 export(filterInput)
 export(findClusterPartners)
@@ -20,4 +21,5 @@ export(plotReadMappingDist)
 export(plotThetaEstimates)
 export(randomTheta)
 export(rescaleTheta)
+export(runSaaRclust)
 export(thetaRescale)

@@ -14,7 +14,7 @@
 
 #load the function below into R if you want to run all steps in one command
 
-runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", num.clusters=44, EM.iter=100, alpha=0.1, logL.th=1, theta.constrain=FALSE, verbose=TRUE) {
+runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", num.clusters=44, EM.iter=100, alpha=0.1, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, verbose=TRUE) {
   
   #=========================#
   ### Create directiories ###
@@ -26,17 +26,19 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   }
   
   #Directory to store raw read counts
-  data.store <- file.path(outputfolder, 'Data')
-  if (!file.exists(data.store)) {
-    dir.create(data.store)
+  if (store.counts) {
+    rawcounts.store <- file.path(outputfolder, 'RawCounts')
+    if (!file.exists(rawcounts.store)) {
+      dir.create(rawcounts.store)
+    }
   }
-  
+
   #Directory to stare processed/clustered data
-  clusters.store <- file.path(outputfolder, 'Clusters')
-  if (!file.exists(clusters.store)) {
-    dir.create(clusters.store)
+  Clusters.store <- file.path(outputfolder, 'Clusters')
+  if (!file.exists(Clusters.store)) {
+    dir.create(Clusters.store)
   }
-  
+
   #Directory to store 'difficult' PacBio reads for later processing [TODO]
   #trashbin.store <- file.path(outputfolder, 'TrashBin')
   #if (!file.exists(trashbin.store)) {
@@ -47,10 +49,14 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   file.list <- list.files(path = inputfolder, pattern = "mimimapChunk")
   
   for (file in file.list) {
-    SaaRclust(minimap.file=file, outputfolder=outputfolder, num.clusters=num.clusters, EM.iter=EM.iter, alpha=alpha, logL.th=logL.th, theta.constrain=theta.constrain)
+    if (verbose) {
+      clust.obj <- SaaRclust(minimap.file=file, outputfolder=outputfolder, num.clusters=num.clusters, EM.iter=EM.iter, alpha=alpha, logL.th=logL.th, theta.constrain=theta.constrain)
+    } else {
+      suppressMessages(  clust.obj <- SaaRclust(minimap.file=file, outputfolder=outputfolder, num.clusters=num.clusters, EM.iter=EM.iter, alpha=alpha, logL.th=logL.th, theta.constrain=theta.constrain) )
+    }
   }
   
-  #load processed data
+  #load processed data [TODO]
   
 }
 

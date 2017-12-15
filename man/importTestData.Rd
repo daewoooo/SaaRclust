@@ -4,7 +4,7 @@
 \alias{importTestData}
 \title{Import output from the minimap}
 \usage{
-importTestData(infile = NULL)
+importTestData(infile = NULL, removeDuplicates = TRUE)
 }
 \arguments{
 \item{infile}{A path to the minimap file to load.}

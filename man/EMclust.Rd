@@ -4,11 +4,11 @@
 \alias{EMclust}
 \title{EM function}
 \usage{
-EMclust(tab.l, theta.l = NULL, pi.param = NULL, num.iter = 100,
+EMclust(counts.l, theta.l = NULL, pi.param = NULL, num.iter = 100,
   alpha = 0.1, logL.th = 1)
 }
 \arguments{
-\item{tab.l}{A \code{list} of PB alignmetns separated per cell.}
+\item{counts.l}{A \code{list} of PB alignmetns separated per cell.}
 
 \item{pi.param}{A \code{vector} of estimated sizes of each cluster based on initial hard clustering.}
 

@@ -4,10 +4,10 @@
 \alias{hardClust}
 \title{Hard clustering using k-means}
 \usage{
-hardClust(tab.l = NULL, num.clusters = NULL, alpha = 0.1)
+hardClust(counts.l = NULL, num.clusters = NULL, alpha = 0.1)
 }
 \arguments{
-\item{tab.l}{A \code{list} of PB alignmetns separated per cell.}
+\item{counts.l}{A \code{list} of directional read counts per PB read per library.}
 
 \item{num.clusters}{Expected number of clusters. (for 22 autosomes == 44 clusters)}
 
