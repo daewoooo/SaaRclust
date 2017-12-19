@@ -80,7 +80,7 @@ importTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO modify
 #' @author David Porubsky
 #' @export
 
-filterInput <- function(inputData=NULL, quantileSSreads=c(0.1,0.9)) {
+filterInput <- function(inputData=NULL, quantileSSreads=c(0.1,0.9), , min.SS.reads=6) {
   
   ptm <- startTimedMessage("Filtering the data ...") 
   #get number of SS reads per PB read
@@ -88,7 +88,7 @@ filterInput <- function(inputData=NULL, quantileSSreads=c(0.1,0.9)) {
 
   #filter reads based on the mean number of SS reads aligned per each PB read
   quantile.range <- quantile(SSread.perPB, probs = quantileSSreads)
-  maskNames <- names(SSread.perPB)[SSread.perPB >= quantile.range[1] & SSread.perPB <= quantile.range[2]]
+  maskNames <- names(SSread.perPB)[SSread.perPB >= max(quantile.range[1], min.SS.reads) & SSread.perPB <= quantile.range[2]]
   inputData.filt <- inputData[inputData$PBreadNames %in% maskNames,]
   
   #filter reads based on the number of SS libs per PB read
