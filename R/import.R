@@ -5,7 +5,7 @@
 #' @param infile A path to the minimap file to load.
 #' @return A \code{data.frame}.
 #' @author David Porubsky
-#' @export
+#' @export 
 
 importTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO modify this function for input where genomic location of PB reads is unknown
 
