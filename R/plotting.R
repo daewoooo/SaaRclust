@@ -100,6 +100,7 @@ plotClustAccuracy <- function(pVal.df=NULL, num.clusters=NULL, thresh=c(0.5,0.6,
     mask <- max.pVal >= th
     ord <- apply(pVals[mask,], 1, which.max)
     chr.clusts <- split(chr.rows[mask], ord)
+    chr.clusts <- lapply(chr.clusts, unlist) #Check why is this problem???
     clust.acc <- getClusterAcc(chr.clusts)
     frac.corr <- sum(clust.acc$stat$trues)/(sum(clust.acc$stat$trues) + sum(clust.acc$stat$miss))
     eval.reads <- table(mask)
@@ -109,6 +110,7 @@ plotClustAccuracy <- function(pVal.df=NULL, num.clusters=NULL, thresh=c(0.5,0.6,
   
   #get hard clust accuracy
   chr.clusts <- split(chr.rows, pVal.df$hardClust)
+  chr.clusts <- lapply(chr.clusts, unlist) #Check why is this problem???
   clust.acc <- getClusterAcc(chr.clusts)
   frac.corr <- sum(clust.acc$stat$trues)/(sum(clust.acc$stat$trues) + sum(clust.acc$stat$miss))
   
