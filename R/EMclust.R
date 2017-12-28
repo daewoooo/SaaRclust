@@ -99,12 +99,12 @@ EMclust <- function(counts.l, theta.l=NULL, pi.param=NULL, num.iter=100, alpha=0
     #preprocess data in order to perform soft clustering and calculate likelihood function
     clust.prod <- list()
     soft.probs <- list()
-    for (i in 1:length(pi.param)) {
-      clust.cell <- lapply(clusters.per.cell, `[[`, i)
+    for (k in 1:length(pi.param)) {
+      clust.cell <- lapply(clusters.per.cell, `[[`, k)
       clust.rowsums.prod <- Reduce("*", clust.cell)
-      clust.soft.prob <- clust.rowsums.prod * pi.param[i]
-      clust.prod[[i]] <- clust.rowsums.prod
-      soft.probs[[i]] <- clust.soft.prob
+      clust.soft.prob <- clust.rowsums.prod * pi.param[k]
+      clust.prod[[k]] <- clust.rowsums.prod
+      soft.probs[[k]] <- clust.soft.prob
     }
     cluts.tab.update <- do.call(cbind, clust.prod)
     
