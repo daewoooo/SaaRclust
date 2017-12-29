@@ -109,9 +109,9 @@ EMclust <- function(counts.l, theta.l=NULL, pi.param=NULL, num.iter=100, alpha=0
     cluts.tab.update <- do.call(cbind, clust.prod)
     
     #calc likelihood function
-    #log.like <- sum(log(rowSums(cluts.tab.update * pi.param)))*(-1)
+    log.like <- sum(log(rowSums(cluts.tab.update * pi.param)))*(-1)
     cluts.tab.update <- cluts.tab.update * pi.param
-    log.like <- kahansum(log(apply(cluts.tab.update, 1, kahansum)))*(-1)
+    #log.like <- kahansum(log(apply(cluts.tab.update, 1, kahansum)))*(-1)
     
     #Check the difference between previous and last results of likelihood function
     if (length(log.like.l) > 0) {
