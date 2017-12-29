@@ -27,7 +27,7 @@ hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1) {
   ratios.m <- do.call(cbind, ratios.l)
   ratios.m[ratios.m<0] <- -1
   ratios.m[ratios.m>0] <- 1
-  km <- suppressWarnings( kmeans(ratios.m, centers = num.clusters, nstart = 100) )
+  km <- suppressWarnings( kmeans(ratios.m, centers = num.clusters, nstart = 20) )
   ord <- km$cluster
   #ratios.m.ord <- ratios.m[order(ord),]
   stopTimedMessage(ptm)
