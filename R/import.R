@@ -80,29 +80,30 @@ importTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO modify
 #' @author David Porubsky
 #' @export
 
-filterInput <- function(inputData=NULL, quantileSSreads=c(0.1,0.9)) {
+
+filterInput <- function(inputData=NULL, quantileSSreads=c(0.1,0.9), minSSlibs=7) {
   
   ptm <- startTimedMessage("Filtering the data ...") 
+  
+  #remove SS reads mapped with huge gaps (eg. summed gaps 100bp)
+  gaps.perSS.mean <- round(mean(inputData$MatchedBasesWithGaps))
+  inputData.filt <- inputData[inputData$MatchedBasesWithGaps <= gaps.perSS.mean,]
+  
   #get number of SS reads per PB read
-  SSread.perPB <- sort(table(inputData$PBreadNames), decreasing = T) #this won't be needed when output will be already sorted by PBreads
-
+  SSread.perPB <- sort(table(inputData.filt$PBreadNames), decreasing = T) #this won't be needed when output will be already sorted by PBreads
+  
   #filter reads based on the mean number of SS reads aligned per each PB read
   quantile.range <- quantile(SSread.perPB, probs = quantileSSreads)
   maskNames <- names(SSread.perPB)[SSread.perPB >= quantile.range[1] & SSread.perPB <= quantile.range[2]]
-  inputData.filt <- inputData[inputData$PBreadNames %in% maskNames,]
+  inputData.filt <- inputData.filt[inputData.filt$PBreadNames %in% maskNames,]
   
   #filter reads based on the number of SS libs per PB read
   SSlib.perPB <- split(as.factor(inputData.filt$SSlibNames), inputData.filt$PBreadNames)
   SSlib.perPB.counts <- sapply(SSlib.perPB, function(x) length(unique(x)))
-  maskNames <- names(SSlib.perPB.counts)[SSlib.perPB.counts >= median(SSlib.perPB.counts)]
-  inputData.filt <- inputData[inputData$PBreadNames %in% maskNames,]
-  
-  #remove SS reads mapped with huge gaps (eg. summed gaps 100bp)
-  gaps.perSS.mean <- round(mean(inputData.filt$MatchedBasesWithGaps))
-  inputData.filt <- inputData.filt[inputData.filt$MatchedBasesWithGaps <= gaps.perSS.mean,]
+  maskNames <- names(SSlib.perPB.counts)[SSlib.perPB.counts >= minSSlibs]
+  inputData.filt <- inputData.filt[inputData.filt$PBreadNames %in% maskNames,]
   
   stopTimedMessage(ptm)
   return(inputData.filt)
 }
-
 
