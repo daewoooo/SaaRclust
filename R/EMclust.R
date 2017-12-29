@@ -126,7 +126,9 @@ EMclust <- function(counts.l, theta.l=NULL, pi.param=NULL, num.iter=100, alpha=0
       }
     }  
     
-    log.like.l[[length(log.like.l)+1]] <- log.like
+    if (! is.infinite(log.like)){
+      log.like.l[[length(log.like.l)+1]] <- log.like
+    } else {message("Warning: infinite objective function")}
     
   stopTimedMessage(ptm)
   }
