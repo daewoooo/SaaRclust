@@ -8,7 +8,7 @@
 #' @author David Porubsky
 #' @export
 
-hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1) {
+hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1, nstart=10, iter.max=100) {
 
   message("Hard clustering")
   ptm <- startTimedMessage("    Kmeans clustering for ",num.clusters," clusters ...") 
@@ -27,7 +27,7 @@ hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1) {
   ratios.m <- do.call(cbind, ratios.l)
   ratios.m[ratios.m<0] <- -1
   ratios.m[ratios.m>0] <- 1
-  km <- suppressWarnings( kmeans(ratios.m, centers = num.clusters, nstart = 20) )
+  km <- suppressWarnings( kmeans(ratios.m, centers = num.clusters, nstart = nstart, iter.max = iter.max) )
   ord <- km$cluster
   #ratios.m.ord <- ratios.m[order(ord),]
   stopTimedMessage(ptm)
