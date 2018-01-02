@@ -8,25 +8,25 @@
 #' @author David Porubsky
 #' @export
 
-hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1, nstart=10, iter.max=100) {
+hardClust <- function(counts.l=NULL, ratios.m, num.clusters=NULL, alpha=0.1, nstart=10, iter.max=10) {
 
   message("Hard clustering")
   ptm <- startTimedMessage("    Kmeans clustering for ",num.clusters," clusters ...") 
   
-  ratios.l <- list()
-  for (j in 1:length(counts.l)) {
-    #lib.name <- names(tab.l[j])
-    #message("\tWorking on ",lib.name)
-    counts <- counts.l[[j]]
-  
-    ratios <- (counts[,2]-counts[,1])/(counts[,2]+counts[,1]) #calculate ratio of WW reads
-    ratios[is.nan(ratios)] <- 0
-    ratios.l[[j]] <- ratios
-  }
-
-  ratios.m <- do.call(cbind, ratios.l)
-  ratios.m[ratios.m<0] <- -1
-  ratios.m[ratios.m>0] <- 1
+  # ratios.l <- list()
+  # for (j in 1:length(counts.l)) {
+  #   #lib.name <- names(tab.l[j])
+  #   #message("\tWorking on ",lib.name)
+  #   counts <- counts.l[[j]]
+  # 
+  #   ratios <- (counts[,2]-counts[,1])/(counts[,2]+counts[,1]) #calculate ratio of WW reads
+  #   ratios[is.nan(ratios)] <- 0
+  #   ratios.l[[j]] <- ratios
+  # }
+  # 
+  # ratios.m <- do.call(cbind, ratios.l)
+  # ratios.m[ratios.m<0] <- -1
+  # ratios.m[ratios.m>0] <- 1
   km <- suppressWarnings( kmeans(ratios.m, centers = num.clusters, nstart = nstart, iter.max = iter.max) )
   ord <- km$cluster
   #ratios.m.ord <- ratios.m[order(ord),]
@@ -66,4 +66,62 @@ hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1, nstart=10, it
   
   #return(list(theta.estim=theta.estim, clust.id=ord, raw.counts=counts.l))
   return(list(theta.estim=theta.estim, clust.id=ord))
-}  
+}
+
+#' Get the feature vector based on the W ratios
+#'
+#' This function expects output from custom minimap test dataset that contains original locations of mapped reads in the genome.
+#'
+#' @param counts.l A \code{list} of directional read counts per PB read per library.
+#' @inheritParams SaaRclust
+#' @return A \code{list} of estimated theta values for every cluster and cell.
+#' @author Maryam Ghareghani
+#' @export
+
+WratiosFeatures <- function(counts.l=NULL) {
+  ratios.l <- list()
+  for (j in 1:length(counts.l)) {
+    #lib.name <- names(tab.l[j])
+    #message("\tWorking on ",lib.name)
+    counts <- counts.l[[j]]
+    
+    ratios <- (counts[,2]-counts[,1])/(counts[,2]+counts[,1]) #calculate ratio of WW reads
+    ratios[is.nan(ratios)] <- 0
+    ratios.l[[j]] <- ratios
+  }
+  
+  ratios.m <- do.call(cbind, ratios.l)
+  #ratios.m[ratios.m<0] <- -1
+  #ratios.m[ratios.m>0] <- 1
+  
+  ratios.m
+}
+
+#' Get the feature vector based on both W and C ratios
+#'
+#' This function expects output from custom minimap test dataset that contains original locations of mapped reads in the genome.
+#'
+#' @param counts.l A \code{list} of directional read counts per PB read per library.
+#' @inheritParams SaaRclust
+#' @return A \code{list} of estimated theta values for every cluster and cell.
+#' @author Maryam Ghareghani
+#' @export
+
+WandCratiosFeatures <- function(counts.l=NULL) {
+  ratios.l <- list()
+  for (j in 1:length(counts.l)) {
+    #lib.name <- names(tab.l[j])
+    #message("\tWorking on ",lib.name)
+    counts <- counts.l[[j]]
+    
+    ratios <- counts/(counts[,2]+counts[,1]) #calculate ratio of WW reads
+    ratios[is.nan(ratios)] <- 0
+    ratios.l[[j]] <- ratios
+  }
+  
+  ratios.m <- do.call(cbind, ratios.l)
+  #ratios.m[ratios.m<0] <- -1
+  #ratios.m[ratios.m>0] <- 1
+  
+  ratios.m
+}
