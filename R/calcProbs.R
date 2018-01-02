@@ -11,7 +11,7 @@
 
 countProb <- function(minusCounts, plusCounts, alpha=0.1) {
   
-  #TODO: it's equivalent to dbinom function
+  #TODO: it's equivalent to dbinom function 
   
   minusCounts <- as.numeric(minusCounts)
   plusCounts <- as.numeric(plusCounts)
