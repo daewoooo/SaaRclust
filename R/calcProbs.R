@@ -11,6 +11,7 @@
 
 countProb <- function(minusCounts, plusCounts, alpha=0.1) {
   
+  #TODO: it's equivalent to dbinom function
   
   minusCounts <- as.numeric(minusCounts)
   plusCounts <- as.numeric(plusCounts)
@@ -32,7 +33,7 @@ countProb <- function(minusCounts, plusCounts, alpha=0.1) {
   
   prob.mix <- prob.wc
   
-  prob.m <- cbind(prob.ww, prob.cc, prob.mix)
+  prob.m <- choose(n=minusCounts+plusCounts, k=plusCounts) * cbind(prob.ww, prob.cc, prob.mix)
   
   return(prob.m)
 }
