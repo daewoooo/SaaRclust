@@ -13,7 +13,7 @@
 #NOTE: I suggest to run this code line by line for debugging purposes
 
 #minimap test files are present in TestData folder
-#minimap.file <- "/media/daewoooo/WORK/SS2PacBio_alignment_HG00733/WholeGenomeAnalysis/subsetMinimap.txt"
+#minimap.file <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/subsetMinimap.txt"
 #minimap.file <- "/media/daewoooo/WORK/SS2PacBio_alignment_HG00733/Test_cluster_chr21&chr22/Minimap_out/SS2Pacbio_minimap_HG00733_k13_w1_L70_f0.01_Chr21andChr22_allSSreads"
 #minimap.file <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/NA12878_WashU_PBreads_chunk14.maf.gz"
 
@@ -32,6 +32,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   
   ### Read in minimap output file ###
   suppressWarnings( tab.in <- importTestData(infile = minimap.file, removeDuplicates = TRUE) )#SLOW because test data have to be processed differently
+  #suppressWarnings( tab.in <- importOldTestData(infile = minimap.file, removeDuplicates = TRUE) ) #use this function to import old test data (HG00733) from HGSVC
   #tab.in <- tab.in[tab.in$SSchrom != 'chrUn' & tab.in$SSchrom != 'chrX',] #applies only for test data
   #tab.in <- tab.in[tab.in$PBchrom %in% paste0('chr', c(18:22)),] #run only sertain chromosomes
   

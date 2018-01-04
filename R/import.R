@@ -69,6 +69,77 @@ importTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO modify
   return(tab)
 }
 
+#' Import old output from the minimap
+#'
+#' This function expects output from custom minimap test dataset that contains original locations of mapped reads in the genome.
+#'
+#' @param infile A path to the minimap file to load.
+#' @return A \code{data.frame}.
+#' @author David Porubsky
+#' @export 
+
+importOldTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO modify this function for input where genomic location of PB reads is unknown
+  
+  ptm <- startTimedMessage("Reading the data ...") 
+  #data <- read.table(infile, header=F) #TODO test data.table package for faster data import
+  
+  #filetype = summary( file(infile) )$class #If it's gzipped, filetype will be gzfile
+  if (summary( file(infile) )$class == 'gzfile') {
+    data <- data.table::fread(paste0('gunzip -cq ',infile), header=F, verbose = F, showProgress = F)
+  } else {
+    data <- data.table::fread(infile, header=F, verbose = F, showProgress = F)
+  }
+  
+  SSreadIDs <- as.character(data$V1)
+  PBreadIDs <- as.character(data$V6)
+  #SSreadIDs <- as.character(data$V6)
+  #PBreadIDs <- as.character(data$V1)
+  
+  SSreadNames.fields <- data.table::tstrsplit(SSreadIDs, "_")
+  PBreadNames.fields <- data.table::tstrsplit(PBreadIDs, "_")
+  
+  SSreadNames <-  SSreadNames.fields[[1]] 
+  SSlibNames <- paste(SSreadNames.fields[[2]], SSreadNames.fields[[3]], SSreadNames.fields[[4]], sep="_")
+  #SSlibNames <- paste(SSreadNames.fields[[2]], SSreadNames.fields[[3]], sep="_")
+  
+  SSflag <- SSreadNames.fields[[5]] 
+  SSchrom <- SSreadNames.fields[[6]] 
+  SSpos <- SSreadNames.fields[[7]] 
+  #SSflag <- SSreadNames.fields[[4]] 
+  #SSchrom <- SSreadNames.fields[[5]] 
+  #SSpos <- SSreadNames.fields[[6]] 
+  
+  PBreadNames <-  paste(PBreadNames.fields[[1]], PBreadNames.fields[[2]], PBreadNames.fields[[3]], PBreadNames.fields[[4]], PBreadNames.fields[[5]], PBreadNames.fields[[6]], PBreadNames.fields[[7]], sep="_")       
+  PBflag <- PBreadNames.fields[[8]] 
+  PBchrom <- PBreadNames.fields[[9]] 
+  PBpos <- PBreadNames.fields[[10]] 
+  
+  tab <- data.frame(SSreadNames=SSreadNames, 
+                    SSlibNames=SSlibNames, 
+                    SSflag=SSflag, 
+                    SSchrom=SSchrom, 
+                    SSpos=SSpos, 
+                    SSreadLen=data$V2,
+                    strand=factor(data$V5),
+                    PBreadNames=PBreadNames,
+                    PBflag=PBflag,
+                    PBchrom=PBchrom,
+                    PBpos=PBpos,
+                    MatchedBases=data$V10,
+                    MatchedBasesWithGaps=data$V11,
+                    stringsAsFactors = F
+  )
+  
+  if (removeDuplicates) {
+    bit.flag <- bitwAnd(1024, as.numeric(tab$SSflag))
+    mask <- bit.flag == 0 	
+    tab <- tab[mask,]
+  }  	
+  
+  stopTimedMessage(ptm)
+  return(tab)
+}
+
 
 #' Filter input data from the minimap
 #'
