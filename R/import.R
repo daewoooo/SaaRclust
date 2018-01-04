@@ -54,6 +54,7 @@ importTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO modify
                   PBflag=PBflag,
                   PBchrom=PBchrom,
                   PBpos=PBpos,
+                  PBreadLen=data$V7,
                   MatchedBases=data$V10,
                   MatchedBasesWithGaps=data$V11,
                   stringsAsFactors = F
@@ -125,6 +126,7 @@ importOldTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO mod
                     PBflag=PBflag,
                     PBchrom=PBchrom,
                     PBpos=PBpos,
+                    PBreadLen=data$V7,
                     MatchedBases=data$V10,
                     MatchedBasesWithGaps=data$V11,
                     stringsAsFactors = F
