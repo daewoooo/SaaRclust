@@ -21,6 +21,7 @@
 
 SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.clusters=44, EM.iter=100, alpha=0.1, logL.th=1, theta.constrain=FALSE, store.counts=FALSE) {
   
+  set.seed(1000)
   #get file ID
   fileID <- basename(minimap.file)
   fileID <- strsplit(fileID, "\\.")[[1]][1]
