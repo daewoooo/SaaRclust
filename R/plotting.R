@@ -43,7 +43,10 @@ plotQualMeasure <- function(summary.tab) {
   true.lab <- paste('MATCH ', trues, '%', sep = "")
   gaps.perSS.plt <- ggplot(mapp.gaps.tab) + geom_linerange(aes(x=c(1:nrow(mapp.gaps.tab)),ymin=0, ymax=matchWithgaps, color=mapp.accur)) + theme_bw() + geom_hline(yintercept = gaps.perSS.mean, color="red") + geom_text(aes(nrow(mapp.gaps.tab), gaps.perSS.mean, label = gaps.perSS.mean, vjust = -1), color="red") + xlab("Sorted SS reads by the length\nof SS read alignment (bp)") + ylab("(bp) SS read alignment with gaps (log10)") + scale_y_continuous(trans = "log10") + scale_color_manual(labels = c(false.lab, true.lab), values = c("red", "green"))
  
-  suppressWarnings( plt <- plot_grid(read.dist.plt, read.dist.plt.log, SSlib.perPB.plt, SSlib.perPB.plt.log, SScov.stat.plt, gaps.perPB.plt, ncol = 2) )
+  #plot PB read length distribution
+  PBreadLenDist <- ggplot(summary.tab$PBreadLenDist) + geom_linerange(aes(x=midpoints, ymin=0, ymax=freq), size=3)
+  
+  suppressWarnings( plt <- plot_grid(read.dist.plt, read.dist.plt.log, SSlib.perPB.plt, SSlib.perPB.plt.log, SScov.stat.plt, gaps.perPB.plt, PBreadLenDist, ncol = 2) )
   return(plt)
 }
 

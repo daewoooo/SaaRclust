@@ -32,7 +32,11 @@ getQualMeasure <- function(data.tab) {
   summary.df$gaps.perPB <- match.gaps.sums[summary.df$PBreadNames]
   summary.df$gaps.perPB.norm <- summary.df$gaps.perPB / as.vector(SSread.perPB)
   
-  return(list(mapp.stat.counts = summary.df, mapp.gaps.stat=mapp.gaps.df, mapp.accur=mapp.accur, SScov.stat=SSlib.perPB.m))
+  #get PB read distribution hist
+  hist.data <- hist(data.tab$PBreadLen, breaks = 100)
+  hist.df <- data.frame(midpoints= hist.data$mids, freq= hist.data$counts)
+  
+  return(list(mapp.stat.counts = summary.df, mapp.gaps.stat=mapp.gaps.df, mapp.accur=mapp.accur, SScov.stat=SSlib.perPB.m, PBreadLenDist=hist.df))
 }
 
 #' Check clustering accuracy
