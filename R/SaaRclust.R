@@ -127,11 +127,11 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   logl.diff <- round(max(logl.df$log.l) - min(logl.df$log.l), digits = 0)
   logL.plt <- ggplot(logl.df) + geom_line(aes(x=iter, y=log.l), color="red") + xlab("EM iterations") + ylab("Likelihood function") + annotate("text",  x=Inf, y = Inf, label = paste("Diff: ",logl.diff), vjust=1, hjust=1)
   #plot cluster accuracy
-  #acc.plt <- plotClustAccuracy(pVal.df = soft.clust.df, num.clusters = num.clusters) [Fix bug!!!]
+  acc.plt <- plotClustAccuracy(pVal.df = soft.clust.df, num.clusters = num.clusters)
   #plot theta values
   theta.plt <- plotThetaEstimates(theta.param = soft.clust$theta.param, title = fileID)
   #plot heatmap
-  #hm.plt <- plotHeatmap(pVal.df = soft.clust.df, colOrder=NULL, num.clusters = num.clusters)
+  hm.plt <- plotHeatmap(pVal.df = soft.clust.df, colOrder=NULL, num.clusters = num.clusters)
   
   ### Save data ###
   destination <- file.path(Clusters.store, paste0(fileID, ".RData"))

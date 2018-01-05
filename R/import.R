@@ -148,19 +148,28 @@ importOldTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO mod
 #' This function filters loaded data from the minimap.
 #'
 #' @param inputData A \code{data.frame} loaded by \code{\link[SaaRclust]{importTestData}}
-#' @param quantileSSreads A quantile range for number of SSreads mapped to PB read. (default: 0.4-0.6)
+#' @param quantileSSreads A quantile range for number of SSreads mapped to PB read. (default: 0.4-0.9)
 #' @return A filtered \code{data.frame}.
 #' @author David Porubsky
 #' @export
 
 
-filterInput <- function(inputData=NULL, quantileSSreads=c(0.1,0.9), minSSlibs=7) {
+filterInput <- function(inputData=NULL, quantileSSreads=c(0.4,0.9), minSSlibs=20) {
   
-  ptm <- startTimedMessage("Filtering the data ...") 
+  ptm <- startTimedMessage("Filtering the data ...")
   
   #remove SS reads mapped with huge gaps (eg. summed gaps 100bp)
   gaps.perSS.mean <- round(mean(inputData$MatchedBasesWithGaps))
   inputData.filt <- inputData[inputData$MatchedBasesWithGaps <= gaps.perSS.mean,]
+  
+  #remove SS reads mapped to multiple PB reads
+  #rle.SSreads <- rle(inputData.filt$SSreadNames)
+  #mask <- rle.SSreads$lengths == 1
+  #single.SSreads <- unique(inputData.filt$SSreadNames)[mask]
+  ##multi.SSreads <- unique(inputData.filt$SSreadNames)[!mask]
+  ##single <- inputData.filt[inputData.filt$SSreadNames %in% single.SSreads,]
+  ##multi <- inputData.filt[inputData.filt$SSreadNames %in% multi.SSreads,]
+  #inputData.filt <- inputData.filt[inputData.filt$SSreadNames %in% single.SSreads,]
   
   #get number of SS reads per PB read
   SSread.perPB <- sort(table(inputData.filt$PBreadNames), decreasing = T) #this won't be needed when output will be already sorted by PBreads

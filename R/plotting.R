@@ -77,7 +77,7 @@ plotHeatmap <- function(pVal.df=NULL, colOrder=NULL, num.clusters=NULL) {
     pVal.df$PBchrom <- as.numeric(gsub('^chr', '', pVal.df$PBchrom))
     pVal.df <- pVal.df[order(pVal.df$PBchrom),]
     ha1 = rowAnnotation(df = data.frame(chr = pVal.df$PBchrom), col = list(chr=chr.colors))
-    ha2 = rowAnnotation(df = data.frame(PB.dir = pVal.df$PBflag), col = list(PB.dir = c('0'="chocolate1", '16'="chartreuse3")))
+    ha2 = rowAnnotation(df = data.frame(PB.dir = pVal.df$PBflag), col = list(PB.dir = c('0'="chocolate1", '16'="chartreuse3", '2048'="white", '2064'="white")))
     hm <- Heatmap(pVal.df[,c(1:num.clusters)], name = "Probs", cluster_columns = F, cluster_rows = F, show_row_names = FALSE)
     hm + ha1 + ha2
   } else {
