@@ -86,6 +86,16 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   #chr.clusts <- split(chr.rows, hard.clust$clust.id)
   #clust.acc <- getClusterAcc(chr.clusts)
   
+  # define the classe (true clusters) -- we may need to add an additional line for removing the PB reads with more than 1 chr or direction
+  classes <- paste0(chr.rows, "_", pb.flag)
+  names(classes) <- names(chr.rows)
+  # accuracy based on chrom and dir
+  acc <- maryam_hardClustAccuracy(hard.clust = hard.clust, classes=classes, tab.filt = tab.filt)
+  # accuracy based on chrom only
+  #acc_chrom <- maryam_hardClustAccuracy(hard.clust = hard.clust.chrom, classes=chr.rows, tab.filt = tab.filt)
+  print(acc)
+  print(paste("number of missing clusters =", length(acc$missed.clusters)))
+  
   #initialize thetas
   theta.l <- hard.clust$theta.estim
   #theta.l <- randomTheta(num.cells=100, num.clusters=num.clusters)
