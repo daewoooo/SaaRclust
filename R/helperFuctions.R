@@ -70,6 +70,48 @@ getClusterAcc <- function(clusters) {
   return(list(stat=stat, miss.reads=miss.reads))
 }
 
+                               
+#' Computes the performance of the hard clustering algorithm
+#' @param hard.clust hard clustring result
+#' @param tab.filt table of filtered read counts
+#' @param female a binary argument showing the sex of the individual
+#' @author Maryam Ghareghani
+#' @export
+
+maryam_hardClustAccuracy <- function(hard.clust, classes, tab.filt, female=TRUE)
+{
+  # filter and keep PB reads that have only defined (true) chromosome names with flag 0 or 16
+  if(female)
+  {
+    filt.chrom <- which(grepl('^chr[0-9X][0-9]?$',tab.filt$PBchrom))
+  } else {
+    filt.chrom <- which(grepl('^chr[0-9XY][0-9]?$',tab.filt$PBchrom))
+  }
+  filt.flag <- union(which(tab.filt$PBflag == 0), which(tab.filt$PBflag == 16))
+  filt <- intersect(filt.chrom, filt.flag)
+  tab <- tab.filt[filt,]
+  
+  classes <- classes[which(names(classes) %in% tab$PBreadNames)]
+  clusters <- hard.clust$clust.id[which(rownames(ratios) %in% names(classes))]
+  ord <- order(names(classes))
+  classes <- classes[ord]
+  clusters <- clusters[ord]
+  
+  t <- table(classes, clusters)
+  clust.assigned <- apply(t, 2, function(x) which(x == max(x))[1])
+  clust.purity <- sum(sapply(1:length(clust.assigned), function(i) t[clust.assigned[i],i]))/length(clusters)
+  
+  missed <- setdiff(1:nrow(t), clust.assigned)
+  names(missed) <- rownames(t)[missed]
+  clust.purity.perClust <- sapply(1:length(clust.assigned), function(i) t[clust.assigned[i],i]/sum(t[,i]))
+  
+  df <- data.frame(clustIDs=clust.assigned, clustNames=rownames(t)[clust.assigned], accuracy=clust.purity.perClust)
+  df <- df[order(clust.purity.perClust),]
+  
+  
+  list(acc=clust.purity, missed.clusters = missed)
+}
+
 
 #' Rescale theta values for WC cell type
 #'
