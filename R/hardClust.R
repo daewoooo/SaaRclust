@@ -68,7 +68,7 @@ hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1, nstart=10, it
   return(list(theta.estim=theta.estim, clust.id=ord))
 }
 
-#' Get the feature vector based on the W ratios
+#' Get the feature vector based on the WmiunsC ratios
 #'
 #' This function expects output from custom minimap test dataset that contains original locations of mapped reads in the genome.
 #'
@@ -78,7 +78,7 @@ hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1, nstart=10, it
 #' @author Maryam Ghareghani
 #' @export
 
-WratiosFeatures <- function(counts.l=NULL) {
+WminusCratiosFeatures <- function(counts.l=NULL) {
   ratios.l <- list()
   for (j in 1:length(counts.l)) {
     #lib.name <- names(tab.l[j])
@@ -86,6 +86,36 @@ WratiosFeatures <- function(counts.l=NULL) {
     counts <- counts.l[[j]]
     
     ratios <- (counts[,2]-counts[,1])/(counts[,2]+counts[,1]) #calculate ratio of WW reads
+    ratios[is.nan(ratios)] <- 0
+    ratios.l[[j]] <- ratios
+  }
+  
+  ratios.m <- do.call(cbind, ratios.l)
+  #ratios.m[ratios.m<0] <- -1
+  #ratios.m[ratios.m>0] <- 1
+  
+  ratios.m
+}
+
+#' Get the feature vector based on the max{W,C} ratios
+#'
+#' This function expects output from custom minimap test dataset that contains original locations of mapped reads in the genome.
+#'
+#' @param counts.l A \code{list} of directional read counts per PB read per library.
+#' @inheritParams SaaRclust
+#' @return A \code{list} of estimated theta values for every cluster and cell.
+#' @author Maryam Ghareghani
+#' @export
+
+maxWandCratiosFeatures <- function(counts.l=NULL) {
+  ratios.l <- list()
+  for (j in 1:length(counts.l)) {
+    #lib.name <- names(tab.l[j])
+    #message("\tWorking on ",lib.name)
+    counts <- counts.l[[j]]
+    
+    ratios <- counts[,2]/(counts[,2]+counts[,1])  #calculate ratio of WW reads
+    ratios <- sapply(ratios, function(x) max(x, 1-x))
     ratios[is.nan(ratios)] <- 0
     ratios.l[[j]] <- ratios
   }
