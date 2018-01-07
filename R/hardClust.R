@@ -67,6 +67,27 @@ hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1, nstart=10, it
   #return(list(theta.estim=theta.estim, clust.id=ord, raw.counts=counts.l))
   return(list(theta.estim=theta.estim, clust.id=ord))
 }
+                              
+#' Hierarchical clustering for merging the kmeans clusters
+#'
+#' This function takes as input the kmeans hard clustering output and the initialized thetas and merges the kmeans clusters based on thetas
+#'
+#' @param theta.l A \code{list} of estimated theta values for each cluster and cell.
+#' @param kmeans.clust The kmeans hard clustering.
+#' @inheritParams SaaRclust
+#' @return A new hard clustering with the correct number of clusters
+#' @author Maryam Ghareghani
+#' @export
+
+
+mergeClusters <- function(kmeans.clust, theta.l)
+{
+  theta.all <- do.call(cbind, theta.l)
+  hc <- hclust(dist(theta.all))
+  hc.clust <- cutree(hc, k=46)
+  
+  return(list(clust.id = sapply(kmeans.clust$clust.id, function(i) hc.clust[i])))
+}
 
 #' Get the feature vector based on the WmiunsC ratios
 #'
