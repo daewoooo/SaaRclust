@@ -189,3 +189,49 @@ filterInput <- function(inputData=NULL, quantileSSreads=c(0.4,0.9), minSSlibs=20
   return(inputData.filt)
 }
 
+
+#' Import representative PacBio alignments.
+#'
+#' This function selects the best representative PacBio alignements from multiple chunks
+#' in order to get the best estimates of theta values using Kmeans.
+#'
+#' @param inputfolder  A folder name where minimap files are stored.
+#' @param numAlignments  A required number of representative PacBio alignments.
+#' @return A \code{data.frame}.
+#' @author David Porubsky
+#' @export 
+
+getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=50000) {
+  
+  ptm <- startTimedMessage("Getting representative alignments\n") 
+  file.list <- list.files(path = inputfolder, pattern = "chunk.+maf", full.names = TRUE)
+  
+  bestAligns <- list()
+  countAligns <- 0
+  for (file in file.list) {
+    filename <- basename(file)
+    ptm <- proc.time()
+    
+    suppressMessages( suppressWarnings( tab.in <- importTestData(infile = file, removeDuplicates = TRUE) ) )
+    suppressMessages( tab.filt <- filterInput(inputData=tab.in, quantileSSreads = c(0.4,0.9), minSSlibs = 20) )
+    numAligns <- length(unique(tab.filt$PBreadNames))
+    
+    message("    Obtained ",numAligns," representative alignments", appendLF = F); 
+    stopTimedMessage(ptm)
+    
+    countAligns <- countAligns + numAligns
+    bestAligns[[filename]] <- tab.filt
+    #interupt the loop in case required amount of representative alignement was reached
+    if (!is.null(numAlignments) & countAligns >= numAlignments) {
+      break
+    }
+  }
+  
+  bestAligns.tab <- do.call(rbind, bestAligns)
+  rownames(bestAligns.tab) <- NULL
+  #bestAligns.tab <- bestAligns.tab[sample(nrow(bestAligns.tab)),] #shuffle rows in tab
+  sample <- unique(bestAligns.tab$PBreadNames)[1:numAlignments] #get only required amount of representative alignments
+  bestAligns.tab <- bestAligns.tab[bestAligns.tab$PBreadNames %in% sample,]
+  
+  return(bestAligns.tab)
+}
