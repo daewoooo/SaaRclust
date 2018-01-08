@@ -202,7 +202,7 @@ filterInput <- function(inputData=NULL, quantileSSreads=c(0.4,0.9), minSSlibs=20
 #' @author David Porubsky
 #' @export 
 
-getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=50000, store=TRUE) {
+getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=50000) {
   
   ptm <- startTimedMessage("Getting representative alignments\n") 
   file.list <- list.files(path = inputfolder, pattern = "chunk.+maf", full.names = TRUE)
@@ -233,10 +233,6 @@ getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=50000, s
   #bestAligns.tab <- bestAligns.tab[sample(nrow(bestAligns.tab)),] #shuffle rows in tab
   sample <- unique(bestAligns.tab$PBreadNames)[1:numAlignments] #get only required amount of representative alignments
   bestAligns.tab <- bestAligns.tab[bestAligns.tab$PBreadNames %in% sample,]
-  
-  if (store) {
-    #TODO
-  }
   
   return(bestAligns.tab)
 }

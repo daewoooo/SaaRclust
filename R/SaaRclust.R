@@ -19,15 +19,14 @@
 
 #load the function below into R if you want to run all steps in one command
 
-SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.clusters=44, EM.iter=100, alpha=0.1, logL.th=1, theta.constrain=FALSE, store.counts=FALSE) {
+SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.clusters=44, EM.iter=100, alpha=0.1, theta.param=theta.param, pi.param=pi.param, logL.th=1, theta.constrain=FALSE, store.counts=FALSE) {
   
-  set.seed(1000)
   #get file ID
   fileID <- basename(minimap.file)
   fileID <- strsplit(fileID, "\\.")[[1]][1]
   
   #get directories for export
-  rawcounts.store <- file.path(outputfolder, 'RawCounts')
+  rawdata.store <- file.path(outputfolder, 'RawData')
   Clusters.store <- file.path(outputfolder, 'Clusters')
   #trashbin.store <- file.path(outputfolder, 'TrashBin')
   
@@ -42,7 +41,8 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   #qual.plt <- plotQualMeasure(tab.in.quals)
   
   ### Filter imported data ###
-  tab.filt <- filterInput(inputData=tab.in)
+  #tab.filt <- filterInput(inputData=tab.in)
+  tab.filt <- tab.in
   
   #take a smaller chunk of PB reads to process [NOT USED!!!]
   #tab.filt <- tab.filt[sample(nrow(tab.filt)),] #shuffle rows in tab
@@ -80,39 +80,29 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   }
   
   ### Hard clustering ###
-  hard.clust <- hardClust(counts.l, num.clusters=num.clusters, alpha=alpha)
+  #hard.clust <- hardClust(counts.l, num.clusters=num.clusters, alpha=alpha)
   
   #get accuracy of hard clustering [OPTIONAL]
   #chr.clusts <- split(chr.rows, hard.clust$clust.id)
   #clust.acc <- getClusterAcc(chr.clusts)
   
-  # define the classe (true clusters) -- we may need to add an additional line for removing the PB reads with more than 1 chr or direction
-  classes <- paste0(chr.rows, "_", pb.flag)
-  names(classes) <- names(chr.rows)
-  # accuracy based on chrom and dir
-  acc <- maryam_hardClustAccuracy(hard.clust = hard.clust, classes=classes, tab.filt = tab.filt)
-  # accuracy based on chrom only
-  #acc_chrom <- maryam_hardClustAccuracy(hard.clust = hard.clust.chrom, classes=chr.rows, tab.filt = tab.filt)
-  print(acc)
-  print(paste("number of missing clusters =", length(acc$missed.clusters)))
-  
   #initialize thetas
-  theta.l <- hard.clust$theta.estim
+  #theta.l <- hard.clust$theta.estim
   #theta.l <- randomTheta(num.cells=100, num.clusters=num.clusters)
   
   #estimate pi based on # of PB reads in each cluster
-  readsPerCluts <- table(hard.clust$clust.id)
-  pi.param <- readsPerCluts/sum(readsPerCluts)
+  #readsPerCluts <- table(hard.clust$clust.id)
+  #pi.param <- readsPerCluts/sum(readsPerCluts)
   
   ### EM algorithm ###
-  soft.clust <- EMclust(counts.l, theta.l=theta.l, pi.param=pi.param, num.iter=EM.iter, alpha=alpha, logL.th=logL.th)
+  soft.clust <- EMclust(counts.l, theta.param=theta.param, pi.param=pi.param, num.iter=EM.iter, alpha=alpha, logL.th=logL.th)
   #soft.clust2 <- saarclust(tab.l, theta.l=soft.clust$theta.param, pi.param=soft.clust$pi.param, num.iter=EM.iter, alpha=alpha) #to redo clustering
   
   #rescale theta ans run one more iteration to do soft clustering [EXPERIMENTAL]
   if (theta.constrain) {
     theta.Expected <- num.clusters * c(0.25,0.25,0.5)
     theta.rescaled <- thetaRescale(theta.param=soft.clust$theta.param, theta.Expected=theta.Expected)
-    soft.clust.rescale <- saarclust(tab.l, theta.l=theta.rescaled, pi.param=pi.param, num.iter=1)
+    soft.clust.rescale <- SaaRclust(tab.l, theta.param=theta.rescaled, pi.param=pi.param, num.iter=1)
   }
   
   ### Merge clusters ### [TODO]
@@ -130,7 +120,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   soft.clust.df$PBreadNames <- levels(tab.filt$PBreadNames)
   soft.clust.df$PBchrom <- chr.rows
   soft.clust.df$PBflag <- pb.flag
-  soft.clust.df$hardClust <- hard.clust$clust.id
+  #soft.clust.df$hardClust <- hard.clust$clust.id
   
   ### Plotting data ###
   #plot likelihood function

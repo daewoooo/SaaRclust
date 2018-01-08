@@ -4,8 +4,7 @@
 \alias{getRepresentativeAlignments}
 \title{Import representative PacBio alignments.}
 \usage{
-getRepresentativeAlignments(inputfolder = NULL, numAlignments = 50000,
-  store = TRUE)
+getRepresentativeAlignments(inputfolder = NULL, numAlignments = 50000)
 }
 \arguments{
 \item{inputfolder}{A folder name where minimap files are stored.}

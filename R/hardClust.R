@@ -8,7 +8,7 @@
 #' @author David Porubsky
 #' @export
 
-hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1, nstart=10, iter.max=10) {
+hardClust <- function(counts.l=NULL, num.clusters=NULL, nstart=10, iter.max=10) {
 
   message("Hard clustering")
   ptm <- startTimedMessage("    Kmeans clustering for ",num.clusters," clusters ...") 
@@ -27,12 +27,28 @@ hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1, nstart=10, it
   ratios.m <- do.call(cbind, ratios.l)
   ratios.m[ratios.m<0] <- -1
   ratios.m[ratios.m>0] <- 1
+  
+  #hard clustering using kmeans
   km <- suppressWarnings( kmeans(ratios.m, centers = num.clusters, nstart = nstart, iter.max = iter.max) )
   ord <- km$cluster
   #ratios.m.ord <- ratios.m[order(ord),]
   stopTimedMessage(ptm)
+  return(ord)
+}  
+  
+#' Estimate theta values based on hard clustering
+#'
+#' This function takes results of hard clustering and estimates majority cell types for each Strand-seq library
+#'
+#' @param counts.l A \code{list} of directional read counts per PB read per library.
+#' @param ord A \code{integer} of cluster IDs. 
+#' @inheritParams SaaRclust
+#' @return A \code{list} of estimated theta values for every cluster and cell.
+#' @author David Porubsky
+#' @export
 
-  ptm <- startTimedMessage("    Estimate theta values ...") 
+estimateTheta <- function(counts.l=NULL, ord=NULL, alpha=0.1) {
+  ptm <- startTimedMessage("Estimate theta values ...") 
   theta.estim <- list()
   for (j in 1:length(counts.l)) {
     minus.c <- split(counts.l[[j]][,1], ord)
@@ -64,10 +80,11 @@ hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1, nstart=10, it
   }
   stopTimedMessage(ptm)
   
-  #return(list(theta.estim=theta.estim, clust.id=ord, raw.counts=counts.l))
-  return(list(theta.estim=theta.estim, clust.id=ord))
+  #return(list(theta.estim=theta.estim, clust.id=ord))
+  return(theta.estim)
 }
-                              
+ 
+                             
 #' Hierarchical clustering for merging the kmeans clusters
 #'
 #' This function takes as input the kmeans hard clustering output and the initialized thetas and merges the kmeans clusters based on thetas
@@ -79,14 +96,13 @@ hardClust <- function(counts.l=NULL, num.clusters=NULL, alpha=0.1, nstart=10, it
 #' @author Maryam Ghareghani
 #' @export
 
-
 mergeClusters <- function(kmeans.clust, theta.l)
 {
   theta.all <- do.call(cbind, theta.l)
   hc <- hclust(dist(theta.all))
   hc.clust <- cutree(hc, k=46)
   
-  return(list(clust.id = sapply(kmeans.clust$clust.id, function(i) hc.clust[i])))
+  return(list(clust.id = sapply(kmeans.clust, function(i) hc.clust[i])))
 }
 
 #' Get the feature vector based on the WmiunsC ratios

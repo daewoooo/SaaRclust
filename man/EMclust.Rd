@@ -4,19 +4,19 @@
 \alias{EMclust}
 \title{EM function}
 \usage{
-EMclust(counts.l, theta.l = NULL, pi.param = NULL, num.iter = 100,
+EMclust(counts.l, theta.param = NULL, pi.param = NULL, num.iter = 100,
   alpha = 0.1, logL.th = 1)
 }
 \arguments{
 \item{counts.l}{A \code{list} of PB alignmetns separated per cell.}
+
+\item{theta.param}{A \code{list} of estimated cell types for each cluster and each cell.}
 
 \item{pi.param}{A \code{vector} of estimated sizes of each cluster based on initial hard clustering.}
 
 \item{num.iter}{Set number of iteration to EM algorithm.}
 
 \item{alpha}{Estimated level of background Strand-seq reads.}
-
-\item{theta.param}{A \code{list} of estimated cell types for each cluster and each cell.}
 }
 \value{
 A \code{list} of various exported results [pVal, pVal.logL, log.l, theta.param, pi.param].
