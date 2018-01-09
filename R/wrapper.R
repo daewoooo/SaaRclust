@@ -4,7 +4,7 @@
 #' @param verbose ... 
 #' @inheritParams SaaRclust
 #' @export
-#' @author David Porubsky
+#' @author David Porubsky, Maryam Ghareghani
 
 #inputfolder <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/"
 
@@ -49,7 +49,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   #}
   
   ### Get representative alignments to estimate theta and pi values ###
-  numAlignments <- 60000 #perhaps add this parameter into a main function definition???
+  numAlignments <- 50000 #perhaps add this parameter into a main function definition???
   destination <- file.path(rawdata.store, paste0("representativeAligns_",numAlignments,".RData"))
   #reuse existing data if they were already created and save in a given location
   if (!file.exists(destination)) {
@@ -70,34 +70,33 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   ### Count directional reads ###
   counts.l <- countDirectionalReads(tab.l)
   
-  ### Perform hard clustering method ###
-  hardClust.ord <- hardClust(counts.l, num.clusters=num.clusters)
-  
-  #Estimate theta parameter
-  theta.estim <- estimateTheta(counts.l, ord=hardClust.ord, alpha=alpha)
-  
-  #Merge splitted clusters after hard clustering
-  hardClust.ord.merged <- mergeClusters(kmeans.clust=hardClust.ord, theta.l=theta.estim, k = 46)
-  
-  #Re-estimate theta parameter after cluster merging
-  theta.estim <- estimateTheta(counts.l, ord=hardClust.ord.merged, alpha=alpha)
-  
-  ### Get Hard clustering accuracy ###
   #get PB chrom names from the ordered PB reads
   chr.l <- split(best.alignments$PBchrom, best.alignments$PBreadNames)
   chr.rows <- sapply(chr.l, unique)
   #get PB directionality from the ordered PB reads
   pb.flag <- split(best.alignments$PBflag, best.alignments$PBreadNames)
   pb.flag <- sapply(pb.flag, unique)
-  # define the classe (true clusters) -- we may need to add an additional line for removing the PB reads with more than 1 chr or direction
-  #classes <- paste0(chr.rows, "_", pb.flag)
-  #names(classes) <- names(chr.rows)
-  # accuracy based on chromosome location and directionality
-  acc <- hardClustAccuracy(hard.clust = hardClust.ord.merged, pb.chr = chr.rows, pb.flag = pb.flag, tab.filt = best.alignments)
-  # accuracy based on chrom only
-  #acc_chrom <- maryam_hardClustAccuracy(hard.clust = hard.clust.chrom, classes=chr.rows, tab.filt = tab.filt)
+  
+  ### Perform k-means hard clustering method ###
+  hardClust.ord <- hardClust(counts.l, num.clusters=num.clusters)
+  # computing the accuracy of the hard clustering before merging lusters
+  acc <- hardClustAccuracy(hard.clust = hardClust.ord, pb.chr = chr.rows, pb.flag = pb.flag, tab.filt = best.alignments)
   print(acc)
   print(paste("number of missing clusters =", length(acc$missed.clusters)))
+  
+  #Estimate theta parameter
+  theta.estim <- estimateTheta(counts.l, ord=hardClust.ord, alpha=alpha)
+  
+  #Merge splitted clusters after hard clustering
+  hardClust.ord.merged <- mergeClusters(kmeans.clust=hardClust.ord, theta.l=theta.estim, k = 46)
+  # computing the accuracy of the hard clustering after merging
+  acc <- hardClustAccuracy(hard.clust = hardClust.ord.merged, pb.chr = chr.rows, pb.flag = pb.flag, tab.filt = best.alignments)
+  print(acc)
+  print(paste("number of missing clusters =", length(acc$missed.clusters)))
+  
+  #Re-estimate theta parameter after cluster merging
+  theta.estim <- estimateTheta(counts.l, ord=hardClust.ord.merged, alpha=alpha)
+  
   
   #Initialize theta parameter
   theta.param <- theta.estim
