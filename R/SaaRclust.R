@@ -41,8 +41,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   #qual.plt <- plotQualMeasure(tab.in.quals)
   
   ### Filter imported data ###
-  #tab.filt <- filterInput(inputData=tab.in)
-  tab.filt <- tab.in
+  tab.filt <- filterInput(inputData=tab.in)
   
   #take a smaller chunk of PB reads to process [NOT USED!!!]
   #tab.filt <- tab.filt[sample(nrow(tab.filt)),] #shuffle rows in tab
