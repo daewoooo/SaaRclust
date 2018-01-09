@@ -91,17 +91,20 @@ estimateTheta <- function(counts.l=NULL, ord=NULL, alpha=0.1) {
 #'
 #' @param theta.l A \code{list} of estimated theta values for each cluster and cell.
 #' @param kmeans.clust The kmeans hard clustering.
+#' @param k Desired number of clusters.
 #' @inheritParams SaaRclust
 #' @return A new hard clustering with the correct number of clusters
 #' @author Maryam Ghareghani
 #' @export
 
-mergeClusters <- function(kmeans.clust, theta.l)
+mergeClusters <- function(kmeans.clust, theta.l, k=46)
 {
+  ptm <- startTimedMessage("Merging clusters ...")  
   theta.all <- do.call(cbind, theta.l)
   hc <- hclust(dist(theta.all))
-  hc.clust <- cutree(hc, k=46)
+  hc.clust <- cutree(hc, k=k)
   
+  stopTimedMessage(ptm)
   return(list(clust.id = sapply(kmeans.clust, function(i) hc.clust[i])))
 }
 

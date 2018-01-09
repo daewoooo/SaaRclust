@@ -28,6 +28,13 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
       dir.create(rawdata.store)
     }
   }
+  
+  if (store.bestAlign) {
+    rawdata.store <- file.path(outputfolder, 'RawData')
+    if (!file.exists(rawdata.store)) {
+      dir.create(rawdata.store)
+    }
+  }
 
   #Directory to store processed/clustered data
   Clusters.store <- file.path(outputfolder, 'Clusters')
@@ -41,31 +48,36 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   #  dir.create(trashbin.store)
   #}
   
-  #Get representative alignments to estimate theta and pi values
+  ### Get representative alignments to estimate theta and pi values ###
   numAlignments <- 30000 #perhaps add this parameter into a main function definition???
-  best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments)
-  if (store.bestAlign) {
-    destination <- file.path(rawdata.store, paste0("representativeAligns_",numAlignments,".RData"))
-    save(file = destination, best.alignments)
-  }
+  destination <- file.path(rawdata.store, paste0("representativeAligns_",numAlignments,".RData"))
+  #reuse existing data if they were already created and save in a given location
+  if (!file.exists(destination)) {
+    best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments)
+    if (store.bestAlign) {
+      save(file = destination, best.alignments)
+    }
+  } else {
+    best.alignments <- get(load(destination))
+  }  
   
-  #use PB read names as factor in order to export counts for every PB read
+  #use PB read names as factor in order to export counts for every PB read (also for zero counts)
   best.alignments$PBreadNames <- factor(best.alignments$PBreadNames, levels=unique(best.alignments$PBreadNames))
   
   #split data by Strand-seq library
   tab.l <- split(best.alignments, best.alignments$SSlibNames)
   
-  #### Count directional reads ###
+  ### Count directional reads ###
   counts.l <- countDirectionalReads(tab.l)
   
-  #Perform hard clustering method
+  ### Perform hard clustering method ###
   hardClust.ord <- hardClust(counts.l, num.clusters=num.clusters)
   
   #Estimate theta parameter
   theta.estim <- estimateTheta(counts.l, ord=hardClust.ord, alpha=alpha)
   
   #Merge splitted clusters after hard clustering
-  hardClust.ord.merged <- mergeClusters(kmeans.clust=hardClust.ord, theta.l=theta.estim)
+  hardClust.ord.merged <- mergeClusters(kmeans.clust=hardClust.ord, theta.l=theta.estim, k = 46)
   
   #Re-estimate theta parameter after cluster merging
   theta.estim <- estimateTheta(counts.l, ord=hardClust.ord.merged, alpha=alpha)
@@ -93,9 +105,10 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   readsPerCluts <- table(hardClust.ord.merged)
   pi.param <- readsPerCluts/sum(readsPerCluts)
   
-  #List of files to precess
+  #List files to process
   file.list <- list.files(path = inputfolder, pattern = "chunk.+maf", full.names = TRUE)
   
+  ### Main loop to process all files using EM algorithm ###
   for (file in file.list) {
     if (verbose) {
       clust.obj <- SaaRclust(minimap.file=file, outputfolder=outputfolder, num.clusters=num.clusters, EM.iter=EM.iter, alpha=alpha, theta.param=theta.param, pi.param=pi.param, logL.th=logL.th, theta.constrain=theta.constrain)
