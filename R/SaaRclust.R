@@ -19,8 +19,8 @@
 
 #load the function below into R if you want to run all steps in one command
 
-SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.clusters=46, EM.iter=100, alpha=0.1, theta.param=theta.param, pi.param=pi.param, logL.th=1, theta.constrain=FALSE, store.counts=FALSE) {
-  
+SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.clusters=55, EM.iter=100, alpha=0.1, theta.param=theta.param, pi.param=pi.param, logL.th=1, theta.constrain=FALSE, store.counts=FALSE) {
+
   #get file ID
   fileID <- basename(minimap.file)
   fileID <- strsplit(fileID, "\\.")[[1]][1]

@@ -10,7 +10,7 @@
 
 #load the function below into R if you want to run all steps in one command
 
-runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", num.clusters=44, EM.iter=100, alpha=0.1, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, verbose=TRUE) {
+runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", num.clusters=55, EM.iter=100, alpha=0.1, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, verbose=TRUE) {
   
   #=========================#
   ### Create directiories ###
@@ -55,7 +55,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   #}
   
   ### Get representative alignments to estimate theta and pi values ###
-  numAlignments <- 30000 #perhaps add this parameter into a main function definition???
+  numAlignments <- 60000 #perhaps add this parameter into a main function definition???
   destination <- file.path(rawdata.store, paste0("representativeAligns_",numAlignments,".RData"))
   #reuse existing data if they were already created and save in a given location
   if (!file.exists(destination)) {
@@ -96,10 +96,10 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   pb.flag <- split(best.alignments$PBflag, best.alignments$PBreadNames)
   pb.flag <- sapply(pb.flag, unique)
   # define the classe (true clusters) -- we may need to add an additional line for removing the PB reads with more than 1 chr or direction
-  classes <- paste0(chr.rows, "_", pb.flag)
-  names(classes) <- names(chr.rows)
+  #classes <- paste0(chr.rows, "_", pb.flag)
+  #names(classes) <- names(chr.rows)
   # accuracy based on chromosome location and directionality
-  acc <- maryam_hardClustAccuracy(hard.clust = hard.clust, classes=classes, tab.filt = tab.filt)
+  acc <- hardClustAccuracy(hard.clust = hardClust.ord.merged, pb.chr = chr.rows, pb.flag = pb.flag, tab.filt = best.alignments)
   # accuracy based on chrom only
   #acc_chrom <- maryam_hardClustAccuracy(hard.clust = hard.clust.chrom, classes=chr.rows, tab.filt = tab.filt)
   print(acc)

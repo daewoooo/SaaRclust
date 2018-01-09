@@ -105,7 +105,7 @@ mergeClusters <- function(kmeans.clust, theta.l, k=46)
   hc.clust <- cutree(hc, k=k)
   
   stopTimedMessage(ptm)
-  return(list(clust.id = sapply(kmeans.clust, function(i) hc.clust[i])))
+  return(sapply(kmeans.clust, function(i) hc.clust[i]))
 }
 
 #' Get the feature vector based on the WmiunsC ratios
