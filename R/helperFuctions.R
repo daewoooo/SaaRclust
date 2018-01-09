@@ -73,12 +73,14 @@ getClusterAcc <- function(clusters) {
                                
 #' Computes the performance of the hard clustering algorithm
 #' @param hard.clust hard clustring result
+#' @param pb.chr The true chromosomes of PB reads
+#' @param pb.flag The flags of PB reads
 #' @param tab.filt table of filtered read counts
 #' @param female a binary argument showing the sex of the individual
 #' @author Maryam Ghareghani
 #' @export
 
-hardClustAccuracy <- function(hard.clust, classes, tab.filt, female=TRUE)
+hardClustAccuracy <- function(hard.clust, pb.chr, pb.flag, tab.filt, female=TRUE)
 {
   # filter and keep PB reads that have only defined (true) chromosome names with flag 0 or 16
   if(female)
@@ -91,8 +93,17 @@ hardClustAccuracy <- function(hard.clust, classes, tab.filt, female=TRUE)
   filt <- intersect(filt.chrom, filt.flag)
   tab <- tab.filt[filt,]
   
+  # define the classe (true clusters)
+  classes <- paste0(pb.chr, "_", pb.flag)
+  # some extra filtering ---> take only those PB reads that have flag 0 or 16
+  names(classes) <- names(pb.chr)
+  # filter out the PB reads that have more than one chr or flag
+  oneChrPBreads <- which(sapply(pb.chr, length)==1)
+  oneFlagPBreads <- which(sapply(pb.flag, length)==1)
+  classes <- classes[intersect(oneChrPBreads, oneFlagPBreads)]
+  
   classes <- classes[which(names(classes) %in% tab$PBreadNames)]
-  clusters <- hard.clust$clust.id[which(rownames(ratios) %in% names(classes))]
+  clusters <- hard.clust[which(names(hard.clust) %in% names(classes))]
   ord <- order(names(classes))
   classes <- classes[ord]
   clusters <- clusters[ord]
@@ -111,7 +122,6 @@ hardClustAccuracy <- function(hard.clust, classes, tab.filt, female=TRUE)
   
   list(acc=clust.purity, missed.clusters = missed)
 }
-
 
 #' Rescale theta values for WC cell type
 #'
