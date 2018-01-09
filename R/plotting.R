@@ -63,21 +63,27 @@ plotHeatmap <- function(pVal.df=NULL, colOrder=NULL, num.clusters=NULL) {
 
   #order clusters based on most likely chromosome partners                               
   if (!is.null(colOrder)) {                               
-    pVal.df <- pVal.df[,colOrder]
+    pVal.df[,1:length(colOrder)] <- pVal.df[,colOrder]
   }
   
   if (!is.null(num.clusters)) {
-    chr.ids <- unique(chr.rows)
+
+    chr.ids <- names(sort(table(pVal.df$PBchrom), decreasing = T))
     chr.ids <- gsub('^chr', '', chr.ids)
-    chr.ids <- sort(as.numeric(chr.ids))
+    #chr.ids <- sort(as.numeric(chr.ids))
     chr.colors <- rep(c("gray48","gray72"), ceiling(length(chr.ids)/2))
     chr.colors <- chr.colors
     names(chr.colors) <- chr.ids
     
-    pVal.df$PBchrom <- as.numeric(gsub('^chr', '', pVal.df$PBchrom))
+    pVal.df$PBchrom <- gsub('^chr', '', pVal.df$PBchrom)
+    pVal.df$PBchrom <- factor(pVal.df$PBchrom, levels=chr.ids)
     pVal.df <- pVal.df[order(pVal.df$PBchrom),]
+    
+    #set unexpected directionality flags to 1
+    pVal.df$PBflag[pVal.df$PBflag != 0 & pVal.df$PBflag != 16] <- 1
+    
     ha1 = rowAnnotation(df = data.frame(chr = pVal.df$PBchrom), col = list(chr=chr.colors))
-    ha2 = rowAnnotation(df = data.frame(PB.dir = pVal.df$PBflag), col = list(PB.dir = c('0'="chocolate1", '16'="chartreuse3", '2048'="white", '2064'="white")))
+    ha2 = rowAnnotation(df = data.frame(PB.dir = pVal.df$PBflag), col = list(PB.dir = c('0'="chocolate1", '16'="chartreuse3", '1'="white")))
     hm <- Heatmap(pVal.df[,c(1:num.clusters)], name = "Probs", cluster_columns = F, cluster_rows = F, show_row_names = FALSE)
     hm + ha1 + ha2
   } else {

@@ -15,9 +15,10 @@ Depends:
   gsubfn,
   data.table,
   igraph,
-  maxmatching  
+  maxmatching,  
 Imports:
   car,
+  dplyr
 Suggests:
   knitr,
   testthat

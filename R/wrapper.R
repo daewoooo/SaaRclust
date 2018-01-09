@@ -41,6 +41,12 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   if (!file.exists(Clusters.store)) {
     dir.create(Clusters.store)
   }
+  
+  #Directory to store plots
+  plots.store <- file.path(outputfolder, 'Plots')
+  if (!file.exists(plots.store)) {
+    dir.create(plots.store)
+  }
 
   #Directory to store 'difficult' PacBio reads for later processing [TODO]
   #trashbin.store <- file.path(outputfolder, 'TrashBin')
@@ -111,7 +117,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   ### Main loop to process all files using EM algorithm ###
   for (file in file.list) {
     if (verbose) {
-      clust.obj <- SaaRclust(minimap.file=file, outputfolder=outputfolder, num.clusters=num.clusters, EM.iter=EM.iter, alpha=alpha, theta.param=theta.param, pi.param=pi.param, logL.th=logL.th, theta.constrain=theta.constrain)
+      clust.obj <- SaaRclust(minimap.file=file, outputfolder=outputfolder, num.clusters=length(pi.param), EM.iter=EM.iter, alpha=alpha, theta.param=theta.param, pi.param=pi.param, logL.th=logL.th, theta.constrain=theta.constrain)
     } else {
       suppressMessages(  clust.obj <- SaaRclust(minimap.file=file, outputfolder=outputfolder, num.clusters=num.clusters, EM.iter=EM.iter, alpha=alpha, theta.param=theta.param, pi.param=pi.param, logL.th=logL.th, theta.constrain=theta.constrain) )
     }

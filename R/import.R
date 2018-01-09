@@ -4,6 +4,7 @@
 #'
 #' @param infile A path to the minimap file to load.
 #' @return A \code{data.frame}.
+#' @import dplyr
 #' @author David Porubsky
 #' @export 
 
@@ -172,18 +173,25 @@ filterInput <- function(inputData=NULL, quantileSSreads=c(0.4,0.9), minSSlibs=20
   #inputData.filt <- inputData.filt[inputData.filt$SSreadNames %in% single.SSreads,]
   
   #get number of SS reads per PB read
-  SSread.perPB <- sort(table(inputData.filt$PBreadNames), decreasing = T) #this won't be needed when output will be already sorted by PBreads
+  if (!is.null(quantileSSreads)) {
+    SSread.perPB <- sort(table(inputData.filt$PBreadNames), decreasing = T) #this won't be needed when output will be already sorted by PBreads
   
-  #filter reads based on the mean number of SS reads aligned per each PB read
-  quantile.range <- quantile(SSread.perPB, probs = quantileSSreads)
-  maskNames <- names(SSread.perPB)[SSread.perPB >= quantile.range[1] & SSread.perPB <= quantile.range[2]]
+    #filter reads based on the mean number of SS reads aligned per each PB read
+    quantile.range <- quantile(SSread.perPB, probs = quantileSSreads)
+    maskNames <- names(SSread.perPB)[SSread.perPB >= quantile.range[1] & SSread.perPB <= quantile.range[2]]
+    inputData.filt <- inputData.filt[inputData.filt$PBreadNames %in% maskNames,]
+  }
+  
+  #filter reads based on the number of SS libs per PB read [FAST]
+  inputData.filt %>% group_by(PBreadNames) %>% summarise(counts = length(unique(SSlibNames))) -> SSlib.perPB.counts
+  maskNames <- SSlib.perPB.counts$PBreadNames[SSlib.perPB.counts$counts >= minSSlibs]
   inputData.filt <- inputData.filt[inputData.filt$PBreadNames %in% maskNames,]
   
-  #filter reads based on the number of SS libs per PB read
-  SSlib.perPB <- split(as.factor(inputData.filt$SSlibNames), inputData.filt$PBreadNames)
-  SSlib.perPB.counts <- sapply(SSlib.perPB, function(x) length(unique(x)))
-  maskNames <- names(SSlib.perPB.counts)[SSlib.perPB.counts >= minSSlibs]
-  inputData.filt <- inputData.filt[inputData.filt$PBreadNames %in% maskNames,]
+  #filter reads based on the number of SS libs per PB read [SLOW]
+  #SSlib.perPB <- split(as.factor(inputData.filt$SSlibNames), inputData.filt$PBreadNames)
+  #SSlib.perPB.counts <- sapply(SSlib.perPB, function(x) length(unique(x)))
+  #maskNames <- names(SSlib.perPB.counts)[SSlib.perPB.counts >= minSSlibs]
+  #inputData.filt <- inputData.filt[inputData.filt$PBreadNames %in% maskNames,]
   
   stopTimedMessage(ptm)
   return(inputData.filt)

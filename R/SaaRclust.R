@@ -19,7 +19,7 @@
 
 #load the function below into R if you want to run all steps in one command
 
-SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.clusters=44, EM.iter=100, alpha=0.1, theta.param=theta.param, pi.param=pi.param, logL.th=1, theta.constrain=FALSE, store.counts=FALSE) {
+SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.clusters=46, EM.iter=100, alpha=0.1, theta.param=theta.param, pi.param=pi.param, logL.th=1, theta.constrain=FALSE, store.counts=FALSE) {
   
   #get file ID
   fileID <- basename(minimap.file)
@@ -28,6 +28,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   #get directories for export
   rawdata.store <- file.path(outputfolder, 'RawData')
   Clusters.store <- file.path(outputfolder, 'Clusters')
+  plots.store <- file.path(outputfolder, 'Plots')
   #trashbin.store <- file.path(outputfolder, 'TrashBin')
   
   ### Read in minimap output file ###
@@ -41,13 +42,15 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   #qual.plt <- plotQualMeasure(tab.in.quals)
   
   ### Filter imported data ###
-  tab.filt <- filterInput(inputData=tab.in)
+  tab.filt <- filterInput(inputData=tab.in, quantileSSreads = NULL, minSSlibs = 10)
   
   #take a smaller chunk of PB reads to process [NOT USED!!!]
   #tab.filt <- tab.filt[sample(nrow(tab.filt)),] #shuffle rows in tab
   #chunk <- unique(tab.filt$PBreadNames)[1:chunk.size]
   #tab.filt <- tab.filt[tab.filt$PBreadNames %in% chunk,]
   
+  ### Sorting filtered data table by direction and chromosome ###
+  ptm <- startTimedMessage("Sorting data ...")
   #additional sort by direction
   tab.filt <- tab.filt[order(tab.filt$PBflag),]
   
@@ -69,16 +72,17 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   
   #split data by SS library
   tab.l <- split(tab.filt, tab.filt$SSlibNames)
+  stopTimedMessage(ptm)
   
   #### Count directional reads ###
   counts.l <- countDirectionalReads(tab.l)
   
   if (store.counts) {
-    destination <- file.path(rawcounts.store, paste0(fileID, ".RData"))
+    destination <- file.path(rawdata.store, paste0(fileID, ".RData"))
     save(file = destination, counts.l)
   }
   
-  ### Hard clustering ###
+  ### Hard clustering ### [Excluded from this function]
   #hard.clust <- hardClust(counts.l, num.clusters=num.clusters, alpha=alpha)
   
   #get accuracy of hard clustering [OPTIONAL]
@@ -99,26 +103,26 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   
   #rescale theta ans run one more iteration to do soft clustering [EXPERIMENTAL]
   if (theta.constrain) {
-    theta.Expected <- num.clusters * c(0.25,0.25,0.5)
-    theta.rescaled <- thetaRescale(theta.param=soft.clust$theta.param, theta.Expected=theta.Expected)
+    theta.expected <- num.clusters * c(0.25,0.25,0.5)
+    theta.rescaled <- thetaRescale(theta.param=soft.clust$theta.param, theta.expected=theta.expected)
     soft.clust.rescale <- SaaRclust(tab.l, theta.param=theta.rescaled, pi.param=pi.param, num.iter=1)
   }
   
-  ### Merge clusters ### [TODO]
+  ### Merge clusters ### Part of hard clustering!!!
   #get splitted clusters with same directionality and coming from the same chromosome [EXPERIMENTAL]
   #split.clust <- findSplitedClusters(theta.param=soft.clust$theta.param)
   #merged.pVals <- mergeSplitedClusters(cluster2merge=split.clust, soft.pVal=soft.clust$soft.pVal)
   #soft.clust$soft.pVal <- soft.clust$soft.pVal[,-unlist(split.clust)]
   #soft.clust$soft.pVal <- cbind(soft.clust$soft.pVal, merged.pVals)
   
-  #get pairs of clusters coming from the same chromosome but differs in directionality of PB reads  [EXPERIMENTAL]
-  #clust.order <- findClusterPartners(theta.param=soft.clust$theta.param)
+  #Get pairs of clusters coming from the same chromosome but differs in directionality of PB reads  [EXPERIMENTAL]
+  clust.order <- findClusterPartners(theta.param=soft.clust$theta.param)
   
   ### Prepara data for plotting ###
   soft.clust.df <- as.data.frame(soft.clust$soft.pVal)
   soft.clust.df$PBreadNames <- levels(tab.filt$PBreadNames)
-  soft.clust.df$PBchrom <- chr.rows
-  soft.clust.df$PBflag <- pb.flag
+  soft.clust.df$PBchrom <- as.character(chr.rows)
+  soft.clust.df$PBflag <- as.character(pb.flag)
   #soft.clust.df$hardClust <- hard.clust$clust.id
   
   ### Plotting data ###
@@ -127,11 +131,23 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   logl.diff <- round(max(logl.df$log.l) - min(logl.df$log.l), digits = 0)
   logL.plt <- ggplot(logl.df) + geom_line(aes(x=iter, y=log.l), color="red") + xlab("EM iterations") + ylab("Likelihood function") + annotate("text",  x=Inf, y = Inf, label = paste("Diff: ",logl.diff), vjust=1, hjust=1)
   #plot cluster accuracy
-  acc.plt <- plotClustAccuracy(pVal.df = soft.clust.df, num.clusters = num.clusters)
+  #acc.plt <- plotClustAccuracy(pVal.df = soft.clust.df, num.clusters = num.clusters) Merge with Maryam's function
   #plot theta values
-  theta.plt <- plotThetaEstimates(theta.param = soft.clust$theta.param, title = fileID)
+  theta.plt <- plotThetaEstimates(theta.param=soft.clust$theta.param, title=fileID)
   #plot heatmap
-  hm.plt <- plotHeatmap(pVal.df = soft.clust.df, colOrder=NULL, num.clusters = num.clusters)
+  hm.plt <- plotHeatmap(pVal.df=soft.clust.df, colOrder=clust.order, num.clusters=num.clusters)
+  
+  #Save plots
+  destination <- file.path(plots.store, paste0(fileID, "_logL.pdf"))
+  ggsave(filename = destination, plot = logL.plt, width = 8, height = 5)
+  destination <- file.path(plots.store, paste0(fileID, "_thetaEstim.pdf"))
+  ggsave(filename = destination, plot = theta.plt, width = 20, height = 20)
+  destination <- file.path(plots.store, paste0(fileID, "_heatmap.pdf"))
+  pdf(destination, width = 15, height = 10) 
+  hm.plt
+  dev.off()
+  
+  ggsave(filename = destination, plot = hm.plt, width = 25, height = 20, device = 'pdf')
   
   ### Save data ###
   destination <- file.path(Clusters.store, paste0(fileID, ".RData"))
