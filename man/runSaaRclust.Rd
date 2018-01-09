@@ -30,4 +30,3 @@ Wrapper function to run saarclust pipeline.
 \author{
 David Porubsky
 }
-

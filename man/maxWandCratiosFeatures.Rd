@@ -18,4 +18,3 @@ This function expects output from custom minimap test dataset that contains orig
 \author{
 Maryam Ghareghani
 }
-

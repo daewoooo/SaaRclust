@@ -20,4 +20,3 @@ Takes binomial probabilites for every cluster ...
 \author{
 David Porubsky, Maryam Ghareghani
 }
-

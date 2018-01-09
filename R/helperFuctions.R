@@ -78,7 +78,7 @@ getClusterAcc <- function(clusters) {
 #' @author Maryam Ghareghani
 #' @export
 
-maryam_hardClustAccuracy <- function(hard.clust, classes, tab.filt, female=TRUE)
+hardClustAccuracy <- function(hard.clust, classes, tab.filt, female=TRUE)
 {
   # filter and keep PB reads that have only defined (true) chromosome names with flag 0 or 16
   if(female)

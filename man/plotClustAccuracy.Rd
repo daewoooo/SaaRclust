@@ -20,4 +20,3 @@ Plot accuracy of clustring in respect to known location of each PacBio read.
 \author{
 David Porubsky
 }
-

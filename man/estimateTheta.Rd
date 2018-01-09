@@ -22,4 +22,3 @@ This function takes results of hard clustering and estimates majority cell types
 \author{
 David Porubsky
 }
-

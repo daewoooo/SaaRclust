@@ -17,4 +17,3 @@ Adjust estimated theta values based on expected number of WC chromosomes given r
 \author{
 David Porubsky
 }
-

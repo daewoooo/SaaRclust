@@ -23,4 +23,3 @@ in order to get the best estimates of theta values using Kmeans.
 \author{
 David Porubsky
 }
-

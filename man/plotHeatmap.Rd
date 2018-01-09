@@ -19,4 +19,3 @@ Plot heatmap of responsibilities of each PB reads for each cluster as a probabil
 \author{
 David Porubsky
 }
-

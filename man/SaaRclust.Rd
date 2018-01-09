@@ -28,4 +28,3 @@ Wrapper function to run saarclust pipeline for a given number of PB reads.
 \author{
 David Porubsky
 }
-

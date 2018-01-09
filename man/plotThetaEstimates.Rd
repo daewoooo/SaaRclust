@@ -17,4 +17,3 @@ Plot theta estimates resulting from EM algorithm.
 \author{
 David Porubsky
 }
-

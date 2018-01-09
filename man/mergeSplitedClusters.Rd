@@ -17,4 +17,3 @@ This function merges initialy divided clusters that belongs to the same chromoso
 \author{
 David Porubsky
 }
-

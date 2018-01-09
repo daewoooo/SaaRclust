@@ -15,4 +15,3 @@ Set WC probs based on WW and CC probs distribution (if ratio of WW and CC == 1 t
 \author{
 David Porubsky
 }
-

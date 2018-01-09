@@ -12,4 +12,3 @@ kahansum(x)
 \description{
 Alternative sum function to reduce numerical error caused by finite precision of floating point numbers.
 }
-

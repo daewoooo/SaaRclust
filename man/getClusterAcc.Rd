@@ -15,4 +15,3 @@ Takes assigned identity of each PB read and compares it to known location.
 \author{
 David Porubsky
 }
-

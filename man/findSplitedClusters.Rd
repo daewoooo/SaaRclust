@@ -18,4 +18,3 @@ This function cluster coming from the same chromosome and having the same direct
 \author{
 David Porubsky
 }
-

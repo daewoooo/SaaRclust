@@ -4,12 +4,14 @@
 \alias{mergeClusters}
 \title{Hierarchical clustering for merging the kmeans clusters}
 \usage{
-mergeClusters(kmeans.clust, theta.l)
+mergeClusters(kmeans.clust, theta.l, k = 46)
 }
 \arguments{
 \item{kmeans.clust}{The kmeans hard clustering.}
 
 \item{theta.l}{A \code{list} of estimated theta values for each cluster and cell.}
+
+\item{k}{Desired number of clusters.}
 }
 \value{
 A new hard clustering with the correct number of clusters
@@ -20,4 +22,3 @@ This function takes as input the kmeans hard clustering output and the initializ
 \author{
 Maryam Ghareghani
 }
-
