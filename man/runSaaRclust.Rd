@@ -28,6 +28,6 @@ runSaaRclust(inputfolder = NULL, outputfolder = "./SaaRclust_results",
 Wrapper function to run saarclust pipeline.
 }
 \author{
-David Porubsky
+David Porubsky, Maryam Ghareghani
 }
 
