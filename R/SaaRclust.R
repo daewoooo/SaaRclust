@@ -42,7 +42,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   #qual.plt <- plotQualMeasure(tab.in.quals)
   
   ### Filter imported data ###
-  tab.filt <- filterInput(inputData=tab.in, quantileSSreads = NULL, minSSlibs = 10)
+  tab.filt <- filterInput(inputData=tab.in, quantileSSreads = c(0, 0.9), minSSlibs = 10)
   
   #take a smaller chunk of PB reads to process [NOT USED!!!]
   #tab.filt <- tab.filt[sample(nrow(tab.filt)),] #shuffle rows in tab
@@ -67,8 +67,8 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   pb.flag <- sapply(pb.flag, unique)
   
   #get PB read position
-  pb.pos <- split(tab.filt$PBpos, tab.filt$PBreadNames)
-  pb.pos <- sapply(pb.pos, unique)
+  #pb.pos <- split(tab.filt$PBpos, tab.filt$PBreadNames)
+  #pb.pos <- sapply(pb.pos, unique)
   
   #split data by SS library
   tab.l <- split(tab.filt, tab.filt$SSlibNames)

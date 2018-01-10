@@ -24,3 +24,7 @@ To install the development version from Github, follow the steps given below. Th
 
 ### Report Errors
 If you encounter errors of any kind, please report an [issue here](https://github.com/daewoooo/SaaRclust/issues/new).
+
+### NOTE
+
+The SaaRclust package is currently under development and contains unpublished work. Any usage for publishing is strictly prohibited without permission.

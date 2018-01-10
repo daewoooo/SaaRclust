@@ -76,6 +76,10 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   ### Count directional reads ###
   counts.l <- countDirectionalReads(tab.l)
   
+  ### Perform k-means hard clustering method ###
+  hardClust.ord <- hardClust(counts.l, num.clusters=num.clusters)
+  
+  ### computing the accuracy of the hard clustering before merging lusters ### [OPTIONAL]
   #get PB chrom names from the ordered PB reads
   chr.l <- split(best.alignments$PBchrom, best.alignments$PBreadNames)
   chr.rows <- sapply(chr.l, unique)
@@ -83,9 +87,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   pb.flag <- split(best.alignments$PBflag, best.alignments$PBreadNames)
   pb.flag <- sapply(pb.flag, unique)
   
-  ### Perform k-means hard clustering method ###
-  hardClust.ord <- hardClust(counts.l, num.clusters=num.clusters)
-  # computing the accuracy of the hard clustering before merging lusters
+  #get hard clustering accuracy
   acc <- hardClustAccuracy(hard.clust = hardClust.ord, pb.chr = chr.rows, pb.flag = pb.flag, tab.filt = best.alignments)
   print(acc)
   print(paste("number of missing clusters =", length(acc$missed.clusters)))
@@ -102,7 +104,6 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   
   #Re-estimate theta parameter after cluster merging
   theta.estim <- estimateTheta(counts.l, ord=hardClust.ord.merged, alpha=alpha)
-  
   
   #Initialize theta parameter
   theta.param <- theta.estim
