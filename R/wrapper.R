@@ -12,6 +12,8 @@
 
 runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", num.clusters=55, EM.iter=100, alpha=0.1, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, verbose=TRUE) {
   
+  set.seed(1000)
+  
   #=========================#
   ### Create directiories ###
   #=========================#
@@ -55,7 +57,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   #}
   
   ### Get representative alignments to estimate theta and pi values ###
-  numAlignments <- 50000 #perhaps add this parameter into a main function definition???
+  numAlignments <- 100000 #perhaps add this parameter into a main function definition???
   destination <- file.path(rawdata.store, paste0("representativeAligns_",numAlignments,".RData"))
   #reuse existing data if they were already created and save in a given location
   if (!file.exists(destination)) {
