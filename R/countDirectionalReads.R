@@ -7,9 +7,8 @@
 #' @author David Porubsky
 #' @export
 
-
 countDirectionalReads <- function(tab.l=NULL) {
-  ptm <- startTimedMessage("Counting directional reads ...") 
+  ptm <- startTimedMessage("Counting directional reads ") 
   ratios.l <- list()
   counts.l <- list()
   for (j in 1:length(tab.l)) {

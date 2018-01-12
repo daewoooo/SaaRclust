@@ -84,7 +84,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
   ### computing the accuracy of the hard clustering before merging lusters ### [OPTIONAL]
   #get PB chrom names from the ordered PB reads
   chr.l <- split(best.alignments$PBchrom, best.alignments$PBreadNames)
-  chr.rows <- sapply(chr.l, unique)
+  chr.rows <- sapply(chr.l, function(x) x[1])
   #get PB directionality from the ordered PB reads
   pb.flag <- split(best.alignments$PBflag, best.alignments$PBreadNames)
   pb.flag <- sapply(pb.flag, unique)
@@ -124,6 +124,22 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="./SaaRclust_results", n
       suppressMessages(  clust.obj <- SaaRclust(minimap.file=file, outputfolder=outputfolder, num.clusters=num.clusters, EM.iter=EM.iter, alpha=alpha, theta.param=theta.param, pi.param=pi.param, logL.th=logL.th, theta.constrain=theta.constrain) )
     }
   }
+  
+  ### Evaluate soft clustering accuracy ###
+  Clust.IDs <- getClusterIdentity(soft.clust=clust.obj$soft.pVal, chr.rows)
+  
+  Clust.locations <- exportGenomicLocations(soft.clust=clust.obj$soft.pVal, prob.th=0.6)
+  
+  #get accuracy
+  #testAcc <- function(x) {
+  #  chr.id <- names(x)
+  #  clust.ids <- Clust.IDs[[chr.id]]
+  #  any(x[[1]] %in% clust.ids)
+  #}
+  
+  #lapply(Clust.locations, testAcc)
+  
+  #Clust.locations[6]
   
   #load processed data [TODO]
   

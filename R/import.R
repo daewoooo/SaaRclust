@@ -10,7 +10,7 @@
 
 importTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO modify this function for input where genomic location of PB reads is unknown
 
-  ptm <- startTimedMessage("Reading the data ...") 
+  ptm <- startTimedMessage("Reading the data ") 
   #data <- read.table(infile, header=F) #TODO test data.table package for faster data import
   
   #filetype = summary( file(infile) )$class #If it's gzipped, filetype will be gzfile
@@ -157,7 +157,7 @@ importOldTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO mod
 
 filterInput <- function(inputData=NULL, quantileSSreads=c(0.4,0.9), minSSlibs=20) {
   
-  ptm <- startTimedMessage("Filtering the data ...")
+  ptm <- startTimedMessage("Filtering the data ")
   
   #remove SS reads mapped with huge gaps (eg. summed gaps 100bp)
   gaps.perSS.mean <- round(mean(inputData$MatchedBasesWithGaps))

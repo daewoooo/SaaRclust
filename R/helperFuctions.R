@@ -217,3 +217,46 @@ kahansum <- function(x) {
   }
   ks
 }
+
+
+
+
+
+exportGenomicLocations <- function(soft.clust, prob.th=0.6) {
+  
+  getMaxPvals <- function(pval.vector) {
+    srt.pval <- sort(pval.vector, decreasing = T)
+    breakpoint <- which.min(diff(srt.pval))
+    max.pvals <- srt.pval[1:breakpoint]
+    max.pvals.clust <- which(pval.vector %in% max.pvals)
+    return(max.pvals.clust)
+  }  
+  
+  max.pVal <- apply(soft.clust, 1, max)
+  mask <- max.pVal >= prob.th
+  ord <- apply(soft.clust[mask,], 1, which.max)
+  
+  read.IDs <- rep(list(0), nrow(soft.clust)) 
+  read.IDs[mask] <- ord 
+  
+  best.idx <- apply(soft.clust[!mask,], 1, getMaxPvals)
+  read.IDs[!mask] <- best.idx 
+  
+  names(read.IDs) <- rownames(soft.clust)
+
+  return(read.IDs)
+  #best.idx <- t( apply(soft.clust[!mask,], 1, function(x) which(x %in% sort(x, decreasing = T)[1:5])) )
+  #best.pval <- t( apply(soft.clust[!mask,], 1, function(x) x[which(x %in% sort(x, decreasing = T)[1:5])]) )
+}
+
+
+
+
+
+getClusterIdentity <- function(soft.clust, chr.rows) {
+  max.Clust <- apply(soft.clust, 1, which.max)
+  clustByChrom <- split(max.Clust, chr.rows)
+  clustIdPerChrom <- lapply(clustByChrom, function(x) as.numeric(names(sort(table(x), decreasing=T)[1:2])))
+  return(clustIdPerChrom)
+}
+

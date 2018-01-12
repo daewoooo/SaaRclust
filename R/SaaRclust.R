@@ -50,7 +50,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   #tab.filt <- tab.filt[tab.filt$PBreadNames %in% chunk,]
   
   ### Sorting filtered data table by direction and chromosome ###
-  ptm <- startTimedMessage("Sorting data ...")
+  ptm <- startTimedMessage("Sorting data ")
   #additional sort by direction
   tab.filt <- tab.filt[order(tab.filt$PBflag),]
   
@@ -60,7 +60,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   
   #get PB chrom names from the ordered PB reads
   chr.l <- split(tab.filt$PBchrom, tab.filt$PBreadNames)
-  chr.rows <- sapply(chr.l, unique)
+  chr.rows <- sapply(chr.l, function(x) x[1])
   
   #get PB directionality from the ordered PB reads
   pb.flag <- split(tab.filt$PBflag, tab.filt$PBreadNames)

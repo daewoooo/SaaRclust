@@ -139,6 +139,7 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
   #if (num.iter==1) {
   soft.probs.tab <- do.call(cbind, soft.probs)
   soft.probs.tab.norm <- soft.probs.tab/rowSums(soft.probs.tab)
+  rownames(soft.probs.tab.norm) <- rownames(counts.l[[1]])
     #cluts.tab <- do.call(cbind, clust.prod)
     #cluts.tab.logL <- cluts.tab/rowSums(cluts.tab)
     #cluts.tab <- Reduce("*", clust.gammas.rowsums.l)

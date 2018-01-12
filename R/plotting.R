@@ -72,7 +72,7 @@ plotHeatmap <- function(pVal.df=NULL, colOrder=NULL, num.clusters=NULL) {
     chr.ids <- gsub('^chr', '', chr.ids)
     #chr.ids <- sort(as.numeric(chr.ids))
     chr.colors <- rep(c("gray48","gray72"), ceiling(length(chr.ids)/2))
-    chr.colors <- chr.colors
+    chr.colors <- chr.colors[1:length(chr.ids)]
     names(chr.colors) <- chr.ids
     
     pVal.df$PBchrom <- gsub('^chr', '', pVal.df$PBchrom)
