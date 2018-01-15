@@ -7,7 +7,7 @@
 runSaaRclust(inputfolder = NULL, outputfolder = "./SaaRclust_results",
   num.clusters = 55, EM.iter = 100, alpha = 0.1, logL.th = 1,
   theta.constrain = FALSE, store.counts = FALSE, store.bestAlign = TRUE,
-  verbose = TRUE)
+  skip.HC = FALSE, verbose = TRUE)
 }
 \arguments{
 \item{inputfolder}{A folder name where minimap files are stored.}

@@ -99,7 +99,7 @@ estimateTheta <- function(counts.l=NULL, ord=NULL, alpha=0.1) {
 
 mergeClusters <- function(kmeans.clust, theta.l, k=46)
 {
-  ptm <- startTimedMessage("Merging clusters ...")  
+  ptm <- startTimedMessage("Merging clusters")  
   theta.all <- do.call(cbind, theta.l)
   hc <- hclust(dist(theta.all))
   hc.clust <- cutree(hc, k=k)

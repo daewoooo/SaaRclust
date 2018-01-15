@@ -220,7 +220,14 @@ kahansum <- function(x) {
 
 
 
-
+#' Export best cluster IDs for each PB read
+#' 
+#' Function to get best clust ID for each PB read or eventually multiple cluster IDs if max pVal is lower than threshold
+#'
+#' @param soft.clust ...
+#' @param prob.th ...
+#' @author David Porubsky
+#' @export
 
 exportGenomicLocations <- function(soft.clust, prob.th=0.6) {
   
@@ -244,14 +251,18 @@ exportGenomicLocations <- function(soft.clust, prob.th=0.6) {
   
   names(read.IDs) <- rownames(soft.clust)
 
-  return(read.IDs)
+  return(list(clust.IDs=read.IDs, th.boolean=mask))
   #best.idx <- t( apply(soft.clust[!mask,], 1, function(x) which(x %in% sort(x, decreasing = T)[1:5])) )
   #best.pval <- t( apply(soft.clust[!mask,], 1, function(x) x[which(x %in% sort(x, decreasing = T)[1:5])]) )
 }
 
 
-
-
+#' Export corresponding clusters for each chromosome
+#'
+#' @param soft.clust ...
+#' @param chr.rows ...
+#' @author David Porubsky
+#' @export
 
 getClusterIdentity <- function(soft.clust, chr.rows) {
   max.Clust <- apply(soft.clust, 1, which.max)

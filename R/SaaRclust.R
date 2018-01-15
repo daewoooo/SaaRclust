@@ -32,7 +32,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   #trashbin.store <- file.path(outputfolder, 'TrashBin')
   
   ### Read in minimap output file ###
-  suppressWarnings( tab.in <- importTestData(infile = minimap.file, removeDuplicates = TRUE) )#SLOW because test data have to be processed differently
+  suppressWarnings( tab.in <- importTestData(infile = minimap.file, removeDuplicates = TRUE) ) #SLOW because test data have to be processed differently
   #suppressWarnings( tab.in <- importOldTestData(infile = minimap.file, removeDuplicates = TRUE) ) #use this function to import old test data (HG00733) from HGSVC
   #tab.in <- tab.in[tab.in$SSchrom != 'chrUn' & tab.in$SSchrom != 'chrX',] #applies only for test data
   #tab.in <- tab.in[tab.in$PBchrom %in% paste0('chr', c(18:22)),] #run only sertain chromosomes
@@ -50,7 +50,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   #tab.filt <- tab.filt[tab.filt$PBreadNames %in% chunk,]
   
   ### Sorting filtered data table by direction and chromosome ###
-  ptm <- startTimedMessage("Sorting data ")
+  ptm <- startTimedMessage("Sorting data")
   #additional sort by direction
   tab.filt <- tab.filt[order(tab.filt$PBflag),]
   
@@ -126,6 +126,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   #soft.clust.df$hardClust <- hard.clust$clust.id
   
   ### Plotting data ###
+  ptm <- startTimedMessage("Exporting plots")
   #plot likelihood function
   logl.df <- data.frame(log.l=soft.clust$log.l, iter=1:length(soft.clust$log.l))
   logl.diff <- round(max(logl.df$log.l) - min(logl.df$log.l), digits = 0)
@@ -146,12 +147,12 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   pdf(destination, width = 15, height = 10) 
   hm.plt
   dev.off()
-  
-  ggsave(filename = destination, plot = hm.plt, width = 25, height = 20, device = 'pdf')
+  stopTimedMessage(ptm)
   
   ### Save data ###
   destination <- file.path(Clusters.store, paste0(fileID, ".RData"))
   save(file = destination, soft.clust)
   
-  return(list(Data2plot=soft.clust.df, EM.data=soft.clust))  #add cluster order
+  #return(list(Data2plot=soft.clust.df, EM.data=soft.clust))  #add cluster order
+  return(soft.clust)  #add cluster order
 }
