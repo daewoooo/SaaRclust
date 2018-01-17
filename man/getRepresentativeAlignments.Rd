@@ -4,14 +4,17 @@
 \alias{getRepresentativeAlignments}
 \title{Import representative PacBio alignments.}
 \usage{
-getRepresentativeAlignments(inputfolder = NULL, numAlignments = 50000)
+getRepresentativeAlignments(inputfolder = NULL, numAlignments = 30000,
+  quantileSSreads = c(0.2, 0.8), minSSlibs = c(20, 25))
 }
 \arguments{
 \item{inputfolder}{A folder name where minimap files are stored.}
 
 \item{numAlignments}{A required number of representative PacBio alignments.}
 
-\item{store}{...}
+\item{quantileSSreads}{A quantile range for number of SSreads mapped to PB read. (default: 0.4-0.9)}
+
+\item{minSSlibs}{A range for the minimal and maximal number of StrandS libs being represented per PB read.}
 }
 \value{
 A \code{data.frame}.

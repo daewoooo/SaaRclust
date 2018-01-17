@@ -14,7 +14,7 @@ findClusterPartners <- function(theta.param=NULL) {
   
   pairwise.dist <- list()
   for (i in 1:length(theta.param)) {
-    cell.theta <- soft.clust$theta.param[[i]]
+    cell.theta <- theta.param[[i]]
     pairs <- t(combn(nrow(cell.theta), 2))
     pairs.m <- cbind( cell.theta[pairs[,1],1], cell.theta[pairs[,2],2] )
     dist <- apply(pairs.m, 1, euc.dist.v)
@@ -46,7 +46,7 @@ findSplitedClusters <- function(theta.param=NULL) {
   
   pairwise.dist <- list()
   for (i in 1:length(theta.param)) {
-    cell.theta <- soft.clust$theta.param[[i]]
+    cell.theta <- theta.param[[i]]
     pairs <- t(combn(nrow(cell.theta), 2))
     pairs.w <- cbind( cell.theta[pairs[,1],1], cell.theta[pairs[,2],1] )
     dist <- apply(pairs.w, 1, euc.dist.v)

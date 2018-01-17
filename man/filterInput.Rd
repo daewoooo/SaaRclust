@@ -4,13 +4,15 @@
 \alias{filterInput}
 \title{Filter input data from the minimap}
 \usage{
-filterInput(inputData = NULL, quantileSSreads = c(0.4, 0.9),
-  minSSlibs = 20)
+filterInput(inputData = NULL, quantileSSreads = c(0, 0.9),
+  minSSlibs = c(20, 25))
 }
 \arguments{
 \item{inputData}{A \code{data.frame} loaded by \code{\link[SaaRclust]{importTestData}}}
 
 \item{quantileSSreads}{A quantile range for number of SSreads mapped to PB read. (default: 0.4-0.9)}
+
+\item{minSSlibs}{A range for the minimal and maximal number of StrandS libs being represented per PB read.}
 }
 \value{
 A filtered \code{data.frame}.

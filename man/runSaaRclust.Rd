@@ -4,7 +4,7 @@
 \alias{runSaaRclust}
 \title{Wrapper function to run saarclust pipeline.}
 \usage{
-runSaaRclust(inputfolder = NULL, outputfolder = "./SaaRclust_results",
+runSaaRclust(inputfolder = NULL, outputfolder = "SaaRclust_results",
   num.clusters = 55, EM.iter = 100, alpha = 0.1, logL.th = 1,
   theta.constrain = FALSE, store.counts = FALSE, store.bestAlign = TRUE,
   skip.HC = FALSE, verbose = TRUE)

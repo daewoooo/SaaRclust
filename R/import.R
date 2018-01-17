@@ -150,12 +150,13 @@ importOldTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO mod
 #'
 #' @param inputData A \code{data.frame} loaded by \code{\link[SaaRclust]{importTestData}}
 #' @param quantileSSreads A quantile range for number of SSreads mapped to PB read. (default: 0.4-0.9)
+#' @param minSSlibs A range for the minimal and maximal number of StrandS libs being represented per PB read.
 #' @return A filtered \code{data.frame}.
 #' @author David Porubsky
 #' @export
 
 
-filterInput <- function(inputData=NULL, quantileSSreads=c(0.4,0.9), minSSlibs=20) {
+filterInput <- function(inputData=NULL, quantileSSreads=c(0,0.9), minSSlibs=c(20,25)) {
   
   ptm <- startTimedMessage("Filtering the data")
   
@@ -184,7 +185,7 @@ filterInput <- function(inputData=NULL, quantileSSreads=c(0.4,0.9), minSSlibs=20
   
   #filter reads based on the number of SS libs per PB read [FAST]
   inputData.filt %>% group_by(PBreadNames) %>% summarise(counts = length(unique(SSlibNames))) -> SSlib.perPB.counts
-  maskNames <- SSlib.perPB.counts$PBreadNames[SSlib.perPB.counts$counts >= minSSlibs]
+  maskNames <- SSlib.perPB.counts$PBreadNames[SSlib.perPB.counts$counts >= minSSlibs[1] & SSlib.perPB.counts$counts <= minSSlibs[2]]
   inputData.filt <- inputData.filt[inputData.filt$PBreadNames %in% maskNames,]
   
   #filter reads based on the number of SS libs per PB read [SLOW]
@@ -205,12 +206,12 @@ filterInput <- function(inputData=NULL, quantileSSreads=c(0.4,0.9), minSSlibs=20
 #'
 #' @param inputfolder  A folder name where minimap files are stored.
 #' @param numAlignments  A required number of representative PacBio alignments.
-#' @param store ...
+#' @inheritParams filterInput
 #' @return A \code{data.frame}.
 #' @author David Porubsky
 #' @export 
 
-getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=50000) {
+getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=30000, quantileSSreads=c(0.2,0.8), minSSlibs=c(20,25)) {
   
   ptm <- startTimedMessage("Getting representative alignments\n") 
   file.list <- list.files(path = inputfolder, pattern = "chunk.+maf", full.names = TRUE)
@@ -221,8 +222,8 @@ getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=50000) {
     filename <- basename(file)
     ptm <- proc.time()
     
-    suppressMessages( suppressWarnings( tab.in <- importTestData(infile = file, removeDuplicates = TRUE) ) )
-    suppressMessages( tab.filt <- filterInput(inputData=tab.in, quantileSSreads = c(0.4,0.9), minSSlibs = 20) )
+    suppressMessages( suppressWarnings( tab.in <- importTestData(infile=file, removeDuplicates=TRUE) ) )
+    suppressMessages( tab.filt <- filterInput(inputData=tab.in, quantileSSreads=quantileSSreads, minSSlibs=minSSlibs) )
     numAligns <- length(unique(tab.filt$PBreadNames))
     
     message("    Obtained ",numAligns," representative alignments", appendLF = F); 
