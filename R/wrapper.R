@@ -102,7 +102,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     theta.estim <- estimateTheta(counts.l, ord=hardClust.ord, alpha=alpha)
   
     #Merge splitted clusters after hard clustering
-    hardClust.ord.merged <- mergeClusters(kmeans.clust=hardClust.ord, theta.l=theta.estim, k = 46)
+    hardClust.ord.merged <- mergeClusters(kmeans.clust=hardClust.ord, theta.l=theta.estim, k = 48)
     # computing the accuracy of the hard clustering after merging
     acc <- hardClustAccuracy(hard.clust = hardClust.ord.merged, pb.chr = chr.rows, pb.flag = pb.flag, tab.filt = best.alignments)
     print(acc)

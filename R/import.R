@@ -1,3 +1,39 @@
+#' Import pre-processed output from the minimap
+#'
+#' This function expects output from custom minimap test dataset that contains original locations of mapped reads in the genome.
+#'
+#' @param infile A path to the minimap file to load.
+#' @return A \code{data.frame}.
+#' @author David Porubsky
+#' @export 
+
+importData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO modify this function for input where genomic location of PB reads is unknown
+  
+  ptm <- startTimedMessage("Reading the data") 
+  #data <- read.table(infile, header=F) #TODO test data.table package for faster data import
+  
+  #filetype = summary( file(infile) )$class #If it's gzipped, filetype will be gzfile
+  if (summary( file(infile) )$class == 'gzfile') {
+    data <- data.table::fread(paste0('gunzip -cq ',infile), header=T, verbose = F, showProgress = F)
+  } else {
+    data <- data.table::fread(infile, header=T, verbose = F, showProgress = F)
+  }
+  
+  #make sure strand info is represented as factor variable
+  data$strand <- factor(data$strand)
+  
+  #remove duplicate StrandS reads if there are any
+  if (removeDuplicates) {
+    bit.flag <- bitwAnd(1024, as.numeric(data$SSflag))
+    mask <- bit.flag == 0 	
+    data <- data[mask,]
+  }  	
+  
+  stopTimedMessage(ptm)
+  return(data)
+}
+
+
 #' Import output from the minimap
 #'
 #' This function expects output from custom minimap test dataset that contains original locations of mapped reads in the genome.
@@ -222,7 +258,8 @@ getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=30000, q
     filename <- basename(file)
     ptm <- proc.time()
     
-    suppressMessages( suppressWarnings( tab.in <- importTestData(infile=file, removeDuplicates=TRUE) ) )
+    suppressMessages( suppressWarnings( tab.in <- importData(infile=file, removeDuplicates=TRUE) ) )
+    #suppressMessages( suppressWarnings( tab.in <- importTestData(infile=file, removeDuplicates=TRUE) ) )
     suppressMessages( tab.filt <- filterInput(inputData=tab.in, quantileSSreads=quantileSSreads, minSSlibs=minSSlibs) )
     numAligns <- length(unique(tab.filt$PBreadNames))
     
