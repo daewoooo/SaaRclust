@@ -40,7 +40,6 @@ importData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO modify thi
 #'
 #' @param infile A path to the minimap file to load.
 #' @return A \code{data.frame}.
-#' @import dplyr
 #' @author David Porubsky
 #' @export 
 
@@ -188,6 +187,7 @@ importOldTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO mod
 #' @param quantileSSreads A quantile range for number of SSreads mapped to PB read. (default: 0.4-0.9)
 #' @param minSSlibs A range for the minimal and maximal number of StrandS libs being represented per PB read.
 #' @return A filtered \code{data.frame}.
+#' @import dplyr
 #' @author David Porubsky
 #' @export
 

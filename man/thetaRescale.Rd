@@ -4,12 +4,12 @@
 \alias{thetaRescale}
 \title{Rescale theta values for WC cell type.}
 \usage{
-thetaRescale(theta.param, theta.Expected)
+thetaRescale(theta.param, theta.expected)
 }
 \arguments{
 \item{theta.param}{A \code{list} of estimated cell types for each cluster and each cell.}
 
-\item{theta.Expected}{A \code{vector} of expected sums of probabilities to observe WW,CC or WC chromosomes across all cells.}
+\item{theta.expected}{A \code{vector} of expected sums of probabilities to observe WW,CC or WC chromosomes across all cells.}
 }
 \description{
 Adjust estimated theta values based on expected number of WC chromosomes given random segregation of parental homologues.

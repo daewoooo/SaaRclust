@@ -4,10 +4,10 @@
 \alias{getQualMeasure}
 \title{Obtain summary measures of minimap output.}
 \usage{
-getQualMeasure(data.tab)
+getQualMeasure(inputData)
 }
 \arguments{
-\item{data.tab}{Imported data table.}
+\item{inputData}{A \code{data.frame} loaded by \code{\link[SaaRclust]{importTestData}}}
 }
 \description{
 Takes imported data table and export relevant data quality measures.

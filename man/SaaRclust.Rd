@@ -4,10 +4,10 @@
 \alias{SaaRclust}
 \title{Wrapper function to run saarclust pipeline for a given number of PB reads.}
 \usage{
-SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_analysis",
-  num.clusters = 46, EM.iter = 100, alpha = 0.1,
+SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
+  num.clusters = 48, EM.iter = 100, alpha = 0.1, minLib = 10,
   theta.param = theta.param, pi.param = pi.param, logL.th = 1,
-  theta.constrain = FALSE, store.counts = FALSE)
+  theta.constrain = FALSE, store.counts = FALSE, HC.input = NULL)
 }
 \arguments{
 \item{minimap.file}{A path to the minimap file to load.}
@@ -20,7 +20,11 @@ SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_analysis",
 
 \item{alpha}{Estimated level of background Strand-seq reads.}
 
+\item{minLib}{Minimal number of StrandS libraries being represent per long PB read}
+
 \item{store.counts}{Logical if to store raw read counts per PB read}
+
+\item{HC.input}{Filaname where hard clustering results are stored}
 }
 \description{
 Wrapper function to run saarclust pipeline for a given number of PB reads.

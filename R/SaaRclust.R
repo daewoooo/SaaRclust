@@ -4,8 +4,10 @@
 #' @param minimap.file A path to the minimap file to load.
 #' @param outputfolder A folder name to export to results.
 #' @param num.clusters Expected number of clusters. (for 22 autosomes == 44 clusters)
+#' @param minLib Minimal number of StrandS libraries being represent per long PB read
 #' @param EM.iter Number of iteration to run EM for.
 #' @param store.counts Logical if to store raw read counts per PB read
+#' @param HC.input Filaname where hard clustering results are stored
 #' @inheritParams countProb
 #' @export
 #' @author David Porubsky
@@ -14,7 +16,7 @@
 #minimap.file <- "/media/daewoooo/WORK/SS2PacBio_alignment_HG00733/Test_cluster_chr21&chr22/Minimap_out/SS2Pacbio_minimap_HG00733_k13_w1_L70_f0.01_Chr21andChr22_allSSreads"
 #minimap.file <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/NA12878_WashU_PBreads_chunk14.maf.gz"
 
-SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.clusters=46, EM.iter=100, alpha=0.1, theta.param=theta.param, pi.param=pi.param, logL.th=1, theta.constrain=FALSE, store.counts=FALSE) {
+SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=48, EM.iter=100, alpha=0.1, minLib=10, theta.param=theta.param, pi.param=pi.param, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL) {
 
   #get file ID
   fileID <- basename(minimap.file)
@@ -24,7 +26,19 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   rawdata.store <- file.path(outputfolder, 'RawData')
   Clusters.store <- file.path(outputfolder, 'Clusters')
   plots.store <- file.path(outputfolder, 'Plots')
+  tmp.store <- file.path(outputfolder, 'TMP')
   #trashbin.store <- file.path(outputfolder, 'TrashBin')
+  
+  #Load Hard clustering results and initialize parameters of EM algorithm [temporary solution for snakemake]
+  destination <- file.path(Clusters.store, HC.input)
+  if (!file.exists(destination)) {
+    stop("Hard clustering results not available!!!")
+  }    
+  hard.clust.results <- get(load(destination))
+  #Initialize theta parameter
+  theta.param <- hard.clust.results$theta.param
+  #Initialize pi parameter
+  pi.param <- hard.clust.results$pi.param
   
   ### Read in minimap output file ###
   suppressWarnings( tab.in <- importData(infile = minimap.file, removeDuplicates = TRUE) )
@@ -34,11 +48,13 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   #tab.in <- tab.in[tab.in$PBchrom %in% paste0('chr', c(18:22)),] #run only sertain chromosomes
   
   #get some quality measures on imported data [OPTIONAL]
-  #tab.in.quals <- getQualMeasure(tab.in) #time consuming!!!
+  data.qual.measures <- getQualMeasure(tab.in) #time consuming!!!
+  destination <- file.path(tmp.store, paste0(fileID, "_dataQuals.RData"))
+  save(file = destination, data.qual.measures)
   #qual.plt <- plotQualMeasure(tab.in.quals)
   
   ### Filter imported data ###
-  tab.filt <- filterInput(inputData=tab.in, quantileSSreads = c(0, 0.9), minSSlibs = c(10,Inf))
+  tab.filt <- filterInput(inputData=tab.in, quantileSSreads = c(0, 0.9), minSSlibs = c(minLib,Inf))
   
   #take a smaller chunk of PB reads to process [NOT USED!!!]
   #tab.filt <- tab.filt[sample(nrow(tab.filt)),] #shuffle rows in tab
@@ -101,7 +117,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_analysis', num.
   if (theta.constrain) {
     theta.expected <- num.clusters * c(0.25,0.25,0.5)
     theta.rescaled <- thetaRescale(theta.param=soft.clust.obj$theta.param, theta.expected=theta.expected)
-    soft.clust.rescale <- SaaRclust(tab.l, theta.param=theta.rescaled, pi.param=pi.param, num.iter=1)
+    soft.clust.obj <- EMclust(counts.l, theta.param=theta.rescaled, pi.param=soft.clust.obj$pi.param, num.iter=1, alpha=alpha, logL.th=logL.th)
   }
 
   ### Merge clusters ### Part of hard clustering!!!

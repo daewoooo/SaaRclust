@@ -17,7 +17,7 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
   if (num.iter>1) {
     message("Running EM") 
   } else {
-    message("Soft clustering")
+    message("Rescaling theta parameter")
   }  
   
   #counts.l <- list()
@@ -60,7 +60,7 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
       clusters.per.cell[[j]] <- lapply(clusters, rowSums)
   
       #calculate gamma function
-      cellNum <- length(tab.l)
+      cellNum <- length(counts.l)
       pi.param.scaled <- ( pi.param^(1/cellNum) ) #scale pi.param given the number of strandseq cells
       clusters.scaled <- Map("*", clusters, pi.param.scaled) #multiply BN probs(multiplied by theta) with scaled pi.param
       clust.gammas <- gammaFunction(clust.prob = clusters.scaled, pi = pi.param, cellNum = cellNum)

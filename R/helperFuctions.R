@@ -2,41 +2,26 @@
 #'
 #' Takes imported data table and export relevant data quality measures.
 #'
-#' @param data.tab Imported data table.
+#' @param inputData A \code{data.frame} loaded by \code{\link[SaaRclust]{importTestData}}
+#' @import dplyr
 #' @author David Porubsky
 #' @export
 
-getQualMeasure <- function(data.tab) {
+getQualMeasure <- function(inputData) {
+  ptm <- startTimedMessage("Getting data quality measures")
+  
   #get number of SS reads per PB read
-  SSread.perPB <- sort(table(data.tab$PBreadNames), decreasing = T)
-  summary.df <- data.frame(PBreadNames = names(SSread.perPB), SSread.perPB = as.vector(SSread.perPB), stringsAsFactors = F)
+  SSreads.perPB <- sort(table(inputData$PBreadNames), decreasing = T) #this won't be needed when output will be already sorted by PBreads
   
   #get number of SS libs per PB read
-  SSlib.perPB <- split(as.factor(data.tab$SSlibNames), data.tab$PBreadNames)
-  SSlib.perPB.counts <- lapply(SSlib.perPB, function(x) table(x))
-  SSlib.perPB.m <- do.call(rbind,SSlib.perPB.counts)
-  
-  SSlib.perPB.counts <- sapply(SSlib.perPB, function(x) length(unique(x)))
-  summary.df$SSlib.perPB <- SSlib.perPB.counts[summary.df$PBreadNames]
-  
-  #get logical vector comapring mapping accuracy
-  mapp.accur.comp <- data.tab$SSchrom == data.tab$PBchrom
-  mapp.gaps <- data.tab$MatchedBasesWithGaps 
-  mapp.gaps.df <- data.frame(matchWithgaps=mapp.gaps, mapp.accur=mapp.accur.comp)
-  mapp.gaps.df <- mapp.gaps.df[order(mapp.gaps.df$matchWithgaps, decreasing = T),]
-  mapp.accur <- table(mapp.accur.comp)
-  
-  #get number of gaps in SS read alignments
-  match.gaps <- split(data.tab$MatchedBasesWithGaps, data.tab$PBreadNames)
-  match.gaps.sums <- sapply(match.gaps, sum)
-  summary.df$gaps.perPB <- match.gaps.sums[summary.df$PBreadNames]
-  summary.df$gaps.perPB.norm <- summary.df$gaps.perPB / as.vector(SSread.perPB)
+  inputData %>% group_by(PBreadNames) %>% summarise(counts = length(unique(SSlibNames))) -> SSlib.perPB
   
   #get PB read distribution hist
-  hist.data <- hist(data.tab$PBreadLen, breaks = 100)
+  hist.data <- hist(inputData$PBreadLen, breaks = 100)
   hist.df <- data.frame(midpoints= hist.data$mids, freq= hist.data$counts)
   
-  return(list(mapp.stat.counts = summary.df, mapp.gaps.stat=mapp.gaps.df, mapp.accur=mapp.accur, SScov.stat=SSlib.perPB.m, PBreadLenDist=hist.df))
+  stopTimedMessage(ptm)
+  return(list(SSreads.perPB=SSreads.perPB, SSlib.perPB=SSlib.perPB, PBreadLenDist=hist.df))
 }
 
 #' Check clustering accuracy
@@ -184,16 +169,16 @@ randomTheta <- function(num.cells=100, num.clusters=44) {
 #' Adjust estimated theta values based on expected number of WC chromosomes given random segregation of parental homologues.
 #'
 #' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
-#' @param theta.Expected A \code{vector} of expected sums of probabilities to observe WW,CC or WC chromosomes across all cells.
+#' @param theta.expected A \code{vector} of expected sums of probabilities to observe WW,CC or WC chromosomes across all cells.
 #' @author David Porubsky
 #' @export
 
-thetaRescale <- function(theta.param, theta.Expected) {
+thetaRescale <- function(theta.param, theta.expected) {
   theta.rescaled <- list()
   for (i in 1:length(theta.param)) {
     theta.cell <- theta.param[[i]]
     theta.ObservedSums <- colSums(theta.cell)
-    corr.factor <- theta.Expected / theta.ObservedSums
+    corr.factor <- theta.expected / theta.ObservedSums
     theta.param.rescaled <- t(t(theta.cell) * corr.factor)
     theta.param.rescaled.norm <- theta.param.rescaled / rowSums(theta.param.rescaled)
     theta.rescaled[[i]] <- theta.param.rescaled.norm

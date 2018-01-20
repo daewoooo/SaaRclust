@@ -11,7 +11,7 @@
 hardClust <- function(counts.l=NULL, num.clusters=NULL, nstart=10, iter.max=10) {
 
   message("Hard clustering")
-  ptm <- startTimedMessage("    Kmeans clustering for ",num.clusters," clusters ...") 
+  ptm <- startTimedMessage("    Kmeans clustering for ",num.clusters," clusters") 
   
   ratios.l <- list()
   for (j in 1:length(counts.l)) {
@@ -48,7 +48,7 @@ hardClust <- function(counts.l=NULL, num.clusters=NULL, nstart=10, iter.max=10) 
 #' @export
 
 estimateTheta <- function(counts.l=NULL, ord=NULL, alpha=0.1) {
-  ptm <- startTimedMessage("Estimate theta values ...") 
+  ptm <- startTimedMessage("Estimate theta values") 
   theta.estim <- list()
   for (j in 1:length(counts.l)) {
     minus.c <- split(counts.l[[j]][,1], ord)
@@ -107,6 +107,7 @@ mergeClusters <- function(kmeans.clust, theta.l, k=46)
   stopTimedMessage(ptm)
   return(sapply(kmeans.clust, function(i) hc.clust[i]))
 }
+
 
 #' Get the feature vector based on the WmiunsC ratios
 #'
