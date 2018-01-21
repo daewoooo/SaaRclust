@@ -33,7 +33,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   if (!file.exists(HC.input)) {
     stop("Hard clustering results not available!!!")
   }    
-  hard.clust.results <- get(load(destination))
+  hard.clust.results <- get(load(HC.input))
   
   #Initialize theta parameter
   theta.param <- hard.clust.results$theta.param
