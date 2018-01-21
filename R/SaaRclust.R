@@ -29,8 +29,8 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   #trashbin.store <- file.path(outputfolder, 'TrashBin')
   
   #Load Hard clustering results and initialize parameters of EM algorithm [temporary solution for snakemake]
-  destination <- file.path(Clusters.store, HC.input)
-  if (!file.exists(destination)) {
+  #destination <- file.path(Clusters.store, HC.input)
+  if (!file.exists(HC.input)) {
     stop("Hard clustering results not available!!!")
   }    
   hard.clust.results <- get(load(destination))
