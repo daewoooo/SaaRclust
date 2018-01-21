@@ -2,7 +2,6 @@
 #'
 #' @param inputfolder A folder name where minimap files are stored.
 #' @param store.bestAlign Store best alignements in RData object.
-#' @param skip.HC If set to TRUE existing hard clustering results will be used.
 #' @param HC.only Perform only hard clustering and skip the rest of the pipeline.
 #' @param verbose ... 
 #' @inheritParams SaaRclust
@@ -13,7 +12,7 @@
 
 #load the function below into R if you want to run all steps in one command
 
-runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num.clusters=55, EM.iter=100, alpha=0.01, minLib=10, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, skip.HC=FALSE, HC.only=TRUE, verbose=TRUE) {
+runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num.clusters=55, EM.iter=100, alpha=0.01, minLib=10, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, HC.only=TRUE, verbose=TRUE) {
   
   set.seed(1000)
   
@@ -62,7 +61,12 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
   
   #Consider to have separate pipeline for Hard clustering [TODO]
   numAlignments <- 50000 #perhaps add this parameter into a main function definition???
-  if (!skip.HC) {
+  #Load Hard clustering results if they were already created
+  destination <- file.path(Clusters.store, paste0("hardClusteringResults_",numAlignments,".RData"))
+  if (!file.exists(destination)) {
+    message("Hard clustering results not available!!!")
+    message("Re-running Hard clustering")
+    
     ### Get representative alignments to estimate theta and pi values ###
     destination <- file.path(rawdata.store, paste0("representativeAligns_",numAlignments,".RData"))
     #reuse existing data if they were already created and save in a given location
@@ -74,19 +78,19 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     } else {
       best.alignments <- get(load(destination))
     }  
-  
+    
     #use PB read names as factor in order to export counts for every PB read (also for zero counts)
     best.alignments$PBreadNames <- factor(best.alignments$PBreadNames, levels=unique(best.alignments$PBreadNames))
-  
+    
     #split data by Strand-seq library
     tab.l <- split(best.alignments, best.alignments$SSlibNames)
-  
+    
     ### Count directional reads ###
     counts.l <- countDirectionalReads(tab.l)
-  
+    
     ### Perform k-means hard clustering method ###
     hardClust.ord <- hardClust(counts.l, num.clusters=num.clusters, nstart = 10)
-  
+    
     ### computing the accuracy of the hard clustering before merging lusters ### [OPTIONAL]
     #get PB chrom names from the ordered PB reads
     chr.l <- split(best.alignments$PBchrom, best.alignments$PBreadNames)
@@ -94,7 +98,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     #get PB directionality from the ordered PB reads
     pb.flag <- split(best.alignments$PBflag, best.alignments$PBreadNames)
     pb.flag <- sapply(pb.flag, unique)
-  
+    
     #get hard clustering accuracy
     #chr.clusts <- split(chr.rows, hardClust.ord)
     #clust.acc <- getClusterAcc(chr.clusts)
@@ -109,10 +113,10 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     write("Hard clustering summary:", file=log.destination, append=TRUE)
     write(paste("Accuracy before merging ", acc$acc), file=log.destination, append=TRUE)
     write(paste("Number of missing clusters =", length(acc$missed.clusters)), file=log.destination, append=TRUE)
-  
+    
     #Estimate theta parameter
     theta.estim <- estimateTheta(counts.l, ord=hardClust.ord, alpha=alpha)
-  
+    
     #Merge splitted clusters after hard clustering
     hardClust.ord.merged <- mergeClusters(kmeans.clust=hardClust.ord, theta.l=theta.estim, k = 48)
     
@@ -121,16 +125,16 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     #print to log file
     write(paste("\nAccuracy after merging ", acc$acc), file=log.destination, append=TRUE)
     write(paste("Number of missing clusters =", length(acc$missed.clusters)), file=log.destination, append=TRUE)
-  
+    
     #Re-estimate theta parameter after cluster merging
     theta.estim <- estimateTheta(counts.l, ord=hardClust.ord.merged, alpha=alpha)
-  
+    
     #Initialize theta parameter
     theta.param <- theta.estim
     #Estimate pi parameter based on # of PB reads in each cluster
     readsPerCluts <- table(hardClust.ord.merged)
     pi.param <- readsPerCluts/sum(readsPerCluts)
-  
+    
     #save hard clustering results into a file
     hard.clust <- list(ord=hardClust.ord.merged, theta.param=theta.param, pi.param=pi.param)
     destination <- file.path(Clusters.store, paste0("hardClusteringResults_",numAlignments,".RData"))
@@ -139,19 +143,16 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     }  
     
   } else {
-    #Load Hard clustering results
-    destination <- file.path(Clusters.store, paste0("hardClusteringResults_",numAlignments,".RData"))
-    if (!file.exists(destination)) {
-      stop("Hard clustering results not available!!!")
-    }    
+    message("Loading Hard clustering results")
     hard.clust.results <- get(load(destination))
-    #Initialize theta parameter
-    theta.param <- hard.clust.results$theta.param
-    #Initialize pi parameter
-    pi.param <- hard.clust.results$pi.param
   }
   
   if(!HC.only) {
+    #Initialize theta parameter
+    theta.param <- hard.clust.results$theta.param
+    #Initialize pi parameter
+    pi.param <- hard.clust.results$pi.param 
+    
     #List files to process
     file.list <- list.files(path = inputfolder, pattern = "chunk.+maf", full.names = TRUE)
   
@@ -206,6 +207,10 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     plt <- ggplot(clust.acc.df) + geom_point(aes(x=above.th.acc, y=above.th.clustReads), color="red", size=10) + geom_linerange(aes(ymin=-Inf, x=above.th.acc, ymax=above.th.clustReads),color="red") + scale_y_continuous(limits = c(0,1)) + ylab("(%) evaluated PB reads") + xlab("(%) correctly assigned PB reads") + geom_text(aes(x=above.th.acc, y=above.th.clustReads), label=thresholds, color="white")
     plt <- plt + geom_point(data=clust.acc.df, aes(x=below.th.acc, y=below.th.clustReads), color="blue", size=10) + geom_linerange(aes(ymin=-Inf, x=below.th.acc, ymax=below.th.clustReads), color="blue") + geom_text(aes(x=below.th.acc, y=below.th.clustReads), label=thresholds, color="white")
     plt + geom_point(data=clust.acc.df, aes(x=both.th.acc, y=both.th.clustReads), color="green", size=10) + geom_linerange(aes(ymin=-Inf, x=both.th.acc, ymax=both.th.clustReads), color="green") + geom_text(aes(x=both.th.acc, y=both.th.clustReads), label=thresholds, color="white")
+  
+  } else {
+    return(hard.clust.results)
   }
+
 }
 

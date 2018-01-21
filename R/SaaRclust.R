@@ -26,7 +26,6 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   rawdata.store <- file.path(outputfolder, 'RawData')
   Clusters.store <- file.path(outputfolder, 'Clusters')
   plots.store <- file.path(outputfolder, 'Plots')
-  tmp.store <- file.path(outputfolder, 'TMP')
   #trashbin.store <- file.path(outputfolder, 'TrashBin')
   
   #Load Hard clustering results and initialize parameters of EM algorithm [temporary solution for snakemake]
@@ -35,6 +34,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
     stop("Hard clustering results not available!!!")
   }    
   hard.clust.results <- get(load(destination))
+  
   #Initialize theta parameter
   theta.param <- hard.clust.results$theta.param
   #Initialize pi parameter
@@ -48,8 +48,8 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   #tab.in <- tab.in[tab.in$PBchrom %in% paste0('chr', c(18:22)),] #run only sertain chromosomes
   
   #get some quality measures on imported data [OPTIONAL]
-  data.qual.measures <- getQualMeasure(tab.in) #time consuming!!!
-  destination <- file.path(tmp.store, paste0(fileID, "_dataQuals.RData"))
+  data.qual.measures <- getQualMeasure(tab.in)
+  destination <- file.path(rawdata.store, paste0(fileID, "_dataQuals.RData"))
   save(file = destination, data.qual.measures)
   #qual.plt <- plotQualMeasure(tab.in.quals)
   
@@ -90,7 +90,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   counts.l <- countDirectionalReads(tab.l)
   
   if (store.counts) {
-    destination <- file.path(rawdata.store, paste0(fileID, ".RData"))
+    destination <- file.path(rawdata.store, paste0(fileID, "_counts.RData"))
     save(file = destination, counts.l)
   }
   
@@ -120,7 +120,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
     soft.clust.obj <- EMclust(counts.l, theta.param=theta.rescaled, pi.param=soft.clust.obj$pi.param, num.iter=1, alpha=alpha, logL.th=logL.th)
   }
 
-  ### Merge clusters ### Part of hard clustering!!!
+  ### Merge clusters ### Part of hard clustering now!!!
   #get splitted clusters with same directionality and coming from the same chromosome [EXPERIMENTAL]
   #split.clust <- findSplitedClusters(theta.param=soft.clust$theta.param)
   #merged.pVals <- mergeSplitedClusters(cluster2merge=split.clust, soft.pVal=soft.clust$soft.pVal)
@@ -161,9 +161,13 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   dev.off()
   stopTimedMessage(ptm)
 
-  ### Save data ###
-  destination <- file.path(Clusters.store, paste0(fileID, ".RData"))
+  ### Save final results ###
+  #add known chromosome and directionality of PB reads to a final data object
+  soft.clust.obj$PBchrom <- as.character(chr.rows)
+  soft.clust.obj$PBflag <- as.character(pb.flag)
+  #export data 
+  destination <- file.path(Clusters.store, paste0(fileID, "_clusters.RData"))
   save(file = destination, soft.clust.obj)
 
-  return(list(Data2plot=soft.clust.df, EM.data=soft.clust.obj))  #add cluster order
+  return(list(Data2plot=soft.clust.df, EM.data=soft.clust.obj))  #add cluster order??? [TODO]
 }

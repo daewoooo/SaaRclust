@@ -7,8 +7,7 @@
 runSaaRclust(inputfolder = NULL, outputfolder = "SaaRclust_results",
   num.clusters = 55, EM.iter = 100, alpha = 0.01, minLib = 10,
   logL.th = 1, theta.constrain = FALSE, store.counts = FALSE,
-  store.bestAlign = TRUE, skip.HC = FALSE, HC.only = TRUE,
-  verbose = TRUE)
+  store.bestAlign = TRUE, HC.only = TRUE, verbose = TRUE)
 }
 \arguments{
 \item{inputfolder}{A folder name where minimap files are stored.}
@@ -26,8 +25,6 @@ runSaaRclust(inputfolder = NULL, outputfolder = "SaaRclust_results",
 \item{store.counts}{Logical if to store raw read counts per PB read}
 
 \item{store.bestAlign}{Store best alignements in RData object.}
-
-\item{skip.HC}{If set to TRUE existing hard clustering results will be used.}
 
 \item{HC.only}{Perform only hard clustering and skip the rest of the pipeline.}
 
