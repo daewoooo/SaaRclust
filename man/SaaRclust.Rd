@@ -5,7 +5,7 @@
 \title{Wrapper function to run saarclust pipeline for a given number of PB reads.}
 \usage{
 SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
-  num.clusters = 48, EM.iter = 100, alpha = 0.1, minLib = 10,
+  num.clusters = 46, EM.iter = 100, alpha = 0.1, minLib = 10,
   theta.param = theta.param, pi.param = pi.param, logL.th = 1,
   theta.constrain = FALSE, store.counts = FALSE, HC.input = NULL)
 }

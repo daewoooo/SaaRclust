@@ -16,7 +16,7 @@
 #minimap.file <- "/media/daewoooo/WORK/SS2PacBio_alignment_HG00733/Test_cluster_chr21&chr22/Minimap_out/SS2Pacbio_minimap_HG00733_k13_w1_L70_f0.01_Chr21andChr22_allSSreads"
 #minimap.file <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/NA12878_WashU_PBreads_chunk14.maf.gz"
 
-SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=48, EM.iter=100, alpha=0.1, minLib=10, theta.param=theta.param, pi.param=pi.param, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL) {
+SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=46, EM.iter=100, alpha=0.1, minLib=10, theta.param=theta.param, pi.param=pi.param, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL) {
 
   #get file ID
   fileID <- basename(minimap.file)

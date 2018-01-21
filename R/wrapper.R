@@ -15,8 +15,6 @@
 
 runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num.clusters=55, EM.iter=100, alpha=0.01, minLib=10, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, numAlignments=50000, HC.only=TRUE, verbose=TRUE) {
   
-  set.seed(1000)
-  
   #=========================#
   ### Create directiories ###
   #=========================#
@@ -66,13 +64,13 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
   destination <- file.path(Clusters.store, paste0("hardClusteringResults_",numAlignments,".RData"))
   if (!file.exists(destination)) {
     message("Hard clustering results not available!!!")
-    message("Re-running Hard clustering")
+    message("Running Hard clustering")
     
     ### Get representative alignments to estimate theta and pi values ###
     destination <- file.path(rawdata.store, paste0("representativeAligns_",numAlignments,".RData"))
     #reuse existing data if they were already created and save in a given location
     if (!file.exists(destination)) {
-      best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.9), minSSlibs=c(20,Inf))
+      best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.9), minSSlibs=c(25,Inf))
       if (store.bestAlign) {
         save(file = destination, best.alignments)
       }
@@ -90,6 +88,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     counts.l <- countDirectionalReads(tab.l)
     
     ### Perform k-means hard clustering method ###
+    set.seed(1000) #in order to reproduce hard clustering results
     hardClust.ord <- hardClust(counts.l, num.clusters=num.clusters, nstart = 10)
     
     ### computing the accuracy of the hard clustering before merging lusters ### [OPTIONAL]
@@ -117,7 +116,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     theta.estim <- estimateTheta(counts.l, ord=hardClust.ord, alpha=alpha)
     
     #Merge splitted clusters after hard clustering
-    hardClust.ord.merged <- mergeClusters(kmeans.clust=hardClust.ord, theta.l=theta.estim, k = 48)
+    hardClust.ord.merged <- mergeClusters(kmeans.clust=hardClust.ord, theta.l=theta.estim, k = 46)
     
     #Computing the accuracy of the hard clustering after merging
     acc <- hardClustAccuracy(hard.clust = hardClust.ord.merged, pb.chr = chr.rows, pb.flag = pb.flag, tab.filt = best.alignments)
