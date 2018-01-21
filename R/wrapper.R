@@ -104,9 +104,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     #clust.acc <- getClusterAcc(chr.clusts)
     #Create Hard clustering log
     log.destination <- file.path(outputfolder.destination, "hardClust.log")
-    if (!file.exists(log.destination)) {
-      beQuiet <- file.create(log.destination)
-    }
+    beQuiet <- file.create(log.destination)
     
     acc <- hardClustAccuracy(hard.clust = hardClust.ord, pb.chr = chr.rows, pb.flag = pb.flag, tab.filt = best.alignments)
     #print to log file
@@ -144,14 +142,14 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     
   } else {
     message("Loading Hard clustering results")
-    hard.clust.results <- get(load(destination))
+    hard.clust <- get(load(destination))
   }
   
   if(!HC.only) {
     #Initialize theta parameter
-    theta.param <- hard.clust.results$theta.param
+    theta.param <- hard.clust$theta.param
     #Initialize pi parameter
-    pi.param <- hard.clust.results$pi.param 
+    pi.param <- hard.clust$pi.param 
     
     #List files to process
     file.list <- list.files(path = inputfolder, pattern = "chunk.+maf", full.names = TRUE)
@@ -209,7 +207,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     plt + geom_point(data=clust.acc.df, aes(x=both.th.acc, y=both.th.clustReads), color="green", size=10) + geom_linerange(aes(ymin=-Inf, x=both.th.acc, ymax=both.th.clustReads), color="green") + geom_text(aes(x=both.th.acc, y=both.th.clustReads), label=thresholds, color="white")
   
   } else {
-    return(hard.clust.results)
+    return(hard.clust)
   }
 
 }
