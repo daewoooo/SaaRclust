@@ -3,6 +3,7 @@
 #' @param inputfolder A folder name where minimap files are stored.
 #' @param store.bestAlign Store best alignements in RData object.
 #' @param HC.only Perform only hard clustering and skip the rest of the pipeline.
+#' @param numAlignments ...
 #' @param verbose ... 
 #' @inheritParams SaaRclust
 #' @export
@@ -12,7 +13,7 @@
 
 #load the function below into R if you want to run all steps in one command
 
-runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num.clusters=55, EM.iter=100, alpha=0.01, minLib=10, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, HC.only=TRUE, verbose=TRUE) {
+runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num.clusters=55, EM.iter=100, alpha=0.01, minLib=10, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, numAlignments=50000, HC.only=TRUE, verbose=TRUE) {
   
   set.seed(1000)
   
@@ -60,7 +61,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
   #}
   
   #Consider to have separate pipeline for Hard clustering [TODO]
-  numAlignments <- 50000 #perhaps add this parameter into a main function definition???
+  #numAlignments <- 50000 #perhaps add this parameter into a main function definition???
   #Load Hard clustering results if they were already created
   destination <- file.path(Clusters.store, paste0("hardClusteringResults_",numAlignments,".RData"))
   if (!file.exists(destination)) {
