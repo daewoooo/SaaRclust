@@ -89,7 +89,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     
     ### Perform k-means hard clustering method ###
     set.seed(1000) #in order to reproduce hard clustering results
-    hardClust.ord <- hardClust(counts.l, num.clusters=num.clusters, nstart = 10)
+    hardClust.ord <- hardClust(counts.l, num.clusters=num.clusters, nstart = 20)
     
     ### computing the accuracy of the hard clustering before merging lusters ### [OPTIONAL]
     #get PB chrom names from the ordered PB reads
