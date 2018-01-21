@@ -33,7 +33,7 @@ findClusterPartners <- function(theta.param=NULL) {
 
 #' Get pairs of clusters coming from the same chromosome
 #'
-#' This function cluster coming from the same chromosome and having the same directionality
+#' This function finds cluster coming from the same chromosome and having the same directionality
 #'
 #' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
 #' @return A \code{vector} of pairs of clusters IDs that belong to the same chromosome.

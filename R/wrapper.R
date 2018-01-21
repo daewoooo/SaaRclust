@@ -89,7 +89,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     
     ### Perform k-means hard clustering method ###
     set.seed(1000) #in order to reproduce hard clustering results
-    hardClust.ord <- hardClust(counts.l, num.clusters=num.clusters, nstart = 20)
+    hardClust.ord <- hardClust(counts.l, num.clusters=num.clusters, nstart = 10)
     
     ### computing the accuracy of the hard clustering before merging lusters ### [OPTIONAL]
     #get PB chrom names from the ordered PB reads
@@ -116,8 +116,14 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     theta.estim <- estimateTheta(counts.l, ord=hardClust.ord, alpha=alpha)
     
     #Merge splitted clusters after hard clustering
-    hardClust.ord.merged <- mergeClusters(kmeans.clust=hardClust.ord, theta.l=theta.estim, k = 46)
-    
+    hardClust.ord.merged <- mergeClusters(kmeans.clust=hardClust.ord, theta.l=theta.estim, k = 48)
+    #findSplitedClusters(theta.param = theta.estim) -> to.join
+    #hardClust.ord.merged <- hardClust.ord
+    #for (i in 1:length(to.join)) {
+    #  to.merge <- as.numeric(to.join[[i]])
+    #  hardClust.ord.merged[ hardClust.ord.merged %in% to.merge] <- to.merge[1]     
+    #}
+  
     #Computing the accuracy of the hard clustering after merging
     acc <- hardClustAccuracy(hard.clust = hardClust.ord.merged, pb.chr = chr.rows, pb.flag = pb.flag, tab.filt = best.alignments)
     #print to log file
