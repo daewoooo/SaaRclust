@@ -13,7 +13,7 @@
 
 #load the function below into R if you want to run all steps in one command
 
-runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num.clusters=55, EM.iter=100, alpha=0.01, minLib=10, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, numAlignments=50000, HC.only=TRUE, verbose=TRUE) {
+runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num.clusters=60, EM.iter=100, alpha=0.01, minLib=10, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, numAlignments=50000, HC.only=TRUE, verbose=TRUE) {
   
   #=========================#
   ### Create directiories ###
@@ -70,7 +70,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     destination <- file.path(rawdata.store, paste0("representativeAligns_",numAlignments,".RData"))
     #reuse existing data if they were already created and save in a given location
     if (!file.exists(destination)) {
-      best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.9), minSSlibs=c(25,Inf))
+      best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.9), minSSlibs=c(20,Inf))
       if (store.bestAlign) {
         save(file = destination, best.alignments)
       }
