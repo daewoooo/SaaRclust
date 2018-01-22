@@ -16,12 +16,17 @@ getQualMeasure <- function(inputData) {
   #get number of SS libs per PB read
   inputData %>% group_by(PBreadNames) %>% summarise(counts = length(unique(SSlibNames))) -> SSlib.perPB
   
+  #get number of SS reads per lib per PB read
+  SSreads.perPB.l <- split(inputData$SSlibNames, inputData$PBreadNames)
+  SSreads.perlib.perPB <- sapply(SSreads.perPB.l, function(x) rle(sort(x))$lengths)
+  SSreads.perlib.perPB <- do.call(c, SSreads.perlib.perPB)
+  
   #get PB read distribution hist
   hist.data <- hist(inputData$PBreadLen, breaks = 100)
   hist.df <- data.frame(midpoints= hist.data$mids, freq= hist.data$counts)
   
   stopTimedMessage(ptm)
-  return(list(SSreads.perPB=SSreads.perPB, SSlib.perPB=SSlib.perPB, PBreadLenDist=hist.df))
+  return(list(SSreads.perPB=SSreads.perPB, SSlib.perPB=SSlib.perPB, SSreads.perlib.perPB=SSreads.perlib.perPB, PBreadLenDist=hist.df))
 }
 
 #' Check clustering accuracy

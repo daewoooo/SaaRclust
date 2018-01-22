@@ -13,7 +13,7 @@ findSplitedClusters(theta.param = NULL)
 A \code{vector} of pairs of clusters IDs that belong to the same chromosome.
 }
 \description{
-This function cluster coming from the same chromosome and having the same directionality
+This function finds cluster coming from the same chromosome and having the same directionality
 }
 \author{
 David Porubsky
