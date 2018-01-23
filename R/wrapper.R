@@ -70,7 +70,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     destination <- file.path(rawdata.store, paste0("representativeAligns_",numAlignments,".RData"))
     #reuse existing data if they were already created and save in a given location
     if (!file.exists(destination)) {
-      best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.9), minSSlibs=c(20,Inf))
+      best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.9), minSSlibs=c(25,Inf))
       if (store.bestAlign) {
         save(file = destination, best.alignments)
       }

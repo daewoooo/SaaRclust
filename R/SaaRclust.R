@@ -171,5 +171,5 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   destination <- file.path(Clusters.store, paste0(fileID, "_clusters.RData"))
   save(file = destination, soft.clust.obj)
 
-  return(list(Data2plot=soft.clust.df, EM.data=soft.clust.obj))  #add cluster order??? [TODO]
+  #return(list(Data2plot=soft.clust.df, EM.data=soft.clust.obj))  #add cluster order??? [TODO]
 }
