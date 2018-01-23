@@ -61,7 +61,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
   #Consider to have separate pipeline for Hard clustering [TODO]
   #numAlignments <- 50000 #perhaps add this parameter into a main function definition???
   #Load Hard clustering results if they were already created
-  destination <- file.path(Clusters.store, paste0("hardClusteringResults_",numAlignments,".RData"))
+  destination <- file.path(Clusters.store, paste0("hardClusteringResults_",as.character(numAlignments),".RData"))
   if (!file.exists(destination)) {
     message("Hard clustering results not available!!!")
     message("Running Hard clustering")
@@ -70,7 +70,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     destination <- file.path(rawdata.store, paste0("representativeAligns_",numAlignments,".RData"))
     #reuse existing data if they were already created and save in a given location
     if (!file.exists(destination)) {
-      best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.9), minSSlibs=c(20,Inf))
+      best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.9), minSSlibs=c(25,Inf))
       if (store.bestAlign) {
         save(file = destination, best.alignments)
       }
@@ -141,7 +141,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     
     #save hard clustering results into a file
     hard.clust <- list(ord=hardClust.ord.merged, theta.param=theta.param, pi.param=pi.param)
-    destination <- file.path(Clusters.store, paste0("hardClusteringResults_",numAlignments,".RData"))
+    destination <- file.path(Clusters.store, paste0("hardClusteringResults_", as.character(numAlignments), ".RData"))
     if (!file.exists(destination)) {
       save(file = destination, hard.clust)
     }  
