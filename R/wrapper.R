@@ -70,7 +70,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     destination <- file.path(rawdata.store, paste0("representativeAligns_", as.integer(numAlignments),".RData"))
     #reuse existing data if they were already created and save in a given location
     if (!file.exists(destination)) {
-      best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.9), minSSlibs=c(25,Inf))
+      best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.95), minSSlibs=c(35,Inf))
       if (store.bestAlign) {
         save(file = destination, best.alignments)
       }
@@ -89,7 +89,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     
     ### Perform k-means hard clustering method ###
     set.seed(1000) #in order to reproduce hard clustering results
-    hardClust.ord <- hardClust(counts.l, num.clusters=num.clusters, nstart = 10)
+    hardClust.ord <- hardClust(counts.l, num.clusters=num.clusters, nstart = 100)
     
     ### computing the accuracy of the hard clustering before merging lusters ### [OPTIONAL]
     #get PB chrom names from the ordered PB reads
@@ -116,7 +116,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     theta.estim <- estimateTheta(counts.l, ord=hardClust.ord, alpha=alpha)
     
     #Merge splitted clusters after hard clustering
-    hardClust.ord.merged <- mergeClusters(kmeans.clust=hardClust.ord, theta.l=theta.estim, k = 48)
+    hardClust.ord.merged <- mergeClusters(kmeans.clust=hardClust.ord, theta.l=theta.estim, k = 46)
     #findSplitedClusters(theta.param = theta.estim) -> to.join
     #hardClust.ord.merged <- hardClust.ord
     #for (i in 1:length(to.join)) {

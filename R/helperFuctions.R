@@ -254,10 +254,18 @@ exportGenomicLocations <- function(soft.clust, prob.th=0.6) {
 #' @author David Porubsky
 #' @export
 
-getClusterIdentity <- function(soft.clust, chr.rows) {
+getClusterIdentity <- function(soft.clust, chr.rows, chr.flag) {
   max.Clust <- apply(soft.clust, 1, which.max)
-  clustByChrom <- split(max.Clust, chr.rows)
-  clustIdPerChrom <- lapply(clustByChrom, function(x) as.numeric(names(sort(table(x), decreasing=T)[1:2])))
-  return(clustIdPerChrom)
+  unique.clust.ID <- paste0(chr.rows,"_",chr.flag)
+  unique.clust.ID <- factor(unique.clust.ID, unique(unique.clust.ID))
+  
+  clustByChromByflag <- split(max.Clust, unique.clust.ID)
+  #clustByChrom <- split(max.Clust, chr.rows)
+  #clustIdPerChrom <- lapply(clustByChrom, function(x) as.numeric(names(sort(table(x), decreasing=T)[1:2])))
+  clustIdPerChrom <- lapply(clustByChromByflag, function(x) as.numeric(which.max(table(x))))
+  clustIDperPB <- rep(unlist(clustIdPerChrom), table(unique.clust.ID))
+  #return(clustIdPerChrom)
+  #return(unique.clust.ID)
+  return(clustIDperPB)
 }
 
