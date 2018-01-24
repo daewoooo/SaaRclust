@@ -153,14 +153,20 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   hm.plt <- plotHeatmap(pVal.df=soft.clust.df, colOrder=clust.order, num.clusters=num.clusters)
 
   #Save plots
-  destination <- file.path(plots.store, paste0(fileID, "_logL.pdf"))
-  ggsave(filename = destination, plot = logL.plt, width = 8, height = 5)
-  destination <- file.path(plots.store, paste0(fileID, "_thetaEstim.pdf"))
-  ggsave(filename = destination, plot = theta.plt, width = 20, height = 20)
-  destination <- file.path(plots.store, paste0(fileID, "_heatmap.pdf"))
-  pdf(destination, width = 15, height = 10) 
-  hm.plt
-  dev.off()
+  #destination <- file.path(plots.store, paste0(fileID, "_logL.pdf"))
+  #ggsave(filename = destination, plot = logL.plt, width = 8, height = 5)
+  #destination <- file.path(plots.store, paste0(fileID, "_thetaEstim.pdf"))
+  #ggsave(filename = destination, plot = theta.plt, width = 20, height = 20)
+  #destination <- file.path(plots.store, paste0(fileID, "_heatmap.pdf"))
+  #pdf(destination, width = 15, height = 10) 
+  #hm.plt
+  #dev.off()
+  destination <- file.path(plots.store, paste0(fileID, "_logL.RData"))
+  save(file = destination, logL.plt)
+  destination <- file.path(plots.store, paste0(fileID, "_thetaEstim.RData"))
+  save(file = destination, theta.plt)
+  destination <- file.path(plots.store, paste0(fileID, "_heatmap.RData"))
+  save(file = destination, hm.plt)
   stopTimedMessage(ptm)
 
   ### Save final results ###

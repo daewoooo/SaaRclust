@@ -21,12 +21,19 @@ processClusters <- function(inputfolder=NULL) {
     thresholds <- c(0.5, 0.6, 0.7, 0.8, 0.9)
     chr.rows <- data.file$PBchrom
     
+    #check accuracy only for autosomes and sex chrmosomes
+    mask <- which(grepl('^chr[0-9X][0-9]?$', data.file$PBchrom))
+    
     #get clusters IDs corresponding to a given chromosome
-    Clust.IDs <- getClusterIdentity(soft.clust=data.file$soft.pVal, chr.rows=chr.rows)
+    chr.rows <- data.file$PBchrom[mask]
+    prob.tab <- data.file$soft.pVal[mask,]
+    
+    #get clusters IDs corresponding to a given chromosome
+    Clust.IDs <- getClusterIdentity(soft.clust= prob.tab, chr.rows=chr.rows)
     
     clust.acc.l <- list()
     for (prob.th in thresholds) {
-      Best.clusters <- exportGenomicLocations(soft.clust=data.file$soft.pVal, prob.th)
+      Best.clusters <- exportGenomicLocations(soft.clust=prob.tab, prob.th)
       Clust.locations <- Best.clusters$clust.IDs
       mask <- Best.clusters$th.boolean
       names(Clust.locations) <- chr.rows
@@ -65,3 +72,50 @@ processClusters <- function(inputfolder=NULL) {
   return(list(plot=plt, plot.table=clust.acc.df))
 }  
   
+
+
+accuracyRanking <- function(inputfolder=NULL) {
+  files2process <- list.files(inputfolder, pattern = "clusters.RData", full.names = TRUE)
+  
+  allCluster.ranks <- list()
+  for (file in files2process) {
+    data.file <- get(load(file))
+    fileID <- basename(file)
+    num.clusters <- length(data.file$pi.param)
+    
+    #check accuracy only for autosomes and sex chrmosomes
+    mask <- which(grepl('^chr[0-9X][0-9]?$', data.file$PBchrom))
+    
+    #get clusters IDs corresponding to a given chromosome
+    chr.rows <- data.file$PBchrom[mask]
+    prob.tab <- data.file$soft.pVal[mask,]
+    
+    Clust.IDs <- getClusterIdentity(soft.clust=prob.tab, chr.rows=chr.rows)
+    #replicate known clust IDs per chromosome
+    Clust.IDs.expand <- rep(Clust.IDs , as.numeric(table(chr.rows)))
+    Clust.IDs.matrix <- do.call(rbind, Clust.IDs.expand)
+    
+    #for each row of probability matrix select max probability corresponding to true cluster id
+    max.prob.trueClust <- sapply(1:nrow(prob.tab), function(x) max(prob.tab[x, Clust.IDs.matrix[x,]]))
+    #having highest probability for the true cluster find the index in sorted probabilities (decreasing)
+    rank.acc <- sapply(1:nrow(prob.tab), function(x) which(sort(prob.tab[x,], decreasing = T) == max.prob.trueClust[x]))
+    rank.acc <- unlist(rank.acc)
+    #create empty vector to store data
+    ranks.store <- rep(0, num.clusters)
+    names(ranks.store) <- 1:num.clusters
+    #count ranks per file
+    table.ranks <- sort(table(rank.acc), decreasing = T)
+    #store table of ranks
+    ranks.store[names(table.ranks)] <- as.numeric(table.ranks)
+    allCluster.ranks[[fileID]] <- ranks.store
+  }
+  allCluster.ranks.sums <- Reduce("+", allCluster.ranks)
+  
+  #plotting
+  table.ranks.df <- data.frame(rank.acc=names(allCluster.ranks.sums), Freq=allCluster.ranks.sums)
+  table.ranks.df$rank.acc <- factor( table.ranks.df$rank.acc, levels= table.ranks.df$rank.acc)
+  ranking.plt <- ggplot(table.ranks.df, aes(x=rank.acc, y=Freq)) + geom_bar(fill="red", stat="identity") + xlab("Probability ranking of true cluster") + ylab("Frequency")
+  
+  return(list(ranking.plt=ranking.plt, ranking.table=table.ranks.df))
+} 
+
