@@ -130,27 +130,27 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   #soft.clust$soft.pVal <- cbind(soft.clust$soft.pVal, merged.pVals)
   
   #Get pairs of clusters coming from the same chromosome but differs in directionality of PB reads  [EXPERIMENTAL]
-  clust.order <- findClusterPartners(theta.param=soft.clust.obj$theta.param)
+  #clust.order <- findClusterPartners(theta.param=soft.clust.obj$theta.param)
 
   ### Prepara data for plotting ###
-  soft.clust.df <- as.data.frame(soft.clust.obj$soft.pVal)
-  soft.clust.df$PBreadNames <- levels(tab.filt$PBreadNames)
-  soft.clust.df$PBchrom <- as.character(chr.rows)
-  soft.clust.df$PBflag <- as.character(pb.flag)
+  #soft.clust.df <- as.data.frame(soft.clust.obj$soft.pVal)
+  #soft.clust.df$PBreadNames <- levels(tab.filt$PBreadNames)
+  #soft.clust.df$PBchrom <- as.character(chr.rows)
+  #soft.clust.df$PBflag <- as.character(pb.flag)
   #soft.clust.df$hardClust <- hard.clust$clust.id
 
   ### Plotting data ###
-  ptm <- startTimedMessage("Exporting plots")
+  #ptm <- startTimedMessage("Exporting plots")
   #plot likelihood function
-  logl.df <- data.frame(log.l=soft.clust.obj$log.l, iter=1:length(soft.clust.obj$log.l))
-  logl.diff <- round(max(logl.df$log.l) - min(logl.df$log.l), digits = 0)
-  logL.plt <- ggplot(logl.df) + geom_line(aes(x=iter, y=log.l), color="red") + xlab("EM iterations") + ylab("Likelihood function") + annotate("text",  x=Inf, y = Inf, label = paste("Diff: ",logl.diff), vjust=1, hjust=1)
+  #logl.df <- data.frame(log.l=soft.clust.obj$log.l, iter=1:length(soft.clust.obj$log.l))
+  #logl.diff <- round(max(logl.df$log.l) - min(logl.df$log.l), digits = 0)
+  #logL.plt <- ggplot(logl.df) + geom_line(aes(x=iter, y=log.l), color="red") + xlab("EM iterations") + ylab("Likelihood function") + annotate("text",  x=Inf, y = Inf, label = paste("Diff: ",logl.diff), vjust=1, hjust=1)
   #plot cluster accuracy
   #acc.plt <- plotClustAccuracy(pVal.df = soft.clust.df, num.clusters = num.clusters) Merge with Maryam's function
   #plot theta values
-  theta.plt <- plotThetaEstimates(theta.param=soft.clust.obj$theta.param, title=fileID)
+  #theta.plt <- plotThetaEstimates(theta.param=soft.clust.obj$theta.param, title=fileID)
   #plot heatmap
-  hm.plt <- plotHeatmap(pVal.df=soft.clust.df, colOrder=clust.order, num.clusters=num.clusters)
+  #hm.plt <- plotHeatmap(pVal.df=soft.clust.df, colOrder=clust.order, num.clusters=num.clusters)
 
   #Save plots
   #destination <- file.path(plots.store, paste0(fileID, "_logL.pdf"))
@@ -161,13 +161,13 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   #pdf(destination, width = 15, height = 10) 
   #hm.plt
   #dev.off()
-  destination <- file.path(plots.store, paste0(fileID, "_logL.RData"))
-  save(file = destination, logL.plt)
-  destination <- file.path(plots.store, paste0(fileID, "_thetaEstim.RData"))
-  save(file = destination, theta.plt)
-  destination <- file.path(plots.store, paste0(fileID, "_heatmap.RData"))
-  save(file = destination, hm.plt)
-  stopTimedMessage(ptm)
+  #destination <- file.path(plots.store, paste0(fileID, "_logL.RData"))
+  #save(file = destination, logL.plt)
+  #destination <- file.path(plots.store, paste0(fileID, "_thetaEstim.RData"))
+  #save(file = destination, theta.plt)
+  #destination <- file.path(plots.store, paste0(fileID, "_heatmap.RData"))
+  #save(file = destination, hm.plt)
+  #stopTimedMessage(ptm)
 
   ### Save final results ###
   #add known chromosome and directionality of PB reads to a final data object
