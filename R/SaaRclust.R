@@ -52,12 +52,6 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   ### Filter imported data ###
   tab.filt <- filterInput(inputData=tab.in, quantileSSreads = c(0, 0.90), minSSlibs = c(minLib,Inf))
   
-  #get some quality measures on imported data [OPTIONAL]
-  data.qual.measures <- getQualMeasure(tab.in)
-  destination <- file.path(rawdata.store, paste0(fileID, "_dataQuals.RData"))
-  save(file = destination, data.qual.measures)
-  #qual.plt <- plotQualMeasure(tab.in.quals)
-  
   #take a smaller chunk of PB reads to process [NOT USED!!!]
   #tab.filt <- tab.filt[sample(nrow(tab.filt)),] #shuffle rows in tab
   #chunk <- unique(tab.filt$PBreadNames)[1:chunk.size]
@@ -67,6 +61,12 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   ptm <- startTimedMessage("Sorting data")
   #additional sort by direction
   tab.filt <- tab.filt[order(tab.filt$PBflag),]
+  
+  ### get some quality measures on imported data ### [OPTIONAL]
+  data.qual.measures <- getQualMeasure(tab.filt)
+  destination <- file.path(rawdata.store, paste0(fileID, "_dataQuals.RData"))
+  save(file = destination, data.qual.measures)
+  #qual.plt <- plotQualMeasure(tab.in.quals)
   
   #use PB read names as factor
   tab.filt <- tab.filt[order(tab.filt$PBchrom),]
