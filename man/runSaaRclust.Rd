@@ -5,9 +5,9 @@
 \title{Wrapper function to run saarclust pipeline.}
 \usage{
 runSaaRclust(inputfolder = NULL, outputfolder = "SaaRclust_results",
-  num.clusters = 60, EM.iter = 100, alpha = 0.01, minLib = 10,
+  num.clusters = 54, EM.iter = 100, alpha = 0.01, minLib = 10,
   logL.th = 1, theta.constrain = FALSE, store.counts = FALSE,
-  store.bestAlign = TRUE, numAlignments = 50000, HC.only = TRUE,
+  store.bestAlign = TRUE, numAlignments = 30000, HC.only = TRUE,
   verbose = TRUE)
 }
 \arguments{

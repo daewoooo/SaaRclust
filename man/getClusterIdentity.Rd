@@ -4,12 +4,14 @@
 \alias{getClusterIdentity}
 \title{Export corresponding clusters for each chromosome}
 \usage{
-getClusterIdentity(soft.clust, chr.rows)
+getClusterIdentity(soft.clust, chr.rows, chr.flag)
 }
 \arguments{
 \item{soft.clust}{...}
 
 \item{chr.rows}{...}
+
+\item{chr.flag}{...}
 }
 \description{
 Export corresponding clusters for each chromosome

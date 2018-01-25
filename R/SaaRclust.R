@@ -16,7 +16,7 @@
 #minimap.file <- "/media/daewoooo/WORK/SS2PacBio_alignment_HG00733/Test_cluster_chr21&chr22/Minimap_out/SS2Pacbio_minimap_HG00733_k13_w1_L70_f0.01_Chr21andChr22_allSSreads"
 #minimap.file <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/NA12878_WashU_PBreads_chunk14.maf.gz"
 
-SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=48, EM.iter=100, alpha=0.1, minLib=10, theta.param=NULL, pi.param=NULL, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL) {
+SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=47, EM.iter=100, alpha=0.1, minLib=10, theta.param=NULL, pi.param=NULL, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL) {
 
   #get file ID
   fileID <- basename(minimap.file)
@@ -49,14 +49,14 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   #tab.in <- tab.in[tab.in$SSchrom != 'chrUn' & tab.in$SSchrom != 'chrX',] #applies only for test data
   #tab.in <- tab.in[tab.in$PBchrom %in% paste0('chr', c(18:22)),] #run only sertain chromosomes
   
+  ### Filter imported data ###
+  tab.filt <- filterInput(inputData=tab.in, quantileSSreads = c(0, 0.90), minSSlibs = c(minLib,Inf))
+  
   #get some quality measures on imported data [OPTIONAL]
   data.qual.measures <- getQualMeasure(tab.in)
   destination <- file.path(rawdata.store, paste0(fileID, "_dataQuals.RData"))
   save(file = destination, data.qual.measures)
   #qual.plt <- plotQualMeasure(tab.in.quals)
-  
-  ### Filter imported data ###
-  tab.filt <- filterInput(inputData=tab.in, quantileSSreads = c(0, 0.95), minSSlibs = c(minLib,Inf))
   
   #take a smaller chunk of PB reads to process [NOT USED!!!]
   #tab.filt <- tab.filt[sample(nrow(tab.filt)),] #shuffle rows in tab
@@ -177,5 +177,5 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   destination <- file.path(Clusters.store, paste0(fileID, "_clusters.RData"))
   save(file = destination, soft.clust.obj)
 
-  #return(list(Data2plot=soft.clust.df, EM.data=soft.clust.obj))  #add cluster order??? [TODO]
+  return(soft.clust.obj)  #add cluster order??? [TODO]
 }
