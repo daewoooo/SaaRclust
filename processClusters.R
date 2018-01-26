@@ -255,10 +255,32 @@ clust.order <- findClusterPartners(theta.param=theta.modif)
 clust.order <- c(clust.order, length(clust.order)+1)
 
 #swap column which is always WC
-a <- soft.clust.df[,44]
+a <- soft.clust.df[,remove.clust]
 b <- soft.clust.df[,47]
-soft.clust.df[,44] <- b
+soft.clust.df[,remove.clust] <- b
 soft.clust.df[,47] <- a
 
 hm.plt <- plotHeatmap(pVal.df=soft.clust.df, colOrder=clust.order, num.clusters=47)
 
+#plot theta parameter
+theta.plt <- plotThetaEstimates(theta.param=data.file$theta.param)
+
+#plot pi parameter
+ord <- order(data.file$pi.param, decreasing = T)
+Clust.IDs <- getClusterIdentity_old(soft.clust= data.file$soft.pVal, chr.rows=data.file$PBchrom)
+
+ord <- do.call(c, Clust.IDs[paste0('chr', 1:22)])
+
+library("biovizBase")
+hg38Ideogram <- getIdeogram("hg38", cytoband = FALSE)
+hg38Ideogram <- keepSeqlevels(hg38Ideogram, paste0('chr', 1:22))
+hg38Ideogram <- sort(hg38Ideogram)
+chr.len <- end(ranges(hg38Ideogram))
+chr.len.df <- data.frame(chr.len=rep(chr.len, each=2))
+
+chr.len.df$pi.param <- data.file$pi.param[ord]
+chr.len.df$x <- factor(rownames(chr.len.df), levels=rownames(chr.len.df))
+
+ggplot(chr.len.df) + geom_bar(aes(x=x, y=chr.len), fill="black", stat="identity") 
+
+ 
