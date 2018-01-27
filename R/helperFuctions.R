@@ -246,6 +246,23 @@ exportGenomicLocations <- function(soft.clust, prob.th=0.6) {
   #best.pval <- t( apply(soft.clust[!mask,], 1, function(x) x[which(x %in% sort(x, decreasing = T)[1:5])]) )
 }
 
+exportGenomicLocationsAllBest <- function(soft.clust, prob.th=0.6) {
+  
+  getMaxPvals <- function(pval.vector) {
+    srt.pval <- sort(pval.vector, decreasing = T)
+    breakpoint <- which.min(diff(srt.pval))
+    max.pvals <- srt.pval[1:breakpoint]
+    max.pvals.clust <- which(pval.vector %in% max.pvals)
+    return(max.pvals.clust)
+  }  
+  
+  best.idx <- apply(soft.clust, 1, getMaxPvals)
+  read.IDs <- best.idx 
+  names(read.IDs) <- rownames(soft.clust)
+  
+  return(read.IDs)
+}
+
 
 #' Export corresponding clusters for each chromosome
 #'
@@ -255,7 +272,7 @@ exportGenomicLocations <- function(soft.clust, prob.th=0.6) {
 #' @author David Porubsky
 #' @export
 
-getClusterIdentity <- function(soft.clust, chr.rows, chr.flag) {
+getClusterIdentityPerChrPerDir <- function(soft.clust, chr.rows, chr.flag) {
   max.Clust <- apply(soft.clust, 1, which.max)
   unique.clust.ID <- paste0(chr.rows,"_",chr.flag)
   unique.clust.ID <- factor(unique.clust.ID, unique(unique.clust.ID))
@@ -271,7 +288,7 @@ getClusterIdentity <- function(soft.clust, chr.rows, chr.flag) {
 }
 
 
-getClusterIdentity_old <- function(soft.clust, chr.rows) {
+getClusterIdentityPerChr <- function(soft.clust, chr.rows) {
   max.Clust <- apply(soft.clust, 1, which.max)
   clustByChrom <- split(max.Clust, chr.rows)
   clustIdPerChrom <- lapply(clustByChrom, function(x) as.numeric(names(sort(table(x), decreasing=T)[1:2])))

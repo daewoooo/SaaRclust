@@ -84,6 +84,10 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   #pb.pos <- split(tab.filt$PBpos, tab.filt$PBreadNames)
   #pb.pos <- sapply(pb.pos, unique)
   
+  #get PB read length
+  pb.readLen <- split(tab.filt$PBreadLen, tab.filt$PBreadNames)
+  pb.readLen <- sapply(pb.readLen, unique)
+  
   #split data by SS library
   tab.l <- split(tab.filt, tab.filt$SSlibNames)
   stopTimedMessage(ptm)
@@ -173,6 +177,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   #add known chromosome and directionality of PB reads to a final data object
   soft.clust.obj$PBchrom <- as.character(chr.rows)
   soft.clust.obj$PBflag <- as.character(pb.flag)
+  soft.clust.obj$pb.readLen <- as.numeric(unlist(pb.readLen))
   #export data 
   destination <- file.path(Clusters.store, paste0(fileID, "_clusters.RData"))
   save(file = destination, soft.clust.obj)

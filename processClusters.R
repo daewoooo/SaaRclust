@@ -3,6 +3,8 @@ ClustersAccuracyPerChr(inputfolder = inputfolder) -> data.obj
 ClustersAccuracyPerChrPerDir(inputfolder = inputfolder) -> data.obj
 accuracyRanking(inputfolder = inputfolder) -> data.obj
 
+### Evaluate soft clustering accuracy ###
+#get best clusters for each PB read given set threshold (reports multiple location when max pVal is lower than prob.th)
 ClustersAccuracyPerChr <- function(inputfolder=NULL) {
   files2process <- list.files(inputfolder, pattern = "clusters.RData", full.names = TRUE)
   
@@ -11,38 +13,42 @@ ClustersAccuracyPerChr <- function(inputfolder=NULL) {
   for (file in files2process) {
     data.file <- get(load(file))
     fileID <- basename(file)
-    
-    ### Prepara data for plotting ###
-    #soft.clust.df <- as.data.frame(data.file$soft.pVal)
-    #soft.clust.df$PBreadNames <- rownames(data.file$soft.pVal)
-    #soft.clust.df$PBchrom <- data.file$PBchrom
-    #soft.clust.df$PBflag <- data.file$PBflag
       
-    ### Evaluate soft clustering accuracy ###
-    #get best clusters for each PB read given set threshold (reports multiple location when max pVal is lower than prob.th)
-    thresholds <- c(0.5, 0.6, 0.7, 0.8, 0.9)
+    thresholds <- c(0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
     
-    #check accuracy only for autosomes and sex chrmosomes
+    #Get accuracy only for autosomes and sex chrmosomes
     mask <- which(grepl('^chr[0-9X][0-9]?$', data.file$PBchrom))
-    
-    #get clusters IDs corresponding to a given chromosome
     chr.rows <- data.file$PBchrom[mask]
     chr.flag <- data.file$PBflag[mask]
     prob.tab <- data.file$soft.pVal[mask,]
-    
-    #filter out duplicates
+    #Filter out duplicates
     mask <- which(chr.flag == 16 | chr.flag == 0) 
     chr.rows <- chr.rows[mask]
     chr.flag <- chr.flag[mask]
     prob.tab <- prob.tab[mask,]
     
-    #get clusters IDs corresponding to a given chromosome
-    Clust.IDs <- getClusterIdentity_old(soft.clust= prob.tab, chr.rows=chr.rows)
+    #Find WC cluster in all cells
+    theta.sums <- Reduce("+", data.file$theta.param)
+    remove.clust <- which.max(theta.sums[,3])
+    #Remove probabilities for always WC cluster
+    prob.tab <- prob.tab[,-remove.clust]
+    
+    #remove reads with highest probability for WC cluster ???
+    #max.clust <- apply(prob.tab, 1, which.max)
+    #mask <- max.clust != remove.clust
+    #chr.rows <- chr.rows[mask]
+    #chr.flag <- chr.flag[mask]
+    #prob.tab <- prob.tab[mask,]
+    
+    #Get clusters IDs corresponding to a given chromosome
+    Clust.IDs <- getClusterIdentityPerChr(soft.clust= prob.tab, chr.rows=chr.rows)
   
     clust.acc.l <- list()
     for (prob.th in thresholds) {
       Best.clusters <- exportGenomicLocations(soft.clust=prob.tab, prob.th)
+      #Best.clusters <- exportGenomicLocationsAll(soft.clust=prob.tab, prob.th)
       Clust.locations <- Best.clusters$clust.IDs
+      #Clust.locations <- Best.clusters
       mask <- Best.clusters$th.boolean
       names(Clust.locations) <- chr.rows
         
@@ -79,9 +85,8 @@ ClustersAccuracyPerChr <- function(inputfolder=NULL) {
   stopTimedMessage(ptm)
   return(list(plot=plt, plot.table=clust.acc.df))
 }  
-  
 
-ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL) {
+ClustersAccuracyPerChr2 <- function(inputfolder=NULL) {
   files2process <- list.files(inputfolder, pattern = "clusters.RData", full.names = TRUE)
   
   ptm <- startTimedMessage("Processing clusters")
@@ -90,14 +95,165 @@ ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL) {
     data.file <- get(load(file))
     fileID <- basename(file)
     
-    ### Prepara data for plotting ###
-    #soft.clust.df <- as.data.frame(data.file$soft.pVal)
-    #soft.clust.df$PBreadNames <- rownames(data.file$soft.pVal)
-    #soft.clust.df$PBchrom <- data.file$PBchrom
-    #soft.clust.df$PBflag <- data.file$PBflag
+    thresholds <- c(0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
     
-    ### Evaluate soft clustering accuracy ###
-    #get best clusters for each PB read given set threshold (reports multiple location when max pVal is lower than prob.th)
+    #Get accuracy only for autosomes and sex chrmosomes
+    mask <- which(grepl('^chr[0-9X][0-9]?$', data.file$PBchrom))
+    chr.rows <- data.file$PBchrom[mask]
+    chr.flag <- data.file$PBflag[mask]
+    prob.tab <- data.file$soft.pVal[mask,]
+    #Filter out duplicates
+    mask <- which(chr.flag == 16 | chr.flag == 0) 
+    chr.rows <- chr.rows[mask]
+    chr.flag <- chr.flag[mask]
+    prob.tab <- prob.tab[mask,]
+    
+    #Find WC cluster in all cells
+    theta.sums <- Reduce("+", data.file$theta.param)
+    remove.clust <- which.max(theta.sums[,3])
+    #Remove probabilities for always WC cluster
+    prob.tab <- prob.tab[,-remove.clust]
+    
+    #remove reads with highest probability for WC cluster ???
+    #max.clust <- apply(prob.tab, 1, which.max)
+    #mask <- max.clust != remove.clust
+    #chr.rows <- chr.rows[mask]
+    #chr.flag <- chr.flag[mask]
+    #prob.tab <- prob.tab[mask,]
+    
+    #Get clusters IDs corresponding to a given chromosome
+    Clust.IDs <- getClusterIdentityPerChr(soft.clust= prob.tab, chr.rows=chr.rows)
+    
+    clust.acc.l <- list()
+    for (prob.th in thresholds) {
+      Best.clusters <- exportGenomicLocationsAll(soft.clust=prob.tab, prob.th)
+      Clust.locations <- Best.clusters
+      names(Clust.locations) <- chr.rows
+      
+      #replicate known clust IDs per chromosome
+      Clust.IDs.expand <- rep(Clust.IDs , as.numeric(table(chr.rows)))
+      
+      #compare if best clust IDs correspond to known clust IDs for any given PB read
+      clust.acc <- sapply(1:length(Clust.locations), function(x) any(Clust.locations[[x]] %in% Clust.IDs.expand[[x]]))
+
+      max.prob <- apply(prob.tab, 1, max)
+      mask <- max.prob >= prob.th
+      above.th <- table(clust.acc[mask])
+      
+      clust.acc.l[[1+length(clust.acc.l)]] <- c(prob.th=prob.th, above.th.match=unname(above.th[2]), above.th.sum=sum(above.th), allReads=length(chr.rows))  
+    }
+    allClusters[[fileID]] <- as.data.frame( do.call(rbind, clust.acc.l) )
+  } 
+  #sum all counts over all data frames (per position)
+  clust.acc.df <- Reduce("+", allClusters)
+  
+  #calcualte accuracy percentages
+  clust.acc.df$prob.th <- thresholds
+  clust.acc.df$above.th.acc <- clust.acc.df$above.th.match / clust.acc.df$above.th.sum
+  clust.acc.df$above.th.clustReads <- clust.acc.df$above.th.sum / clust.acc.df$allReads
+  
+  #plotting  
+  plt <- ggplot(clust.acc.df) + geom_point(aes(x=above.th.acc, y=above.th.clustReads), color="red", size=10) + geom_linerange(aes(ymin=-Inf, x=above.th.acc, ymax=above.th.clustReads),color="red") + scale_y_continuous(limits = c(0,1)) + ylab("(%) evaluated PB reads") + xlab("(%) correctly assigned PB reads") + geom_text(aes(x=above.th.acc, y=above.th.clustReads), label=thresholds, color="white")
+ 
+  stopTimedMessage(ptm)
+  return(list(plot=plt, plot.table=clust.acc.df))
+}  
+  
+
+ClustersAccuracyHighestTwoDist <- function(inputfolder=NULL) {
+  files2process <- list.files(inputfolder, pattern = "clusters.RData", full.names = TRUE)
+  
+  ptm <- startTimedMessage("Processing clusters")
+  allClusters <- list()
+  for (file in files2process) {
+    data.file <- get(load(file))
+    fileID <- basename(file)
+    
+    thresholds <- c(0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+    
+    #Get accuracy only for autosomes and sex chrmosomes
+    mask <- which(grepl('^chr[0-9X][0-9]?$', data.file$PBchrom))
+    chr.rows <- data.file$PBchrom[mask]
+    chr.flag <- data.file$PBflag[mask]
+    prob.tab <- data.file$soft.pVal[mask,]
+    #Filter out duplicates
+    mask <- which(chr.flag == 16 | chr.flag == 0) 
+    chr.rows <- chr.rows[mask]
+    chr.flag <- chr.flag[mask]
+    prob.tab <- prob.tab[mask,]
+    
+    #Find WC cluster in all cells
+    theta.sums <- Reduce("+", data.file$theta.param)
+    remove.clust <- which.max(theta.sums[,3])
+    #Remove probabilities for always WC cluster
+    prob.tab <- prob.tab[,-remove.clust]
+    
+    #Get clusters IDs corresponding to a given chromosome
+    #Clust.IDs <- getClusterIdentityPerChr(soft.clust= prob.tab, chr.rows=chr.rows)
+    #replicate known clust IDs per chromosome
+    #Clust.IDs.expand <- rep(Clust.IDs , as.numeric(table(chr.rows)))
+    Clust.IDs.expand <- getClusterIdentityPerChrPerDir(soft.clust=prob.tab, chr.rows=chr.rows, chr.flag=chr.flag)
+    
+    clust.acc.l <- list()
+    for (prob.th in thresholds) {
+      #get distance between two highest probs
+      max2Dist <- apply(prob.tab, 1, function(x) abs(diff(sort(x, decreasing = T)[1:2])))
+      
+      #filter distance between two highest probs based on set threshold
+      mask <- max2Dist >= prob.th
+      Clust.IDs.expand.sub <- Clust.IDs.expand[mask]
+      prob.tab.sub <- prob.tab[mask,]
+      chr.rows.sub <- chr.rows[mask]
+      
+      #get max prob for filtered data
+      Clust.locations <- apply(prob.tab.sub, 1, which.max)
+      
+      #compare if best clust IDs correspond to known clust IDs for any given PB read
+      clust.acc <- sapply(1:length(Clust.locations), function(x) any(Clust.locations[x] %in% Clust.IDs.expand.sub[[x]]))
+      
+      above.th <- table(clust.acc)
+      
+      clust.acc.l[[1+length(clust.acc.l)]] <- c(prob.th=prob.th, above.th.match=unname(above.th[2]), above.th.sum=sum(above.th), allReads=length(chr.rows))  
+    }
+    allClusters[[fileID]] <- as.data.frame( do.call(rbind, clust.acc.l) )
+  } 
+  #sum all counts over all data frames (per position)
+  clust.acc.df <- Reduce("+", allClusters)
+  
+  #calcualte accuracy percentages
+  clust.acc.df$prob.th <- thresholds
+  clust.acc.df$above.th.acc <- clust.acc.df$above.th.match / clust.acc.df$above.th.sum
+  clust.acc.df$above.th.clustReads <- clust.acc.df$above.th.sum / clust.acc.df$allReads
+  
+  #plotting  
+  plt <- ggplot(clust.acc.df) + geom_point(aes(x=above.th.acc, y=above.th.clustReads), color="red", size=10) + geom_linerange(aes(ymin=-Inf, x=above.th.acc, ymax=above.th.clustReads),color="red") + scale_y_continuous(limits = c(0,1)) + ylab("(%) evaluated PB reads") + xlab("(%) correctly assigned PB reads") + geom_text(aes(x=above.th.acc, y=above.th.clustReads), label=thresholds, color="white")
+  
+  stopTimedMessage(ptm)
+  return(list(plot=plt, plot.table=clust.acc.df))
+}  
+
+
+inputfolder <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_results/"
+ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL) {
+  #files2process <- list.files(inputfolder, pattern = "clusters.RData", full.names = TRUE)
+  Clusters2process <- list.files(file.path(inputfolder, 'Clusters'), pattern = "clusters.RData", full.names = TRUE)
+  Quals2process <- list.files(file.path(inputfolder, 'RawData'), pattern = "dataQuals.RData", full.names = TRUE)
+  
+  ptm <- startTimedMessage("Processing clusters")
+  allClusters <- list()
+  allSSlib.perPB <- list()
+  #for (file in files2process) {
+  for (i in 1:length(Clusters2process)) {  
+    #data.file <- get(load(file))
+    #fileID <- basename(file)
+    data.file <- get(load(Clusters2process[i]))
+    data.qual <- get(load(Quals2process[i]))
+    fileID <- basename(Clusters2process[i])
+    
+    #sort data quals according to PB order in clusters
+    SSlib.perPB <- data.qual$SSlib.perPB
+    SSlib.perPB <- SSlib.perPB[match(rownames(data.file$soft.pVal), SSlib.perPB$PBreadNames),]
+    
     thresholds <- c(0, 0.5, 0.6, 0.7, 0.8, 0.9)
     
     #check accuracy only for autosomes and sex chrmosomes
@@ -113,36 +269,43 @@ ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL) {
     chr.rows <- chr.rows[mask]
     chr.flag <- chr.flag[mask]
     prob.tab <- prob.tab[mask,]
+    SSlib.perPB <- SSlib.perPB[mask,]
+    
+    #Find WC cluster in all cells
+    theta.sums <- Reduce("+", data.file$theta.param)
+    remove.clust <- which.max(theta.sums[,3])
+    #Remove probabilities for always WC cluster
+    prob.tab <- prob.tab[,-remove.clust]
+    
+    #remove reads with highest probability for WC cluster ???
+    #max.clust <- apply(prob.tab, 1, which.max)
+    #mask <- max.clust != remove.clust
+    #chr.rows <- chr.rows[mask]
+    #chr.flag <- chr.flag[mask]
+    #prob.tab <- prob.tab[mask,]
     
     #get clusters IDs corresponding to a given chromosome
-    #Clust.IDs <- getClusterIdentity_old(soft.clust= prob.tab, chr.rows=chr.rows)
-    Clust.IDs <- getClusterIdentity(soft.clust=prob.tab, chr.rows=chr.rows, chr.flag=chr.flag)
+    Clust.IDs <- getClusterIdentityPerChrPerDir(soft.clust=prob.tab, chr.rows=chr.rows, chr.flag=chr.flag)
     
     clust.acc.l <- list()
+    SSlib.perPB.dist <- list()
     for (prob.th in thresholds) {
-      #Best.clusters <- exportGenomicLocations(soft.clust=prob.tab, prob.th)
-      #Clust.locations <- Best.clusters$clust.IDs
-      #mask <- Best.clusters$th.boolean
-      #names(Clust.locations) <- chr.rows
-      
-      #replicate known clust IDs per chromosome
-      #Clust.IDs.expand <- rep(Clust.IDs , as.numeric(table(chr.rows)))
-      
       max.prob <- apply(prob.tab, 1, max)
       mask <- max.prob >= prob.th
       Clust.locations <- apply(prob.tab[mask,], 1, which.max)  
       
-      #compare if best clust IDs correspond to known clust IDs for any given PB read
-      #clust.acc <- sapply(1:length(Clust.locations), function(x) any(Clust.locations[[x]] %in% Clust.IDs.expand[[x]]))
+      #calculate clustering accuracy in comparison to expected values
       clust.acc <- Clust.locations == Clust.IDs[mask]
       acc.th <- table(clust.acc)
-      #above.th <- table(clust.acc[mask])
-      #below.th <- table(clust.acc[!mask])
       
-      #clust.acc.l[[1+length(clust.acc.l)]] <- c(prob.th=prob.th, both.th.match=unname(both.th[2]), both.th.sum=sum(both.th), above.th.match=unname(above.th[2]), above.th.sum=sum(above.th), below.th.match=unname(below.th[2]), below.th.sum=sum(below.th), allReads=length(chr.rows))  
       clust.acc.l[[1+length(clust.acc.l)]] <- c(prob.th=prob.th, acc.th.match=unname(acc.th[2]), acc.th.sum=sum(acc.th), allReads=length(chr.rows))  
+      SSlib.perPB.dist[[1+length(SSlib.perPB.dist)]] <- split(SSlib.perPB$counts[mask], clust.acc)
     }
     allClusters[[fileID]] <- as.data.frame( do.call(rbind, clust.acc.l) )
+    
+    unlist( sapply(SSlib.perPB.dist, function(x) x['TRUE']) ) -> trues
+    unlist( sapply(SSlib.perPB.dist, function(x) x['FALSE']) )-> falses
+    allSSlib.perPB[[fileID]] <- list(trues=trues, falses=falses)
   } 
   #sum all counts over all data frames (per position)
   clust.acc.df <- Reduce("+", allClusters)
@@ -154,24 +317,9 @@ ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL) {
   
   plt <- ggplot(clust.acc.df) + geom_point(aes(x=th.acc, y=th.clustReads), color="red", size=10) + geom_linerange(aes(ymin=-Inf, x=th.acc, ymax=th.clustReads),color="red") + scale_y_continuous(limits = c(0,1)) + ylab("(%) evaluated PB reads") + xlab("(%) correctly assigned PB reads") + geom_text(aes(x=th.acc, y=th.clustReads), label=c('all', thresholds[-1]), color="white")
   
-  #calcualte accuracy percentages
-  #clust.acc.df$prob.th <- thresholds
-  #clust.acc.df$both.th.acc <- clust.acc.df$both.th.match / clust.acc.df$both.th.sum
-  #clust.acc.df$above.th.acc <- clust.acc.df$above.th.match / clust.acc.df$above.th.sum
-  #clust.acc.df$below.th.acc <- clust.acc.df$below.th.match / clust.acc.df$below.th.sum
-  #clust.acc.df$both.th.clustReads <- clust.acc.df$both.th.sum / clust.acc.df$allReads
-  #clust.acc.df$above.th.clustReads <- clust.acc.df$above.th.sum / clust.acc.df$allReads
-  #clust.acc.df$below.th.clustReads <- clust.acc.df$below.th.sum / clust.acc.df$allReads
-  
-  #plotting  
-  #plt <- ggplot(clust.acc.df) + geom_point(aes(x=above.th.acc, y=above.th.clustReads), color="red", size=10) + geom_linerange(aes(ymin=-Inf, x=above.th.acc, ymax=above.th.clustReads),color="red") + scale_y_continuous(limits = c(0,1)) + ylab("(%) evaluated PB reads") + xlab("(%) correctly assigned PB reads") + geom_text(aes(x=above.th.acc, y=above.th.clustReads), label=thresholds, color="white")
-  #plt <- plt + geom_point(data=clust.acc.df, aes(x=below.th.acc, y=below.th.clustReads), color="blue", size=10) + geom_linerange(aes(ymin=-Inf, x=below.th.acc, ymax=below.th.clustReads), color="blue") + geom_text(aes(x=below.th.acc, y=below.th.clustReads), label=thresholds, color="white")
-  #plt <- plt + geom_point(data=clust.acc.df, aes(x=both.th.acc, y=both.th.clustReads), color="green", size=10) + geom_linerange(aes(ymin=-Inf, x=both.th.acc, ymax=both.th.clustReads), color="green") + geom_text(aes(x=both.th.acc, y=both.th.clustReads), label=thresholds, color="white")
-  
   stopTimedMessage(ptm)
   return(list(plot=plt, plot.table=clust.acc.df))
 }  
-
 
 
 accuracyRanking <- function(inputfolder=NULL) {
@@ -198,7 +346,7 @@ accuracyRanking <- function(inputfolder=NULL) {
     chr.flag <- chr.flag[mask]
     prob.tab <- prob.tab[mask,]
     
-    Clust.IDs <- getClusterIdentity(soft.clust=prob.tab, chr.rows=chr.rows, chr.flag=chr.flag)
+    Clust.IDs <- getClusterIdentityPerChrPerDir(soft.clust=prob.tab, chr.rows=chr.rows, chr.flag=chr.flag)
     #replicate known clust IDs per chromosome
     #Clust.IDs.expand <- rep(Clust.IDs , as.numeric(table(chr.rows)))
     #Clust.IDs.matrix <- do.call(rbind, Clust.IDs.expand)
