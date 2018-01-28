@@ -6,7 +6,7 @@
 \usage{
 SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
   num.clusters = 47, EM.iter = 100, alpha = 0.1, minLib = 10,
-  theta.param = NULL, pi.param = NULL, logL.th = 1,
+  upperQ = 0.95, theta.param = NULL, pi.param = NULL, logL.th = 1,
   theta.constrain = FALSE, store.counts = FALSE, HC.input = NULL)
 }
 \arguments{
@@ -21,6 +21,8 @@ SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
 \item{alpha}{Estimated level of background Strand-seq reads.}
 
 \item{minLib}{Minimal number of StrandS libraries being represent per long PB read}
+
+\item{upperQ}{...}
 
 \item{store.counts}{Logical if to store raw read counts per PB read}
 

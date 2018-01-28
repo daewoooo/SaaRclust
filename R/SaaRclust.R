@@ -5,6 +5,7 @@
 #' @param outputfolder A folder name to export to results.
 #' @param num.clusters Expected number of clusters. (for 22 autosomes == 44 clusters)
 #' @param minLib Minimal number of StrandS libraries being represent per long PB read
+#' @param upperQ ...
 #' @param EM.iter Number of iteration to run EM for.
 #' @param store.counts Logical if to store raw read counts per PB read
 #' @param HC.input Filaname where hard clustering results are stored
@@ -16,7 +17,7 @@
 #minimap.file <- "/media/daewoooo/WORK/SS2PacBio_alignment_HG00733/Test_cluster_chr21&chr22/Minimap_out/SS2Pacbio_minimap_HG00733_k13_w1_L70_f0.01_Chr21andChr22_allSSreads"
 #minimap.file <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/NA12878_WashU_PBreads_chunk14.maf.gz"
 
-SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=47, EM.iter=100, alpha=0.1, minLib=10, theta.param=NULL, pi.param=NULL, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL) {
+SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=47, EM.iter=100, alpha=0.1, minLib=10, upperQ=0.95, theta.param=NULL, pi.param=NULL, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL) {
 
   #get file ID
   fileID <- basename(minimap.file)
@@ -50,13 +51,12 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   #tab.in <- tab.in[tab.in$PBchrom %in% paste0('chr', c(18:22)),] #run only sertain chromosomes
   
   ### get some quality measures on imported data ### [OPTIONAL]
-  data.qual.measures <- getQualMeasure(tab.in)
-  destination <- file.path(rawdata.store, paste0(fileID, "_dataQuals.RData"))
-  save(file = destination, data.qual.measures)
-  #qual.plt <- plotQualMeasure(tab.in.quals)
+  #data.qual.measures <- getQualMeasure(tab.in)
+  #destination <- file.path(rawdata.store, paste0(fileID, "_dataQuals.RData"))
+  #save(file = destination, data.qual.measures)
   
   ### Filter imported data ###
-  tab.filt <- filterInput(inputData=tab.in, quantileSSreads = c(0, 0.90), minSSlibs = c(minLib,Inf))
+  tab.filt <- filterInput(inputData=tab.in, quantileSSreads = c(0, upperQ), minSSlibs = c(minLib,Inf))
   
   #take a smaller chunk of PB reads to process [NOT USED!!!]
   #tab.filt <- tab.filt[sample(nrow(tab.filt)),] #shuffle rows in tab
@@ -67,6 +67,11 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   ptm <- startTimedMessage("Sorting data")
   #additional sort by direction
   tab.filt <- tab.filt[order(tab.filt$PBflag),]
+  
+  ### get some quality measures on imported data ### [OPTIONAL]
+  data.qual.measures <- getQualMeasure(tab.in)
+  destination <- file.path(rawdata.store, paste0(fileID, "_dataQuals.RData"))
+  save(file = destination, data.qual.measures)
   
   #use PB read names as factor
   tab.filt <- tab.filt[order(tab.filt$PBchrom),]
