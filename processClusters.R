@@ -620,11 +620,15 @@ accuracyRanking <- function(inputfolder=NULL) {
 
 ### Heatmap plotting ###
 #prepare data
-data.file <- get(load("/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_results_test/Clusters/NA12878_WashU_PBreads_chunk00_clusters.RData"))
-soft.clust.df <- as.data.frame(data.file$soft.pVal)
+data.file <- get(load("/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_results_DataQualFilt/Clusters/NA12878_WashU_PBreads_chunk00_clusters.RData"))
+#soft.clust.df <- as.data.frame(data.file$soft.pVal)
+soft.clust.df <- as.data.frame(data.file$soft.pVal[,c(10,43,19,2,34,12)])
 soft.clust.df$PBreadNames <- rownames(data.file$soft.pVal)
 soft.clust.df$PBchrom <- data.file$PBchrom
 soft.clust.df$PBflag <- data.file$PBflag
+
+#take only first 5 chromosomes
+soft.clust.df <- soft.clust.df[soft.clust.df$PBchrom %in% paste0('chr', 1:3),]
 
 #find WC cluster in all cells
 theta.sums <- Reduce("+", data.file$theta.param)

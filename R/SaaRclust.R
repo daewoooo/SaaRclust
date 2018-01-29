@@ -51,9 +51,9 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   #tab.in <- tab.in[tab.in$PBchrom %in% paste0('chr', c(18:22)),] #run only sertain chromosomes
   
   ### get some quality measures on imported data ### [OPTIONAL]
-  #data.qual.measures <- getQualMeasure(tab.in)
-  #destination <- file.path(rawdata.store, paste0(fileID, "_dataQuals.RData"))
-  #save(file = destination, data.qual.measures)
+  data.qual.measures <- getQualMeasure(tab.in)
+  destination <- file.path(rawdata.store, paste0(fileID, "_dataQuals.RData"))
+  save(file = destination, data.qual.measures)
   
   ### Filter imported data ###
   tab.filt <- filterInput(inputData=tab.in, quantileSSreads = c(0, upperQ), minSSlibs = c(minLib,Inf))
@@ -69,9 +69,9 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   tab.filt <- tab.filt[order(tab.filt$PBflag),]
   
   ### get some quality measures on imported data ### [OPTIONAL]
-  data.qual.measures <- getQualMeasure(tab.in)
-  destination <- file.path(rawdata.store, paste0(fileID, "_dataQuals.RData"))
-  save(file = destination, data.qual.measures)
+  #data.qual.measures <- getQualMeasure(tab.in)
+  #destination <- file.path(rawdata.store, paste0(fileID, "_dataQuals.RData"))
+  #save(file = destination, data.qual.measures)
   
   #use PB read names as factor
   tab.filt <- tab.filt[order(tab.filt$PBchrom),]

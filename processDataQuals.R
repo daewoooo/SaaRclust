@@ -19,6 +19,7 @@ plotDataQualMeasures <- function(inputfolder=NULL) {
   for (file in files2process) {
     data.file <- get(load(file))
     fileID <- basename(file)
+    message("Processing file: ",fileID)
     
     SSreads.perPB[[fileID]] <- data.file$SSreads.perPB
     SSlib.perPB[[fileID]] <- data.file$SSlib.perPB
@@ -54,18 +55,59 @@ plotDataQualMeasures <- function(inputfolder=NULL) {
   SSreads.perPB.all.df <- as.data.frame(SSreads.perPB.all)
   quantil0.9 <- quantile(SSreads.perPB.all.df$SSreads.perPB.all, probs = 0.9)
   #SSreads.perPB.all.df <- data.frame(SSreads.perPB=SSreads.perPB.all.df[SSreads.perPB.all.df$SSreads.perPB.all <= quantil0.9,]) 
-  SSreads.perPB.plt <- ggplot(SSreads.perPB.all.df, aes(x=SSreads.perPB.all)) + geom_histogram(binwidth = 1000, fill="red") + geom_vline(xintercept = quantil0.9) + xlab("# of StrandS reads per PB read") + ylab("Frequency (log10)") + scale_y_log10(labels=comma)
+  SSreads.perPB.plt <- ggplot(SSreads.perPB.all.df, aes(x=SSreads.perPB.all)) + geom_histogram(binwidth = 1000, fill="red") + xlab("# of Strand-seq reads per PB read") + ylab("Frequency (log scale)") + scale_y_log10(labels=comma)
   
   SSlib.perPB.all.df <- data.frame(SSlib.perPB=SSlib.perPB.all$counts)
-  SSlib.perPB.plt <- ggplot(SSlib.perPB.all.df, aes(x=SSlib.perPB)) + geom_histogram(binwidth = 1, fill="red") + geom_vline(xintercept = 10) + xlab("# of StrandS libraries per PB read") + ylab("Frequency") + scale_y_continuous(labels=comma) 
+  SSlib.perPB.plt <- ggplot(SSlib.perPB.all.df, aes(x=SSlib.perPB)) + geom_histogram(binwidth = 1, fill="red") + xlab("# of Strand-seq libraries per PB read") + ylab("Frequency") + scale_y_continuous(labels=comma) 
   
   SSreads.perlib.perPB.df <- as.data.frame(SSreads.perlib.perPB.all)
   SSreads.perlib.perPB.df <- SSreads.perlib.perPB.df[SSreads.perlib.perPB.df$Var1 %in% c(1:20),]
-  SSreads.perlib.perPB.plt <- ggplot(SSreads.perlib.perPB.df, aes(x=Var1, y=Freq)) + geom_bar(fill="red", stat="identity") + xlab("# of StrandS reads per PB read per library") + ylab("Frequency") + scale_y_continuous(labels=comma) 
+  SSreads.perlib.perPB.plt <- ggplot(SSreads.perlib.perPB.df, aes(x=Var1, y=Freq)) + geom_bar(fill="red", stat="identity") + xlab("# of Strand-seq reads per PB read per library") + ylab("Frequency") + scale_y_continuous(labels=comma) 
 
   PPBreadLenDist.plt <- ggplot(PPBreadLenDist.df, aes(x=id, y=counts)) + geom_bar(fill="red", stat="identity") + xlab("PacBio read length (bp)") + ylab("Frequency") + scale_x_continuous(breaks = c(10000, 20000, 40000, 60000, 80000)) + scale_y_continuous(labels=comma) 
   
   #Merge plots
-  main.plt <- plot_grid(SSreads.perPB.plt, SSlib.perPB.plt, SSreads.perlib.perPB.plt, PPBreadLenDist.plt, nrow = 1)
-  return(list(main.plt=main.plt, quantil0.9=quantil0.9))
+  main.plt1 <- plot_grid(SSreads.perPB.plt, SSlib.perPB.plt, SSreads.perlib.perPB.plt, PPBreadLenDist.plt, nrow = 1)
+  main.plt2 <- plot_grid(SSreads.perPB.plt, SSlib.perPB.plt, SSreads.perlib.perPB.plt, PPBreadLenDist.plt, nrow = 2)
+  return(list(main.plt1=main.plt1, main.plt2=main.plt2, quantil0.9=quantil0.9))
 }  
+
+
+
+inputfolder <- "/home/porubsky/WORK/PROJECTS/SaaRclust_project/SaaRclust_results_DataQualUnfilt/RawData/"
+processClusters(inputfolder) -> dataQual.plt
+destination <- file.path(inputfolder, "dataQual_plt.pdf")
+ggsave(filename = destination, plot = dataQual.plt, width = 22, height = 4)
+#load
+library(scales)
+library(ggplot2)
+library(cowplot)
+
+processClusters <- function(inputfolder=NULL) {
+  files2process <- list.files(inputfolder, pattern = "dataQuals.RData", full.names = TRUE)
+  
+  SSlib.perPB <- list()
+  SSreads.perlib.perPB <- list()
+  PBreadLenDist <- list()
+  for (file in files2process) {
+    data.file <- get(load(file))
+    fileID <- basename(file)
+    
+    SSlib.perPB[[fileID]] <- data.file$SSlib.perPB
+    #get counts and export only max 100
+    SSreads.perlib.perPB[[fileID]] <- sort(table(data.file$SSreads.perlib.perPB),decreasing = T)[1:100]
+  }
+  SSlib.perPB.all <- do.call(rbind, SSlib.perPB)
+  SSreads.perlib.perPB.all <- Reduce("+", SSreads.perlib.perPB)
+  
+  counts <- table(SSlib.perPB.all$counts)
+  SSlib.perPB.all.df <- as.data.frame( counts/sum(counts) )
+  SSlib.perPB.plt <- ggplot(SSlib.perPB.all.df, aes(x=Var1, y=Freq)) + geom_bar(fill="red", stat="identity") + xlab("# of StrandS libraries per PB read") + ylab("Fraction") + scale_y_continuous(labels=comma) + scale_x_discrete(breaks = c(1,25,50,75,100,125)) + theme_bw()
+  
+  SSreads.perlib.perPB.df <- as.data.frame(SSreads.perlib.perPB.all)
+  SSreads.perlib.perPB.df$frac <- SSreads.perlib.perPB.df$Freq/sum(SSreads.perlib.perPB.df$Freq)
+  SSreads.perlib.perPB.df <- SSreads.perlib.perPB.df[SSreads.perlib.perPB.df$Var1 %in% c(1:20),]
+  SSreads.perlib.perPB.plt <- ggplot(SSreads.perlib.perPB.df, aes(x=Var1, y=frac)) + geom_bar(fill="red", stat="identity") + xlab("# of StrandS reads per PB read per library") + ylab("Fraction") + scale_y_continuous(labels=comma) + theme_bw()
+  
+  return(list(SSlib.perPB.plt=SSlib.perPB.plt, SSreads.perlib.perPB.plt=SSreads.perlib.perPB.plt))
+} 
