@@ -1,17 +1,23 @@
+############################################################################################################################################
+#This function calculates clustering accuracy over different probability cutoffs.
+#Depth of coverage is reported as a cumulative numeber of bases sequenced (sum of PB read lenghts/genome size)
+
 inputfolder <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_results_DataQualFilt/"
-thresholds <- c(0, 0.1, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+thresholds <- c(0, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99)
 ClustersAccuracyPerChrPerDir(inputfolder=inputfolder, thresholds=thresholds, minLib=10) -> accplt.obj
-destination <- file.path(inputfolder, "accPlot_minLin10.RData") 
+destination <- file.path(inputfolder, "accPlot_minLib0.RData") 
 save(file = destination, accplt.obj)
 
 ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL, thresholds=NULL, minLib=NULL) {
   Clusters2process <- list.files(file.path(inputfolder, 'Clusters'), pattern = "clusters.RData", full.names = TRUE)
   Quals2process <- list.files(file.path(inputfolder, 'RawData'), pattern = "dataQuals.RData", full.names = TRUE)
+  PBlen2process <- list.files("/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/PBreadLen/", pattern = "gz", full.names = TRUE)
   
   allClusters <- list()
   for (i in 1:length(Clusters2process)) {  
     data.file <- get(load(Clusters2process[i]))
     data.qual <- get(load(Quals2process[i]))
+    PB.read.len <- data.table::fread(paste0('gunzip -cq ', PBlen2process[i]), header=T, verbose = F, showProgress = F)
     fileID <- basename(Clusters2process[i])
     message("Processing file: ",fileID)
     
@@ -19,6 +25,10 @@ ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL, thresholds=NULL, minL
     SSlib.perPB <- data.qual$SSlib.perPB
     SSlib.perPB <- SSlib.perPB[match(rownames(data.file$soft.pVal), SSlib.perPB$PBreadNames),]
     pb.minLib <- SSlib.perPB$counts
+    
+    #Select required PB read lengths
+    PB.read.len <- PB.read.len[match(rownames(data.file$soft.pVal), PB.read.len$PBreadNames),]
+    pb.readLen <- PB.read.len$PBreadLen
     
     ##check accuracy only for autosomes and sex chrmosomes
     mask <- which(grepl('^chr[0-9X][0-9]?$', data.file$PBchrom))
@@ -28,6 +38,7 @@ ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL, thresholds=NULL, minL
     chr.flag <- data.file$PBflag[mask]
     prob.tab <- data.file$soft.pVal[mask,]
     pb.minLib <- pb.minLib[mask]
+    pb.readLen <- pb.readLen[mask]
     
     #filter out duplicates
     mask <- which(chr.flag == 16 | chr.flag == 0) 
@@ -35,6 +46,7 @@ ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL, thresholds=NULL, minL
     chr.flag <- chr.flag[mask]
     prob.tab <- prob.tab[mask,]
     pb.minLib <- pb.minLib[mask]
+    pb.readLen <- pb.readLen[mask]
     
     #Find WC cluster in all cells
     theta.sums <- Reduce("+", data.file$theta.param)
@@ -47,6 +59,7 @@ ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL, thresholds=NULL, minL
     prob.tab <- prob.tab[filt,]
     chr.rows <- chr.rows[filt]
     chr.flag <- chr.flag[filt]
+    pb.readLen <- pb.readLen[filt]
     
     #get clusters IDs corresponding to a given chromosome
     Clust.IDs <- getClusterIdentityPerChrPerDir(soft.clust=prob.tab, chr.rows=chr.rows, chr.flag=chr.flag)
@@ -56,13 +69,15 @@ ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL, thresholds=NULL, minL
       message("    Set threshold: ", prob.th)
       max.prob <- apply(prob.tab, 1, max)
       mask <- max.prob >= prob.th
+      pb.readLen.sub <- pb.readLen[mask]
+      
       Clust.locations <- apply(prob.tab[mask,], 1, which.max) 
       
       #calculate clustering accuracy in comparison to expected values
       clust.acc <- Clust.locations == Clust.IDs[mask]
       acc.th <- table(clust.acc)
       
-      clust.acc.l[[1+length(clust.acc.l)]] <- c(prob.th=prob.th, acc.th.match=unname(acc.th[2]), acc.th.sum=sum(acc.th), allReads=length(chr.rows))  
+      clust.acc.l[[1+length(clust.acc.l)]] <- c(prob.th=prob.th, acc.th.match=unname(acc.th[2]), acc.th.sum=sum(acc.th), allReads=length(chr.rows), seq.bases=sum(as.numeric(pb.readLen.sub)))  
     }
     allClusters[[fileID]] <- as.data.frame( do.call(rbind, clust.acc.l) )
   } 
@@ -74,104 +89,21 @@ ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL, thresholds=NULL, minL
   clust.acc.df$th.acc <- clust.acc.df$acc.th.match / clust.acc.df$acc.th.sum
   clust.acc.df$th.clustReads <- clust.acc.df$acc.th.sum / clust.acc.df$allReads
   
-  acc.plt <- ggplot(clust.acc.df) + geom_point(aes(x=th.acc, y=th.clustReads), color="deepskyblue4", size=10) + geom_linerange(aes(ymin=-Inf, x=th.acc, ymax=th.clustReads),color="deepskyblue4") + scale_y_continuous(limits = c(0.8, 1)) + scale_y_continuous(limits = c(0,1)) + ylab("(%) evaluated PB reads") + xlab("(%) correctly assigned PB reads") + geom_text(aes(x=th.acc, y=th.clustReads), label=c('all', thresholds[-1]), color="white") + theme_bw()
+  #get genome size
+  library("biovizBase")
+  hg38Ideogram <- getIdeogram("hg38", cytoband = FALSE)
+  hg38Ideogram <- keepSeqlevels(hg38Ideogram, paste0('chr', c(1:22,'X')))
+  genome.size <- sum(as.numeric(seqlengths(hg38Ideogram)))
+  clust.acc.df$depth <- ceiling(clust.acc.df$seq.bases/genome.size)
+  
+  acc.plt <- ggplot(clust.acc.df) + geom_point(aes(x=th.acc, y=th.clustReads), color="deepskyblue4", size=10) + geom_linerange(aes(ymin=-Inf, x=th.acc, ymax=th.clustReads),color="deepskyblue4") + scale_y_continuous(limits = c(0.8, 1)) + scale_x_continuous(limits = c(0,1)) + scale_y_continuous(limits = c(0,1)) + ylab("(%) evaluated PB reads") + xlab("(%) correctly assigned PB reads") + geom_text(aes(x=th.acc, y=th.clustReads), label=c('all', thresholds[-1]), color="white") + theme_bw()  + theme_bw() + geom_text(aes(x=th.acc, y=th.clustReads+0.05), label=paste0(clust.acc.df$depth, "x"), color="black")
   message("DONE!!!")
   return(list(acc.plot=acc.plt, plot.table=clust.acc.df))
 } 
 
-inputfolder <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_results_DataQualFilt/"
-thresholds <- c(0, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99)
-minLibs <- c(0,5,10,15,20,30)
-ClustersAccuracyPerChrPerDir_minTh_minLib(inputfolder = inputfolder, thresholds=thresholds, minLibs=minLibs) -> accpltminLibminTh.obj
 
-ClustersAccuracyPerChrPerDir_minTh_minLib <- function(inputfolder=NULL, thresholds=NULL, minLibs=NULL) {
-  Clusters2process <- list.files(file.path(inputfolder, 'Clusters'), pattern = "clusters.RData", full.names = TRUE)
-  Quals2process <- list.files(file.path(inputfolder, 'RawData'), pattern = "dataQuals.RData", full.names = TRUE)
-  
-  allClusters <- list()
-  for (i in 1:length(Clusters2process)) {  
-    data.file <- get(load(Clusters2process[i]))
-    data.qual <- get(load(Quals2process[i]))
-    fileID <- basename(Clusters2process[i])
-    message("Processing file: ",fileID)
-    
-    #Sort data quals according to PB order in clusters
-    SSlib.perPB <- data.qual$SSlib.perPB
-    SSlib.perPB <- SSlib.perPB[match(rownames(data.file$soft.pVal), SSlib.perPB$PBreadNames),]
-    pb.minLib <- SSlib.perPB$counts
-    
-    ##check accuracy only for autosomes and sex chrmosomes
-    mask <- which(grepl('^chr[0-9X][0-9]?$', data.file$PBchrom))
-    
-    #get clusters IDs corresponding to a given chromosome
-    chr.rows <- data.file$PBchrom[mask]
-    chr.flag <- data.file$PBflag[mask]
-    prob.tab <- data.file$soft.pVal[mask,]
-    pb.minLib <- pb.minLib[mask]
-    
-    #filter out duplicates
-    mask <- which(chr.flag == 16 | chr.flag == 0) 
-    chr.rows <- chr.rows[mask]
-    chr.flag <- chr.flag[mask]
-    prob.tab <- prob.tab[mask,]
-    pb.minLib <- pb.minLib[mask]
-    
-    #Find WC cluster in all cells
-    theta.sums <- Reduce("+", data.file$theta.param)
-    remove.clust <- which.max(theta.sums[,3])
-    #Remove probabilities for always WC cluster
-    prob.tab <- prob.tab[,-remove.clust]
-    
-    #get total amount of PB reads
-    total.PBreads <- length(rownames(prob.tab)) 
-    
-    #Set various filer limits for minomum number of SS libs per PB read
-    clust.acc.minLib.l <- list()
-    for (minLib in minLibs) {
-      message(" Set minLib: ", minLib)
-      #Remove PB reads represneted by SSlib less than minLib
-      filt <- pb.minLib >= minLib
-      prob.tab.sub <- prob.tab[filt,]
-      chr.rows.sub <- chr.rows[filt]
-      chr.flag.sub <- chr.flag[filt]
-      
-      #get clusters IDs corresponding to a given chromosome
-      Clust.IDs <- getClusterIdentityPerChrPerDir(soft.clust=prob.tab.sub, chr.rows=chr.rows.sub, chr.flag=chr.flag.sub)
-      
-      clust.acc.l <- list()
-      for (prob.th in thresholds) {
-        message("    Set threshold: ", prob.th)
-        max.prob <- apply(prob.tab.sub, 1, max)
-        mask <- max.prob >= prob.th
-        Clust.locations <- apply(prob.tab.sub[mask,], 1, which.max) 
-        
-        #calculate clustering accuracy in comparison to expected values
-        clust.acc <- Clust.locations == Clust.IDs[mask]
-        acc.th <- table(clust.acc)
-        
-        clust.acc.l[[1+length(clust.acc.l)]] <- c(prob.th=prob.th, acc.th.match=unname(acc.th[2]), acc.th.sum=sum(acc.th), allReads=total.PBreads, minLib=minLib)  
-      }
-      clust.acc.minLib.l[[1+length(clust.acc.minLib.l)]] <- as.data.frame( do.call(rbind, clust.acc.l) )
-    } 
-  allClusters[[fileID]] <- do.call(rbind, clust.acc.minLib.l)
-  }
-  
-  #sum all counts over all data frames (per position)
-  clust.acc.df <- Reduce("+", allClusters)
-
-    
-  #calcualte accuracy percentages
-  clust.acc.df$prob.th <- rep(thresholds, length(minLibs))
-  clust.acc.df$minLib <- factor( rep(minLibs, each=length(thresholds)) )
-  clust.acc.df$th.acc <- clust.acc.df$acc.th.match / clust.acc.df$acc.th.sum
-  clust.acc.df$th.clustReads <- clust.acc.df$acc.th.sum / clust.acc.df$allReads
-  
-  acc.plt <- ggplot(clust.acc.df) + geom_point(aes(x=th.acc, y=th.clustReads, color=minLib, group=minLib)) + geom_linerange(aes(ymin=-Inf, x=th.acc, ymax=th.clustReads, color=minLib, group=minLib)) + scale_color_manual(values=brewer.pal(9,"Set1"))
-  
-  message("DONE!!!")
-  return(list(acc.plot=acc.plt, plot.table=clust.acc.df))
-} 
-
+############################################################################################################################################
+#This function calculates clustering accuracy over different threshold for minimal SSlibs represented per PBread
 
 inputfolder <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_results_DataQualFilt/"
 minLibs <- c(0,5,10,15,20,30)
@@ -278,6 +210,11 @@ ClustersAccuracyPerChrPerDir_minLib <- function(inputfolder=NULL, minLibs=NULL) 
   return(list(acc.plot=acc.plt, plot.table=clust.acc.df))
 } 
 
+
+
+############################################################################################################################################
+#In this part we itetrate through PBread lenghs to report different values: Total depth of coverage as well as PB read length distribution
+
 #Get total depth of coverage before filtering of 10% of PB reads with highest SS read counts
 PBlen2process <- list.files("/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/PBreadLen/", pattern = "gz", full.names = TRUE)
 cov.bases.all <- list()
@@ -290,6 +227,13 @@ for (i in 1:length(PBlen2process)) {
   reads.all[[i]] <- length(PB.read.len$PBreadLen[!duplicated(PB.read.len$PBreadNames)])
 }  
 
+#plot PB read length distribution
+read.len.dist.all <- unlist(read.len.dist)
+read.len.dist.all.df <- as.data.frame(read.len.dist.all)
+PBread.lenDist <- ggplot(read.len.dist.all.df, aes(x=read.len.dist.all)) + geom_histogram(binwidth = 100, fill="red") + xlab("PacBio read length (bp)") + ylab("Frequency") + scale_x_continuous(breaks = c(10000, 20000, 40000, 60000, 80000)) + scale_y_continuous(labels=comma) 
+save.data <- list(PBread.lenDist=PBread.lenDist, read.len.dist.all.df=read.len.dist.all.df)
+save(file = "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/PBreadLen/PBreadLen.RData", save.data)
+
 total.cov.bases <- sum(unlist(cov.bases.all)) 
 #get genome size
 library("biovizBase")
@@ -299,6 +243,8 @@ genome.size <- sum(as.numeric(seqlengths(hg38Ideogram)))
 total.cov.bases/genome.size
 
 
+############################################################################################################################################
+#This function calculates distribution of minimal SSlibs represented per PBread in sets of correctly and incorrectly assigned PB reads.
 
 inputfolder <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_results_DataQualFilt/"
 boxplotDistSSlibsPerPB(inputfolder=inputfolder, thresholds=0) -> boxplt.obj
@@ -373,6 +319,11 @@ boxplotDistSSlibsPerPB <- function(inputfolder=NULL, thresholds=NULL) {
 } 
 
 
+############################################################################################################################################
+#This function calculates probability ranking of true clusters. 
+#Rank1 = max probability being the true cluster
+#Rank2 = second best probability being the true cluster
+
 inputfolder <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_results_DataQualFilt/Clusters/"
 accuracyRanking(inputfolder = inputfolder ) -> rankingPlt.obj
 destination <- file.path(inputfolder, "rankingPlot.RData") 
@@ -438,3 +389,80 @@ accuracyRanking <- function(inputfolder=NULL) {
   
   return(list(ranking.plt=ranking.plt, ranking.table=table.ranks.df,  overal.acc=overal.acc))
 } 
+
+
+############################################################################################################################################
+#This function calculates various data quality measures such as, distribution of SSlibs per PB raed or distribtuon of SSreads per SSlib per PBread
+
+#load required libraries
+library(scales)
+library(ggplot2)
+library(cowplot)
+inputfolder <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_results_DataQualUnfilt/RawData/"
+plotDataQualMeasures(inputfolder) -> dataQual.plt
+destination <- file.path(inputfolder, "dataQual.RData") 
+save(file = destination, dataQual.plt)
+
+plotDataQualMeasures <- function(inputfolder=NULL) {
+  files2process <- list.files(inputfolder, pattern = "dataQuals.RData", full.names = TRUE)
+  
+  SSreads.perPB <- list()
+  SSlib.perPB <- list()
+  SSreads.perlib.perPB <- list()
+  PBreadLenDist <- list()
+  #Load all data from all chunks
+  for (file in files2process) {
+    data.file <- get(load(file))
+    fileID <- basename(file)
+    message("Processing file: ",fileID)
+    
+    SSreads.perPB[[fileID]] <- data.file$SSreads.perPB
+    SSlib.perPB[[fileID]] <- data.file$SSlib.perPB
+    PBreadLenDist[[fileID]] <- data.file$PBreadLenDist
+    #get counts and export only max 100
+    SSreads.perlib.perPB[[fileID]] <- sort(table(data.file$SSreads.perlib.perPB),decreasing = T)[1:100]
+  }
+  SSreads.perPB.all <- do.call(c, SSreads.perPB)
+  SSlib.perPB.all <- do.call(rbind, SSlib.perPB)
+  SSreads.perlib.perPB.all <- Reduce("+", SSreads.perlib.perPB) #sum up counts across all chunks
+  
+  #Get summary of PB read length distribtion over all chunks
+  max <- which.max(sapply(PBreadLenDist, nrow))
+  size.ids <- PBreadLenDist[[max]]$midpoints
+  
+  addMissingLengths <- function(x) {
+    ids2add <- size.ids[!size.ids %in% x[[1]]]
+    if (!length(ids2add) == 0) {  
+      add.data <- data.frame(midpoints=ids2add, freq=rep(0, length(ids2add)))
+      merged.data <- rbind(x, add.data)
+      return(merged.data[,2])
+    } else {
+      return(x[,2])
+    }  
+  }
+  
+  PBreadLenDist.modif <- lapply(PBreadLenDist, addMissingLengths)
+  PBreadLenDist.modif <- PBreadLenDist.modif[lengths(PBreadLenDist.modif) == length(size.ids)]
+  PBreadLenDist.all <- Reduce("+",  PBreadLenDist.modif)
+  PPBreadLenDist.df <- data.frame(id=size.ids, counts=PBreadLenDist.all)
+  
+  #Plot data quality measures
+  SSreads.perPB.all.df <- as.data.frame(SSreads.perPB.all)
+  quantil0.9 <- quantile(SSreads.perPB.all.df$SSreads.perPB.all, probs = 0.9)
+  #SSreads.perPB.all.df <- data.frame(SSreads.perPB=SSreads.perPB.all.df[SSreads.perPB.all.df$SSreads.perPB.all <= quantil0.9,]) 
+  SSreads.perPB.plt <- ggplot(SSreads.perPB.all.df, aes(x=SSreads.perPB.all)) + geom_histogram(binwidth = 1000, fill="red") + xlab("# of Strand-seq reads per PB read") + ylab("Frequency (log scale)") + scale_y_log10(labels=comma)
+  
+  SSlib.perPB.all.df <- data.frame(SSlib.perPB=SSlib.perPB.all$counts)
+  SSlib.perPB.plt <- ggplot(SSlib.perPB.all.df, aes(x=SSlib.perPB)) + geom_histogram(binwidth = 1, fill="red") + xlab("# of Strand-seq libraries per PB read") + ylab("Frequency") + scale_y_continuous(labels=comma) 
+  
+  SSreads.perlib.perPB.df <- as.data.frame(SSreads.perlib.perPB.all)
+  SSreads.perlib.perPB.df <- SSreads.perlib.perPB.df[SSreads.perlib.perPB.df$Var1 %in% c(1:20),]
+  SSreads.perlib.perPB.plt <- ggplot(SSreads.perlib.perPB.df, aes(x=Var1, y=Freq)) + geom_bar(fill="red", stat="identity") + xlab("# of Strand-seq reads per PB read per library") + ylab("Frequency") + scale_y_continuous(labels=comma) 
+  
+  PPBreadLenDist.plt <- ggplot(PPBreadLenDist.df, aes(x=id, y=counts)) + geom_bar(fill="red", stat="identity") + xlab("PacBio read length (bp)") + ylab("Frequency") + scale_x_continuous(breaks = c(10000, 20000, 40000, 60000, 80000)) + scale_y_continuous(labels=comma) 
+  
+  #Merge plots
+  main.plt1 <- plot_grid(SSreads.perPB.plt, SSlib.perPB.plt, SSreads.perlib.perPB.plt, PPBreadLenDist.plt, nrow = 1)
+  main.plt2 <- plot_grid(SSreads.perPB.plt, SSlib.perPB.plt, SSreads.perlib.perPB.plt, PPBreadLenDist.plt, nrow = 2)
+  return(list(main.plt1=main.plt1, main.plt2=main.plt2, quantil0.9=quantil0.9))
+}  

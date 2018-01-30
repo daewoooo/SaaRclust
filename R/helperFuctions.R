@@ -19,7 +19,7 @@ getQualMeasure <- function(inputData) {
   #get number of SS reads per lib per PB read
   SSreads.perPB.l <- split(inputData$SSlibNames, inputData$PBreadNames)
   SSreads.perlib.perPB <- sapply(SSreads.perPB.l, function(x) rle(sort(x))$lengths)
-  #SSreads.perlib.perPB <- do.call(c, SSreads.perlib.perPB)
+  SSreads.perlib.perPB <- do.call(c, SSreads.perlib.perPB)
   
   #get PB read distribution hist
   hist.data <- hist(inputData$PBreadLen, breaks = 100)

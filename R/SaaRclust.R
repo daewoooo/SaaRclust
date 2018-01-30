@@ -68,11 +68,6 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   #additional sort by direction
   tab.filt <- tab.filt[order(tab.filt$PBflag),]
   
-  ### get some quality measures on imported data ### [OPTIONAL]
-  #data.qual.measures <- getQualMeasure(tab.in)
-  #destination <- file.path(rawdata.store, paste0(fileID, "_dataQuals.RData"))
-  #save(file = destination, data.qual.measures)
-  
   #use PB read names as factor
   tab.filt <- tab.filt[order(tab.filt$PBchrom),]
   tab.filt$PBreadNames <- factor(tab.filt$PBreadNames, levels=unique(tab.filt$PBreadNames))

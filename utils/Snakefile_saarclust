@@ -1,0 +1,74 @@
+#set some variables
+outputfolder = "SaaRclust_results"
+numClustersHard = 54
+numClustersSoft = 47
+EMiter          = 200
+alpha           = 0.01
+minLib          = 1
+upperQ          = 0.90
+logLth          = 1
+theta_constrain = "FALSE"
+numAlignments   = 30000
+
+#files to process
+CHUNKS, = glob_wildcards("aligns/{chunks}.maf.gz")
+
+rule all:
+    input: #expand("aligns/{outputfolder}/Clusters/hardClusteringResults_{numAlignments}.RData", outputfolder=outputfolder, numAlignments=numAlignments) 
+           expand("aligns/{outputfolder}/Clusters/{chunks}_clusters.RData", outputfolder=outputfolder, chunks=CHUNKS)
+
+rule install_SaaRclust:
+    output:
+        "utils/R-packages/SaaRclust/R/SaaRclust"
+    log:
+        "log/saarclust-install.log"
+    shell:
+        """
+        TAR=$(which tar) Rscript utils/install_SaaRclust.R > {log} 2>&1
+        """
+
+rule HARD_clustering:
+    input:
+        inputfolder = "aligns/", 
+        saarclust="utils/R-packages/SaaRclust/R/SaaRclust"
+
+    output:
+        "aligns/{outputfolder}/Clusters/hardClusteringResults_{numAlignments}.RData"
+    log:
+        "log/saarclust_hardclust.log"
+    shell:
+        """
+        Rscript utils/SaaRclust_hardclust_pipeline.R \
+                {input.inputfolder} \
+                {numClustersHard} \
+                {alpha} \
+		{numAlignments} \
+                $(pwd)/utils/R-packages/ \
+                > {log} 2>&1
+        """
+
+rule SOFT_clustering:
+    input:
+        minimapFile = "aligns/{chunks}.maf.gz",
+        HCclustFile = "aligns/{outputfolder}/Clusters/hardClusteringResults_30000.RData"
+    
+    output:
+        "aligns/{outputfolder}/Clusters/{chunks}_clusters.RData"
+    log:
+        "log/{chunks}.log"
+    shell:
+        """
+        Rscript utils/SaaRclust_softclust_pipeline.R \
+                {input.minimapFile} \
+                aligns/{outputfolder} \
+                {numClustersSoft} \
+                {EMiter} \
+                {alpha} \
+                {minLib} \
+                {upperQ} \
+                {logLth} \
+                {input.HCclustFile} \
+                $(pwd)/utils/R-packages/ \
+                > {log} 2>&1
+        """
+
