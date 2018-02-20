@@ -215,7 +215,9 @@ filterInput <- function(inputData=NULL, quantileSSreads=c(0,0.9), minSSlibs=c(20
   
     #filter reads based on the mean number of SS reads aligned per each PB read
     quantile.range <- quantile(SSread.perPB, probs = quantileSSreads)
-    maskNames <- names(SSread.perPB)[SSread.perPB >= quantile.range[1] & SSread.perPB <= quantile.range[2]]
+    filt <- SSread.perPB >= quantile.range[1] & SSread.perPB <= quantile.range[2]
+    upperQ.reads <- names(SSread.perPB)[!filt]
+    maskNames <- names(SSread.perPB)[filt]
     inputData.filt <- inputData.filt[inputData.filt$PBreadNames %in% maskNames,]
   }
   
@@ -231,7 +233,7 @@ filterInput <- function(inputData=NULL, quantileSSreads=c(0,0.9), minSSlibs=c(20
   #inputData.filt <- inputData.filt[inputData.filt$PBreadNames %in% maskNames,]
   
   stopTimedMessage(ptm)
-  return(inputData.filt)
+  return(list(tab.filt=inputData.filt, upperQ.reads=upperQ.reads))
 }
 
 
@@ -260,7 +262,9 @@ getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=30000, q
     
     suppressMessages( suppressWarnings( tab.in <- importData(infile=file, removeDuplicates=TRUE) ) )
     #suppressMessages( suppressWarnings( tab.in <- importTestData(infile=file, removeDuplicates=TRUE) ) )
-    suppressMessages( tab.filt <- filterInput(inputData=tab.in, quantileSSreads=quantileSSreads, minSSlibs=minSSlibs) )
+    suppressMessages( tab.filt.l <- filterInput(inputData=tab.in, quantileSSreads=quantileSSreads, minSSlibs=minSSlibs) )
+    tab.filt <- tab.filt.l$tab.filt
+    
     numAligns <- length(unique(tab.filt$PBreadNames))
     
     message("    Obtained ",numAligns," representative alignments", appendLF = F); 

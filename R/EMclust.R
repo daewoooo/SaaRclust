@@ -32,6 +32,7 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
     clust.gammas.colsums.l <- list()
     clust.gammas.rowsums.l <- list()
     clust.gammas.norm.l <- list()
+    num.removed.reads <- 0
     #loop to obtain initial prob measures
     for (j in 1:length(counts.l)) {
       #lib.name <- names(tab.l[j])
@@ -51,7 +52,15 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
         BN.probs <- BN.probs.l[[j]]
       }  
   
-      #calc probs given theta
+      #Remove BN probs and corresponding PB reads which probability is assigned NaN value or when all probabilities are zero [TODO!!! resolve this problem]
+      mask <- which( apply(BN.probs, 1, function(x) any(is.nan(x) | sum(x)==0)) )
+      if (length(mask)>0) { #remove PB reads with extremely high StrandS read counts
+        num.removed.reads <- num.removed.reads + length(mask)
+        BN.probs <- BN.probs[-mask,]
+        counts.l[[j]] <- counts[-mask,]
+      }
+        
+      #Calculate probs given theta
       clusters <- list()
       for (i1 in 1:nrow(params)) {
         clusters[[i1]] <- t(t(BN.probs)*params[i1,])
@@ -59,13 +68,13 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
       #Store rowsums of unnormalized BN probs (cell type) for every PB read in every cluster
       clusters.per.cell[[j]] <- lapply(clusters, rowSums)
   
-      #calculate gamma function
+      #Calculate gamma function
       cellNum <- length(counts.l)
       pi.param.scaled <- ( pi.param^(1/cellNum) ) #scale pi.param given the number of strandseq cells
       clusters.scaled <- Map("*", clusters, pi.param.scaled) #multiply BN probs(multiplied by theta) with scaled pi.param
       clust.gammas <- gammaFunction(clust.prob = clusters.scaled, pi = pi.param, cellNum = cellNum)
   
-      #update theta
+      #Update theta
       #clust.gammas.norm <- clust.gammas$gammas.colsums/rowSums(clust.gammas$gammas.colsums)
       clust.gammas.norm <- clust.gammas/rowSums(clust.gammas) #normalize gammas to 1
       
@@ -75,8 +84,14 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
       #clust.gammas.rowsums.l[[j]] <- clust.gammas$gammas.rowsums
       clust.gammas.norm.l[[j]] <- clust.gammas.norm
       BN.probs.l[[j]] <- BN.probs
-    }
-
+      
+    } #end of loop over StrandS cells
+    
+    #Report number of removed reads
+    if (num.removed.reads > 0) {
+      message("Warning: Removing ", num.removed.reads, " PacBio reads with all zero or NaN binom probability!!!", appendLF = FALSE)
+    }  
+    
     #keep old pi and theta param
     pi.param.old <- pi.param
     theta.param.old <- theta.param
@@ -109,8 +124,10 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
     cluts.tab.update <- do.call(cbind, clust.prod)
     
     #calc likelihood function
-    log.like <- sum(log(rowSums(cluts.tab.update * pi.param)))*(-1)
-    cluts.tab.update <- cluts.tab.update * pi.param
+    cluts.tab.sums <- rowSums(cluts.tab.update * pi.param)
+    #cluts.tab.sums[cluts.tab.sums == 0] <- min(cluts.tab.sums[cluts.tab.sums != 0]) #set zero sums to the lowest sums!!! (to approximate likelihood function)
+    log.like <- sum(log(cluts.tab.sums))*(-1)
+    #cluts.tab.update <- cluts.tab.update * pi.param
     #log.like <- kahansum(log(apply(cluts.tab.update, 1, kahansum)))*(-1)
     
     #Check the difference between previous and last results of likelihood function
@@ -126,9 +143,11 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
       }
     }  
     
-    if (! is.infinite(log.like)){
+    if (!is.infinite(log.like)) {
       log.like.l[[length(log.like.l)+1]] <- log.like
-    } else {message("Warning: infinite objective function")}
+    } else {
+      message("Message: LogL function numerical problem", appendLF = FALSE)
+    }
     
   stopTimedMessage(ptm)
   }

@@ -9,31 +9,48 @@
 #' @author David Porubsky, Maryam Ghareghani
 #' @export
 
-countProb <- function(minusCounts, plusCounts, alpha=0.1) {
+#countProb <- function(minusCounts, plusCounts, alpha=0.1) {
   
   #TODO: it's equivalent to dbinom function 
   
-  minusCounts <- as.numeric(minusCounts)
-  plusCounts <- as.numeric(plusCounts)
+#  minusCounts <- as.numeric(minusCounts)
+#  plusCounts <- as.numeric(plusCounts)
   
-  #calculata that given PB read is WW
-  prob.w <- (1-alpha)^minusCounts
-  prob.c <- alpha^plusCounts 
-  prob.ww <- prob.w * prob.c
+  #calculate that given PB read is WW
+#  prob.w <- (1-alpha)^minusCounts
+#  prob.c <- alpha^plusCounts 
+#  prob.ww <- prob.w * prob.c
   
-  #calculata that given PB read is CC
-  prob.w <- alpha^minusCounts 
-  prob.c <- (1-alpha)^plusCounts
-  prob.cc <- prob.w * prob.c
+  #calculate that given PB read is CC
+#  prob.w <- alpha^minusCounts 
+#  prob.c <- (1-alpha)^plusCounts
+#  prob.cc <- prob.w * prob.c
   
-  #calculata that given PB read is WC
-  prob.w <- 0.5^minusCounts
-  prob.c <- 0.5^plusCounts
-  prob.wc <- prob.w * prob.c
+  #calculate that given PB read is WC
+#  prob.w <- 0.5^minusCounts
+#  prob.c <- 0.5^plusCounts
+#  prob.wc <- prob.w * prob.c
   
-  prob.mix <- prob.wc
+#  prob.mix <- prob.wc
   
-  prob.m <- choose(n=minusCounts+plusCounts, k=plusCounts) * cbind(prob.ww, prob.cc, prob.mix)
+#  prob.m <- choose(n=minusCounts+plusCounts, k=plusCounts) * cbind(prob.ww, prob.cc, prob.mix)
+  
+#  return(prob.m)
+#}
+
+countProb <- function(minusCounts, plusCounts, alpha=0.1) {
+  
+  sumCounts <- minusCounts + plusCounts
+  #calculate that given PB read is WW
+  prob.ww <- stats::dbinom(minusCounts, size = sumCounts, prob = 1-alpha)
+  
+  #calculate that given PB read is CC
+  prob.cc <- stats::dbinom(minusCounts, size = sumCounts, prob = alpha)
+  
+  #calculate that given PB read is WC
+  prob.mix <- stats::dbinom(minusCounts, size = sumCounts, prob = 0.5)
+  
+  prob.m <- cbind(prob.ww, prob.cc, prob.mix)
   
   return(prob.m)
 }

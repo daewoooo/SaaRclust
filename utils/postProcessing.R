@@ -466,3 +466,174 @@ plotDataQualMeasures <- function(inputfolder=NULL) {
   main.plt2 <- plot_grid(SSreads.perPB.plt, SSlib.perPB.plt, SSreads.perlib.perPB.plt, PPBreadLenDist.plt, nrow = 2)
   return(list(main.plt1=main.plt1, main.plt2=main.plt2, quantil0.9=quantil0.9))
 }  
+
+#######################################################################################################################################
+#Plot distribution of mapped StrandS reads along a single PB read
+
+minimap.file <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_test/SaaRclust_results/TrashBin/NA12878_WashU_PBreads_chunk9000_upperQreads_upperQreads.gz"
+suppressWarnings( tab.in <- importData(infile = minimap.file, removeDuplicates = TRUE) )
+
+#tab.filt  %>% group_by(PBreadNames) %>% summarise(counts = length(unique(SSlibNames))) -> SSlib.perPB.counts
+#SSreads.perPB.l <- split(tab.filt$SSlibNames, tab.filt$PBreadNames)
+#SSreads.perlib.perPB <- sapply(SSreads.perPB.l, function(x) rle(sort(x))$lengths)
+
+#split minimap table by Pacbio reads
+PBhigh.count <- split(tab.in, tab.in$PBreadNames)
+counts <- sapply(PBhigh.count, nrow)
+#get 100 PB reads with the highest StrandS read counts
+readIDs <- names( sort(counts, decreasing = T)[1:100] )
+PBhigh.count <- PBhigh.count[readIDs]
+
+for (i in 1:length(PBhigh.count)) {
+  PBread.aligns <- PBhigh.count[[i]]
+  readID <- names(PBhigh.count[i])
+  message("Plotting read ", readID)
+  plt <- plotReadAlignments(minimap.tab=PBread.aligns)
+  
+  #save plot
+  folder <- "/home/daewoooo/Desktop/TestPlots"
+  numAlignedStrandSreads <- nrow(PBread.aligns)
+  filename <- paste0("read",i,"_numAlign",numAlignedStrandSreads,".pdf")
+  destination <- file.path(folder, filename)
+  ggsave(plot = plt , filename = destination, limitsize = F, width = 10, height = 150)
+}
+
+
+##########################################################################################################################################
+#Process reads with very high counts of StrandS reads
+
+upperQreads <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_test/SaaRclust_results/TrashBin/NA12878_WashU_PBreads_chunk9000_upperQreads_upperQreads.gz"
+HC.input <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_test/SaaRclust_results/Clusters/hardClusteringResults_30000.RData"
+processUpperQreads <- function(minimap.file=upperQreads, alpha=0.01, theta.param=NULL, pi.param=NULL, HC.input=HC.input)
+  ### Read in minimap output file ###  
+  suppressWarnings( tab.in <- importData(infile = minimap.file, removeDuplicates = TRUE) )
+
+  ### Load Hard clustering results and initialize parameters of EM algorithm [temporary solution for snakemake]
+  if (is.null(theta.param) | is.null(pi.param)) {
+    if (!file.exists(HC.input)) {
+      stop("Hard clustering results not available!!!")
+    }    
+    hard.clust.results <- get(load(HC.input))
+    
+    #Initialize theta parameter
+    theta.param <- hard.clust.results$theta.param
+    #Initialize pi parameter
+    pi.param <- hard.clust.results$pi.param
+  }
+  
+  #use PB read names as factor
+  tab.in$PBreadNames <- factor(tab.in$PBreadNames, levels=unique(tab.in$PBreadNames))
+  #split data by SS library
+  tab.l <- split(tab.in, tab.in$SSlibNames)
+  
+  #### Count directional reads ###
+  counts.l <- countDirectionalReads(tab.l)
+  
+  libs.IDs <- unique(tab.in$SSlibNames)
+  
+  clusts.perPB.perCell <- list()
+  #loop over all cells and to calculate binom probs
+  for (j in 1:length(counts.l)) {
+    #get counts of W and C reads per PB read
+    counts <- counts.l[[j]]
+    #get theta param for given cell
+    params <- theta.param[[j]]
+    #calc BN probs
+    BN.probs <- countProb(minusCounts = counts[,1], plusCounts = counts[,2], alpha=alpha)
+    BN.probs.norm <-  BN.probs/rowSums(BN.probs)
+    #calc WC ratio
+    ww.ratio <- (counts[,2]-counts[,1])/(counts[,2]+counts[,1]) #calculate ratio of WW reads
+    read.states <- ww.ratio
+    
+    
+    #get strand state as the highest prob state
+    read.states <- apply(BN.probs.norm, 1, which.max)
+    clust.states <- apply(params, 1, which.max)
+    
+    ww.clust.IDs <- which(clust.states == 1)
+    cc.clust.IDs <- which(clust.states == 2)
+    
+    #get possible clusters for PB reads with ww or cc state
+    clusts.perPB <- rep(list(0),length(read.states))
+    clusts.perPB[which(read.states == 1)] <- rep(list(ww.clust.IDs), length(which(read.states == 1)))
+    clusts.perPB[which(read.states == 2)] <- rep(list(cc.clust.IDs), length(which(read.states == 2)))
+    
+    clusts.perPB.perCell[[j]] <- clusts.perPB
+  }  
+    
+  clust.summary.perPB <- list()
+  for (i in 1:nrow(counts.l[[1]])) {
+    PB.clust.IDs <- lapply(clusts.perPB.perCell, `[[`, i)  
+    PB.clust.IDs <- PB.clust.IDs[lengths(PB.clust.IDs)>1]
+    id <- rownames(counts.l[[1]])[i]
+    clust.summary.perPB[[id]] <- sort(table(unlist(PB.clust.IDs)), decreasing = T)
+  }  
+    
+  
+#########################################################################################################################################
+# Plot clustered data
+
+#load clustered data
+clustered.file <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_test/SaaRclust_results/Clusters/NA12878_WashU_PBreads_chunk9000_clusters.RData"  
+soft.clust.obj <- get(load(clustered.file))    
+  
+#Find WC cluster in all cells
+theta.sums <- Reduce("+", soft.clust.obj$theta.param)
+remove.clust <- which.max(theta.sums[,3])
+theta.param.filt <- lapply(soft.clust.obj$theta.param, function(x) x[-remove.clust,])
+clust.order <- findClusterPartners(theta.param=theta.param.filt)
+soft.pVal.filt <- soft.clust.obj$soft.pVal[,-remove.clust]
+clust.order <- findClusterPartners(theta.param=theta.param.filt)
+  
+### Plotting data ###
+#plot likelihood function
+logl.df <- data.frame(log.l=soft.clust.obj$log.l, iter=1:length(soft.clust.obj$log.l))
+logl.diff <- round(max(logl.df$log.l) - min(logl.df$log.l), digits = 0)
+logL.plt <- ggplot(logl.df) + geom_line(aes(x=iter, y=log.l), color="red") + xlab("EM iterations") + ylab("Likelihood function") + annotate("text",  x=Inf, y = Inf, label = paste("Diff: ",logl.diff), vjust=1, hjust=1)
+#plot cluster accuracy
+#acc.plt <- plotClustAccuracy(pVal.df = soft.clust.df, num.clusters = num.clusters) Merge with Maryam's function
+#plot theta values
+theta.plt <- plotThetaEstimates(theta.param=soft.clust.obj$theta.param, title=fileID)
+#plot heatmap
+soft.clust.df <- as.data.frame(soft.pVal.filt)
+soft.clust.df$PBreadNames <- rownames(soft.clust.obj$soft.pVal)
+soft.clust.df$PBchrom <- soft.clust.obj$PBchrom
+soft.clust.df$PBflag <- soft.clust.obj$PBflag
+hm.plt <- plotHeatmap(pVal.df=soft.clust.df, colOrder=clust.order, num.clusters=num.clusters)
+  
+#Save plots
+#destination <- file.path(plots.store, paste0(fileID, "_logL.pdf"))
+#ggsave(filename = destination, plot = logL.plt, width = 8, height = 5)
+#destination <- file.path(plots.store, paste0(fileID, "_thetaEstim.pdf"))
+#ggsave(filename = destination, plot = theta.plt, width = 20, height = 20)
+#destination <- file.path(plots.store, paste0(fileID, "_heatmap.pdf"))
+#pdf(destination, width = 15, height = 10) 
+#hm.plt
+#dev.off()
+#destination <- file.path(plots.store, paste0(fileID, "_logL.RData"))
+#save(file = destination, logL.plt)
+#destination <- file.path(plots.store, paste0(fileID, "_thetaEstim.RData"))
+#save(file = destination, theta.plt)
+#destination <- file.path(plots.store, paste0(fileID, "_heatmap.RData"))
+#save(file = destination, hm.plt)
+
+#######################################################################################################################################
+#get reads assigned to 'garbage cluster'
+
+#load clustered data
+clustered.file <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_test/SaaRclust_results/Clusters/NA12878_WashU_PBreads_chunk9000_clusters.RData"  
+soft.clust.obj <- get(load(clustered.file))  
+
+max.clustIDs <- apply(soft.clust.obj$soft.pVal,1, which.max)
+garbage.reads <- rownames(soft.clust.obj$soft.pVal)[max.clustIDs == remove.clust]
+minimap.file <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_test/NA12878_WashU_PBreads_chunk9000.maf.gz"
+suppressWarnings( tab.in <- importData(infile = minimap.file, removeDuplicates = TRUE) )
+tab.garbage.reads <- tab.in[tab.in$PBreadNames %in% garbage.reads,]
+tab.garbage.reads.locations <- unique( tab.garbage.reads[,c('PBreadNames', 'PBchrom', 'PBpos', 'PBreadLen')] )
+tab.garbage.reads.locations$PBpos <- as.numeric(tab.garbage.reads.locations$PBpos)
+tab.garbage.reads.locations$PBreadLen <- as.numeric(tab.garbage.reads.locations$PBreadLen)
+tab.garbage.reads.locations <- tab.garbage.reads.locations[!is.na(tab.garbage.reads.locations$PBpos),]
+tab.garbage.reads.locations.gr <- GRanges(seqnames=tab.garbage.reads.locations$PBchrom, range=IRanges(start=tab.garbage.reads.locations$PBpos, width=tab.garbage.reads.locations$PBreadLen), readnames=tab.garbage.reads.locations$PBreadNames)
+
+seg.dup <- read.table("/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_test/grch38_superdups.max_identity.bed", header=F)
+seg.dup.gr <-  GRanges(seqnames=seg.dup$V1, ranges=IRanges(start=seg.dup$V2, end=seg.dup$V3))

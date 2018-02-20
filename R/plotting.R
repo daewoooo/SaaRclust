@@ -196,3 +196,46 @@ plotReadMappingDist <- function(count.list=NULL) {
   plt <- plot_grid(plt1, plt2, nrow = 1, rel_widths = c(1,2))
   return(plt)
 }
+
+
+#' Plot coverage of short reads mapped on top of PB reads
+#'
+#' @param minimap.tab A \code{data.frame} of short read mappings per PacBio read in maf.
+#' @author David Porubsky
+#' @export
+
+plotReadAlignments <- function(minimap.tab=NULL) {
+  #Convert table of alignments into GRanges object and then split into GRangesList by StrandS library ID
+  minimap.tab.gr <- GenomicRanges::GRanges(seqnames=minimap.tab$PBchrom, strand=minimap.tab$strand, ranges=IRanges(start=minimap.tab$TargetCoordStart, end=minimap.tab$TargetCoordend), PBreadLen=minimap.tab$PBreadLen, SSlibNames=minimap.tab$SSlibNames)
+  minimap.tab.grl <- GenomicRanges::split(minimap.tab.gr, minimap.tab.gr$SSlibNames)
+  
+  #get the name of PB read
+  readID <- as.character(unique(minimap.tab$PBreadNames))
+  
+  all.libs <- list()
+  #probs.l <- list()
+  for (i in 1:length(minimap.tab.grl)) {
+    gr <- minimap.tab.grl[[i]]
+    gr$level <- GenomicRanges::disjointBins(gr)
+    gr$level[which(GenomicRanges::strand(gr) == '-')] <- gr$level[which(GenomicRanges::strand(gr) == '-')] * -1
+    
+    #Get probabilities for StrandS read distribution
+    dirRead.counts <- table(GenomicRanges::strand(gr))
+    probs <- countProb(minusCounts = dirRead.counts['-'], plusCounts = dirRead.counts["+"], alpha = 0.1)
+    probs.norm <- probs/sum(probs) #normalize prob values to 1
+    probs.string <- paste(probs.norm, collapse = ", ")
+    gr$probs <- probs.string
+    
+    #probs.df <- data.frame(minus=dirRead.counts['-'], plus=dirRead.counts["+"], ww=probs[,1], cc=probs[,2] ,wc=probs[,3], max=which.max(probs))
+    #probs.l[[i]] <- probs.df
+    
+    plt.df <- as.data.frame(gr)
+    all.libs[[i]] <- plt.df
+  }
+  all.libs.df <- do.call(rbind, all.libs)
+  #all.probs.df <- do.call(rbind, probs.l)
+  
+  readLen <- data.frame(start=0, end=unique(all.libs.df$PBreadLen))
+  plt <- ggplot(all.libs.df) + geom_linerange(data=readLen, aes(x=0, ymin=start, ymax=end), color="black") + geom_linerange(aes(x=level, ymin=start, ymax=end, color=strand)) + coord_flip() + scale_color_manual(values = c("paleturquoise4","sandybrown")) + xlab("") + facet_grid(SSlibNames ~ ., scales = 'free') + geom_text(aes(x=Inf,y=0, vjust=1, hjust=0), label=all.libs.df$probs) + ggtitle(readID) + theme(strip.text.y = element_text(angle = 360))
+  return(plt)
+}

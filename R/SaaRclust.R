@@ -27,7 +27,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   rawdata.store <- file.path(outputfolder, 'RawData')
   Clusters.store <- file.path(outputfolder, 'Clusters')
   plots.store <- file.path(outputfolder, 'Plots')
-  #trashbin.store <- file.path(outputfolder, 'TrashBin')
+  trashbin.store <- file.path(outputfolder, 'TrashBin')
   
   #Load Hard clustering results and initialize parameters of EM algorithm [temporary solution for snakemake]
   #destination <- file.path(Clusters.store, HC.input)
@@ -56,7 +56,22 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   save(file = destination, data.qual.measures)
   
   ### Filter imported data ###
-  tab.filt <- filterInput(inputData=tab.in, quantileSSreads = c(0, upperQ), minSSlibs = c(minLib,Inf))
+  tab.filt.l <- filterInput(inputData=tab.in, quantileSSreads = c(0, upperQ), minSSlibs = c(minLib,Inf))
+  tab.filt <- tab.filt.l$tab.filt
+  
+  ### Store upperQ reads in trashBin ###
+  upperQ.tab <- tab.in[tab.in$PBreadNames %in% tab.filt.l$upperQ.reads,]
+  #upperQ.tab$PBreadNames <- factor(upperQ.tab$PBreadNames, levels=unique(upperQ.tab$PBreadNames))
+  #tab.upperQ.l <- split(upperQ.tab, upperQ.tab$SSlibNames)
+  #counts.upperQ.l <- countDirectionalReads(tab.upperQ.l)
+  ptm <- startTimedMessage("Writing upperQ reads into a file")
+  destination <- file.path(trashbin.store, paste0(fileID, "_upperQreads.gz"))
+  gzf = gzfile(destination, 'w')
+  write.table(x = upperQ.tab, file = gzf, quote = F, row.names = F)
+  close(gzf)
+  stopTimedMessage(ptm)
+  #data.table::fwrite(upperQ.tab, destination)
+  #gzip(destination)
   
   #take a smaller chunk of PB reads to process [NOT USED!!!]
   #tab.filt <- tab.filt[sample(nrow(tab.filt)),] #shuffle rows in tab
@@ -135,43 +150,6 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   
   #Get pairs of clusters coming from the same chromosome but differs in directionality of PB reads  [EXPERIMENTAL]
   #clust.order <- findClusterPartners(theta.param=soft.clust.obj$theta.param)
-
-  ### Prepara data for plotting ###
-  #soft.clust.df <- as.data.frame(soft.clust.obj$soft.pVal)
-  #soft.clust.df$PBreadNames <- levels(tab.filt$PBreadNames)
-  #soft.clust.df$PBchrom <- as.character(chr.rows)
-  #soft.clust.df$PBflag <- as.character(pb.flag)
-  #soft.clust.df$hardClust <- hard.clust$clust.id
-
-  ### Plotting data ###
-  #ptm <- startTimedMessage("Exporting plots")
-  #plot likelihood function
-  #logl.df <- data.frame(log.l=soft.clust.obj$log.l, iter=1:length(soft.clust.obj$log.l))
-  #logl.diff <- round(max(logl.df$log.l) - min(logl.df$log.l), digits = 0)
-  #logL.plt <- ggplot(logl.df) + geom_line(aes(x=iter, y=log.l), color="red") + xlab("EM iterations") + ylab("Likelihood function") + annotate("text",  x=Inf, y = Inf, label = paste("Diff: ",logl.diff), vjust=1, hjust=1)
-  #plot cluster accuracy
-  #acc.plt <- plotClustAccuracy(pVal.df = soft.clust.df, num.clusters = num.clusters) Merge with Maryam's function
-  #plot theta values
-  #theta.plt <- plotThetaEstimates(theta.param=soft.clust.obj$theta.param, title=fileID)
-  #plot heatmap
-  #hm.plt <- plotHeatmap(pVal.df=soft.clust.df, colOrder=clust.order, num.clusters=num.clusters)
-
-  #Save plots
-  #destination <- file.path(plots.store, paste0(fileID, "_logL.pdf"))
-  #ggsave(filename = destination, plot = logL.plt, width = 8, height = 5)
-  #destination <- file.path(plots.store, paste0(fileID, "_thetaEstim.pdf"))
-  #ggsave(filename = destination, plot = theta.plt, width = 20, height = 20)
-  #destination <- file.path(plots.store, paste0(fileID, "_heatmap.pdf"))
-  #pdf(destination, width = 15, height = 10) 
-  #hm.plt
-  #dev.off()
-  #destination <- file.path(plots.store, paste0(fileID, "_logL.RData"))
-  #save(file = destination, logL.plt)
-  #destination <- file.path(plots.store, paste0(fileID, "_thetaEstim.RData"))
-  #save(file = destination, theta.plt)
-  #destination <- file.path(plots.store, paste0(fileID, "_heatmap.RData"))
-  #save(file = destination, hm.plt)
-  #stopTimedMessage(ptm)
 
   ### Save final results ###
   #add known chromosome and directionality of PB reads to a final data object

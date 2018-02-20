@@ -22,11 +22,11 @@ getQualMeasure <- function(inputData) {
   SSreads.perlib.perPB <- do.call(c, SSreads.perlib.perPB)
   
   #get PB read distribution hist
-  hist.data <- hist(inputData$PBreadLen, breaks = 100)
-  hist.df <- data.frame(midpoints= hist.data$mids, freq= hist.data$counts)
+  #hist.data <- hist(inputData$PBreadLen, breaks = 100)
+  #hist.df <- data.frame(midpoints= hist.data$mids, freq= hist.data$counts)
   
   stopTimedMessage(ptm)
-  return(list(SSreads.perPB=SSreads.perPB, SSlib.perPB=SSlib.perPB, SSreads.perlib.perPB=SSreads.perlib.perPB, PBreadLenDist=hist.df))
+  return(list(SSreads.perPB=SSreads.perPB, SSlib.perPB=SSlib.perPB, SSreads.perlib.perPB=SSreads.perlib.perPB))
 }
 
 #' Check clustering accuracy
@@ -264,11 +264,11 @@ exportGenomicLocationsAllBest <- function(soft.clust, prob.th=0.6) {
 }
 
 
-#' Export corresponding clusters for each chromosome
+#' Export corresponding cluster for true chromosome and directionality
 #'
-#' @param soft.clust ...
-#' @param chr.rows ...
-#' @param chr.flag ...
+#' @param soft.clust Soft clustering probabilities for each long read and each cluster
+#' @param chr.rows Expected location of long reads based on their mapping to a respective chromosome
+#' @param chr.flag Expected directionality of long reads based on their mapping to a respective chromosome
 #' @author David Porubsky
 #' @export
 
@@ -276,19 +276,18 @@ getClusterIdentityPerChrPerDir <- function(soft.clust, chr.rows, chr.flag) {
   max.Clust <- apply(soft.clust, 1, which.max)
   unique.clust.ID <- paste0(chr.rows,"_",chr.flag)
   unique.clust.ID <- factor(unique.clust.ID, unique(unique.clust.ID))
-  
   clustByChromByflag <- split(max.Clust, unique.clust.ID)
-  #clustByChrom <- split(max.Clust, chr.rows)
-  #clustIdPerChrom <- lapply(clustByChrom, function(x) as.numeric(names(sort(table(x), decreasing=T)[1:2])))
-  #clustIdPerChrom <- lapply(clustByChromByflag, function(x) as.numeric(which.max(table(x))))
   clustIdPerChrom <- lapply(clustByChromByflag, function(x) names(which.max(table(x))))
-  #clustIDperPB <- rep(unlist(clustIdPerChrom), table(unique.clust.ID))
   clustIDperPB <- rep(as.numeric(unlist(clustIdPerChrom)), table(unique.clust.ID))
-  #return(clustIdPerChrom)
-  #return(unique.clust.ID)
   return(clustIDperPB)
 }
 
+#' Export corresponding clusters for true chromosome
+#'
+#' @param soft.clust Soft clustering probabilities for each long read and each cluster
+#' @param chr.rows Expected location of long reads based on their mapping to a respective chromosome
+#' @author David Porubsky
+#' @export
 
 getClusterIdentityPerChr <- function(soft.clust, chr.rows) {
   max.Clust <- apply(soft.clust, 1, which.max)
@@ -297,3 +296,57 @@ getClusterIdentityPerChr <- function(soft.clust, chr.rows) {
   return(clustIdPerChrom)
 }
 
+
+#' Export corresponding clusters for true chromosome
+#'
+#' @param inputfolder Path to the data analysis folder
+#' @param prob.th Filter out long reads with max probability below this threshold
+#' @param minLib Filter out long reads with number of StrandS libraries being represented below this threshold
+#' @author David Porubsky
+#' @export
+
+exportClusteredReads <- function(inputfolder=NULL, prob.th=NULL, minLib=NULL) {
+  destination <- file.path(inputfolder, "ReadPerCluster")
+  if (!file.exists(destination)) {
+    dir.create(destination)
+  } else {
+    beQuiet <- do.call(file.remove, list(list.files(destination, full.names = TRUE)))
+  }
+  
+  Clusters2process <- list.files(file.path(inputfolder, 'Clusters'), pattern = "clusters.RData", full.names = TRUE)
+  Quals2process <- list.files(file.path(inputfolder, 'RawData'), pattern = "dataQuals.RData", full.names = TRUE)
+  
+  for (i in 1:length(Clusters2process)) {  
+    data.file <- get(load(Clusters2process[i]))
+    data.qual <- get(load(Quals2process[i]))
+    fileID <- basename(Clusters2process[i])
+    message("Processing file: ",fileID)
+    
+    #Sort data quals according to PB order in clusters
+    SSlib.perPB <- data.qual$SSlib.perPB
+    SSlib.perPB <- SSlib.perPB[match(rownames(data.file$soft.pVal), SSlib.perPB$PBreadNames),]
+    pb.minLib <- SSlib.perPB$counts
+    prob.tab <- data.file$soft.pVal
+    
+    #Find WC cluster in all cells
+    theta.sums <- Reduce("+", data.file$theta.param)
+    remove.clust <- which.max(theta.sums[,3])
+    #Remove probabilities for always WC cluster
+    prob.tab <- prob.tab[,-remove.clust]
+    
+    #Remove PB reads represneted by SSlib less than minLib
+    filt <- pb.minLib >= minLib
+    prob.tab <- prob.tab[filt,]
+    
+    max.prob <- apply(prob.tab, 1, max)
+    mask <- max.prob >= prob.th
+    
+    Clust.locations <- apply(prob.tab[mask,], 1, which.max) 
+    readNames.perCluster <- split(names(Clust.locations), Clust.locations)
+    for (k in 1:length(readNames.perCluster)) {
+      filename <- paste0("reads_cluster", k, "_minLib", minLib, "_probTh", prob.th, ".txt")
+      path2file <- file.path(destination, filename)
+      write.table(readNames.perCluster[[k]], file = path2file, append = T, quote = F, row.names = F, col.names = F)
+    }
+  } 
+}  

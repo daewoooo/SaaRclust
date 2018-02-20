@@ -53,10 +53,10 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
   }
 
   #Directory to store 'difficult' PacBio reads for later processing [TODO]
-  #trashbin.store <- file.path(outputfolder, 'TrashBin')
-  #if (!file.exists(trashbin.store)) {
-  #  dir.create(trashbin.store)
-  #}
+  trashbin.store <- file.path(outputfolder, 'TrashBin')
+  if (!file.exists(trashbin.store)) {
+    dir.create(trashbin.store)
+  }
   
   #Consider to have separate pipeline for Hard clustering [TODO]
   #numAlignments <- 50000 #perhaps add this parameter into a main function definition???

@@ -2,19 +2,19 @@
 % Please edit documentation in R/helperFuctions.R
 \name{getClusterIdentityPerChrPerDir}
 \alias{getClusterIdentityPerChrPerDir}
-\title{Export corresponding clusters for each chromosome}
+\title{Export corresponding cluster for true chromosome and directionality}
 \usage{
 getClusterIdentityPerChrPerDir(soft.clust, chr.rows, chr.flag)
 }
 \arguments{
-\item{soft.clust}{...}
+\item{soft.clust}{Soft clustering probabilities for each long read and each cluster}
 
-\item{chr.rows}{...}
+\item{chr.rows}{Expected location of long reads based on their mapping to a respective chromosome}
 
-\item{chr.flag}{...}
+\item{chr.flag}{Expected directionality of long reads based on their mapping to a respective chromosome}
 }
 \description{
-Export corresponding clusters for each chromosome
+Export corresponding cluster for true chromosome and directionality
 }
 \author{
 David Porubsky
