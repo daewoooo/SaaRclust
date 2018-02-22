@@ -53,7 +53,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
   }
 
   #Directory to store 'difficult' PacBio reads for later processing [TODO]
-  trashbin.store <- file.path(outputfolder, 'TrashBin')
+  trashbin.store <- file.path(outputfolder.destination, 'TrashBin')
   if (!file.exists(trashbin.store)) {
     dir.create(trashbin.store)
   }
