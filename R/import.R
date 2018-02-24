@@ -252,7 +252,7 @@ filterInput <- function(inputData=NULL, quantileSSreads=c(0,0.9), minSSlibs=c(20
 getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=30000, quantileSSreads=c(0.2,0.8), minSSlibs=c(20,25)) {
   
   ptm <- startTimedMessage("Getting representative alignments\n") 
-  file.list <- list.files(path = inputfolder, pattern = "chunk.+maf", full.names = TRUE)
+  file.list <- list.files(path = inputfolder, pattern = "maf.gz$", full.names = TRUE)
   
   bestAligns <- list()
   countAligns <- 0
