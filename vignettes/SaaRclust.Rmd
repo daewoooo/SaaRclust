@@ -1,0 +1,85 @@
+---
+title: "Quick introduction to SaaRclust"
+author: "David Porubsky"
+date: "`r Sys.Date()`"
+package: SaaRclust
+output:
+  BiocStyle::pdf_document
+vignette: >
+    %\VignetteIndexEntry{Vignette Title}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+---    
+
+# Introduction
+
+We introduce a novel latent variable model and a corresponding Expectation Maximization (EM) algorithm, termed 
+Strand-seq is a single-cell sequencing technique able to preserve contiguity of individual parental homologues in single-cell. This feature has been shown to be valuable for scaffolding early build genome assemblies as well finding chimeric or misoriented contigs. Here we introduce a SaaRclust as an R based package that implements a novel latent variable model and a corresponding Expectation Maximization (EM) algorithm in order to reliably cluster long sequencing reads by chromosome. Briefly, our approach produces, for each long read, a posterior probability distribution over all chromosomes of origin and read directionalities. In this way, it allows to assess the amount of uncertainty inherent to sparse Strand-seq data on the level of individual reads.
+
+\newpage
+
+# Quick Start
+Set the location of the example data
+```
+inputfolder <- 'SaaRclust_exampleData'
+```
+
+## Hard Clustering
+In order to run only hard clustering on a example data, type:
+```
+# Hard clustering
+# Remember to set HC.only=TRUE
+
+runSaaRclust(inputfolder=inputfolder, outputfolder="SaaRclust_results", num.clusters=54,
+EM.iter=100,alpha=0.01, minLib=10, upperQ=0.95, logL.th=1, theta.constrain=FALSE,
+store.counts=FALSE, store.bestAlign=TRUE, numAlignments=3000, HC.only=TRUE, verbose=TRUE)
+```
+
+## Soft Clustering
+If RData object containing hard clustering results is already available you can run only soft clustering.
+```
+# Setting some variables
+
+HC.input='SaaRclust_results/Clusters/'
+minimap.file='SaaRclust_exampleData/...'
+```
+
+```
+# Soft clustering
+# If theta.param & pi.param are set to NULL SaaRclust will try to load them from HC.input.
+
+SaaRclust(minimap.file=minimap.file, outputfolder='SaaRclust_results', num.clusters=47,
+EM.iter=100, alpha=0.1, minLib=10, upperQ=0.95, theta.param=NULL, pi.param=NULL, logL.th=1,
+theta.constrain=FALSE, store.counts=FALSE, HC.input=HC.input)
+```
+
+## Hard & Soft Clustering
+In order to run hard and soft clustering in single command, type:
+```
+# Hard clustering
+# Remember to set HC.only=FALSE
+
+runSaaRclust(inputfolder=inputfolder, outputfolder="SaaRclust_results", num.clusters=54,
+EM.iter=100,alpha=0.01, minLib=10, upperQ=0.95, logL.th=1, theta.constrain=FALSE,
+store.counts=FALSE, store.bestAlign=TRUE, numAlignments=3000, HC.only=FALSE, verbose=TRUE)
+```
+
+\newpage
+
+# Examples
+
+```
+# Example minimap table
+```
+
+
+
+\newpage
+
+# Session Info
+```{r session_info, include=TRUE, echo=TRUE, results='markup'}
+devtools::session_info()
+```
+
+Report any issues
+[here](https://github.com/daewoooo/SaaRclust/issues):
