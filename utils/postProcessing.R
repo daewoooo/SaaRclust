@@ -4,22 +4,25 @@
 
 inputfolder <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_results_DataQualFilt/"
 thresholds <- c(0, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99)
-ClustersAccuracyPerChrPerDir(inputfolder=inputfolder, thresholds=thresholds, minLib=10) -> accplt.obj
-destination <- file.path(inputfolder, "accPlot_minLib0.RData") 
+ClustersAccuracyPerChrPerDir(inputfolder=inputfolder, thresholds=thresholds, minLib=5) -> accplt.obj
+destination <- file.path(inputfolder, "accPlot_minLib5.RData") 
 save(file = destination, accplt.obj)
 
 ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL, thresholds=NULL, minLib=NULL) {
   Clusters2process <- list.files(file.path(inputfolder, 'Clusters'), pattern = "clusters.RData", full.names = TRUE)
   Quals2process <- list.files(file.path(inputfolder, 'RawData'), pattern = "dataQuals.RData", full.names = TRUE)
-  PBlen2process <- list.files("/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/PBreadLen/", pattern = "gz", full.names = TRUE)
+  #PBlen2process <- list.files("/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/PBreadLen/", pattern = "gz", full.names = TRUE)
   
   allClusters <- list()
-  for (i in 1:length(Clusters2process)) {  
-    data.file <- get(load(Clusters2process[i]))
-    data.qual <- get(load(Quals2process[i]))
-    PB.read.len <- data.table::fread(paste0('gunzip -cq ', PBlen2process[i]), header=T, verbose = F, showProgress = F)
+  for (i in 1:length(Clusters2process)) {
     fileID <- basename(Clusters2process[i])
     message("Processing file: ",fileID)
+    
+    #load required data
+    data.file <- get(load(Clusters2process[i]))
+    data.qual <- get(load(Quals2process[i]))
+    #PB.read.len <- data.table::fread(paste0('gunzip -cq ', PBlen2process[i]), header=T, verbose = F, showProgress = F)
+    pb.readLen <- data.file$pb.readLen
     
     #Sort data quals according to PB order in clusters
     SSlib.perPB <- data.qual$SSlib.perPB
@@ -27,8 +30,8 @@ ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL, thresholds=NULL, minL
     pb.minLib <- SSlib.perPB$counts
     
     #Select required PB read lengths
-    PB.read.len <- PB.read.len[match(rownames(data.file$soft.pVal), PB.read.len$PBreadNames),]
-    pb.readLen <- PB.read.len$PBreadLen
+    #PB.read.len <- PB.read.len[match(rownames(data.file$soft.pVal), PB.read.len$PBreadNames),]
+    #pb.readLen <- PB.read.len$PBreadLen
     
     ##check accuracy only for autosomes and sex chrmosomes
     mask <- which(grepl('^chr[0-9X][0-9]?$', data.file$PBchrom))
@@ -101,83 +104,6 @@ ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL, thresholds=NULL, minL
   return(list(acc.plot=acc.plt, plot.table=clust.acc.df))
 } 
 
-#this function doesn't take into account PB read length so depth of coverage is not calculated
-ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL, thresholds=NULL, minLib=NULL) {
-  Clusters2process <- list.files(file.path(inputfolder, 'Clusters'), pattern = "clusters.RData", full.names = TRUE)
-  Quals2process <- list.files(file.path(inputfolder, 'RawData'), pattern = "dataQuals.RData", full.names = TRUE)
-  
-  allClusters <- list()
-  for (i in 1:length(Clusters2process)) {  
-    data.file <- get(load(Clusters2process[i]))
-    data.qual <- get(load(Quals2process[i]))
-   
-    fileID <- basename(Clusters2process[i])
-    message("Processing file: ",fileID)
-    
-    #Sort data quals according to PB order in clusters
-    SSlib.perPB <- data.qual$SSlib.perPB
-    SSlib.perPB <- SSlib.perPB[match(rownames(data.file$soft.pVal), SSlib.perPB$PBreadNames),]
-    pb.minLib <- SSlib.perPB$counts
-    
-    ##check accuracy only for autosomes and sex chrmosomes
-    mask <- which(grepl('^chr[0-9X][0-9]?$', data.file$PBchrom))
-    
-    #get clusters IDs corresponding to a given chromosome
-    chr.rows <- data.file$PBchrom[mask]
-    chr.flag <- data.file$PBflag[mask]
-    prob.tab <- data.file$soft.pVal[mask,]
-    pb.minLib <- pb.minLib[mask]
-    
-    #filter out duplicates
-    mask <- which(chr.flag == 16 | chr.flag == 0) 
-    chr.rows <- chr.rows[mask]
-    chr.flag <- chr.flag[mask]
-    prob.tab <- prob.tab[mask,]
-    pb.minLib <- pb.minLib[mask]
-    
-    #Find WC cluster in all cells
-    theta.sums <- Reduce("+", data.file$theta.param)
-    remove.clust <- which.max(theta.sums[,3])
-    #Remove probabilities for always WC cluster
-    prob.tab <- prob.tab[,-remove.clust]
-    
-    #Remove PB reads represneted by SSlib less than minLib
-    filt <- pb.minLib >= minLib
-    prob.tab <- prob.tab[filt,]
-    chr.rows <- chr.rows[filt]
-    chr.flag <- chr.flag[filt]
-    
-    #get clusters IDs corresponding to a given chromosome
-    Clust.IDs <- getClusterIdentityPerChrPerDir(soft.clust=prob.tab, chr.rows=chr.rows, chr.flag=chr.flag)
-    
-    clust.acc.l <- list()
-    for (prob.th in thresholds) {
-      message("    Set threshold: ", prob.th)
-      max.prob <- apply(prob.tab, 1, max)
-      mask <- max.prob >= prob.th
-      
-      Clust.locations <- apply(prob.tab[mask,], 1, which.max) 
-      
-      #calculate clustering accuracy in comparison to expected values
-      clust.acc <- Clust.locations == Clust.IDs[mask]
-      acc.th <- table(clust.acc)
-      
-      clust.acc.l[[1+length(clust.acc.l)]] <- c(prob.th=prob.th, acc.th.match=unname(acc.th[2]), acc.th.sum=sum(acc.th), allReads=length(chr.rows))
-    }
-    allClusters[[fileID]] <- as.data.frame( do.call(rbind, clust.acc.l) )
-  } 
-  #sum all counts over all data frames (per position)
-  clust.acc.df <- Reduce("+", allClusters)
-  
-  #calcualte accuracy percentages
-  clust.acc.df$prob.th <- thresholds
-  clust.acc.df$th.acc <- clust.acc.df$acc.th.match / clust.acc.df$acc.th.sum
-  clust.acc.df$th.clustReads <- clust.acc.df$acc.th.sum / clust.acc.df$allReads
-  
-  acc.plt <- ggplot(clust.acc.df) + geom_point(aes(x=th.acc, y=th.clustReads), color="deepskyblue4", size=10) + geom_linerange(aes(ymin=-Inf, x=th.acc, ymax=th.clustReads),color="deepskyblue4") + scale_y_continuous(limits = c(0.8, 1)) + scale_x_continuous(limits = c(0,1)) + scale_y_continuous(limits = c(0,1)) + ylab("(%) evaluated PB reads") + xlab("(%) correctly assigned PB reads") + geom_text(aes(x=th.acc, y=th.clustReads), label=c('all', thresholds[-1]), color="white") + theme_bw()  + theme_bw()
-  message("DONE!!!")
-  return(list(acc.plot=acc.plt, plot.table=clust.acc.df))
-} 
 
 
 ############################################################################################################################################
@@ -192,15 +118,17 @@ save(file = destination, accPlot_minLibFilt.obj)
 ClustersAccuracyPerChrPerDir_minLib <- function(inputfolder=NULL, minLibs=NULL) {
   Clusters2process <- list.files(file.path(inputfolder, 'Clusters'), pattern = "clusters.RData", full.names = TRUE)
   Quals2process <- list.files(file.path(inputfolder, 'RawData'), pattern = "dataQuals.RData", full.names = TRUE)
-  PBlen2process <- list.files("/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/PBreadLen/", pattern = "gz", full.names = TRUE)
+  #PBlen2process <- list.files("/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/PBreadLen/", pattern = "gz", full.names = TRUE)
   
   allClusters <- list()
-  for (i in 1:length(Clusters2process)) {  
-    data.file <- get(load(Clusters2process[i]))
-    data.qual <- get(load(Quals2process[i]))
-    PB.read.len <- data.table::fread(paste0('gunzip -cq ', PBlen2process[i]), header=T, verbose = F, showProgress = F)
+  for (i in 1:length(Clusters2process)) {
     fileID <- basename(Clusters2process[i])
     message("Processing file: ",fileID)
+    
+    data.file <- get(load(Clusters2process[i]))
+    data.qual <- get(load(Quals2process[i]))
+    #PB.read.len <- data.table::fread(paste0('gunzip -cq ', PBlen2process[i]), header=T, verbose = F, showProgress = F)
+    pb.readLen <- data.file$pb.readLen
     
     #Sort data quals according to PB order in clusters
     SSlib.perPB <- data.qual$SSlib.perPB
@@ -208,8 +136,8 @@ ClustersAccuracyPerChrPerDir_minLib <- function(inputfolder=NULL, minLibs=NULL) 
     pb.minLib <- SSlib.perPB$counts
     
     #Select required PB read lengths
-    PB.read.len <- PB.read.len[match(rownames(data.file$soft.pVal), PB.read.len$PBreadNames),]
-    pb.readLen <- PB.read.len$PBreadLen
+    #PB.read.len <- PB.read.len[match(rownames(data.file$soft.pVal), PB.read.len$PBreadNames),]
+    #pb.readLen <- PB.read.len$PBreadLen
     
     ##check accuracy only for autosomes and sex chrmosomes
     mask <- which(grepl('^chr[0-9X][0-9]?$', data.file$PBchrom))
@@ -402,19 +330,23 @@ boxplotDistSSlibsPerPB <- function(inputfolder=NULL, thresholds=NULL) {
 #Rank1 = max probability being the true cluster
 #Rank2 = second best probability being the true cluster
 
-inputfolder <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_results_DataQualFilt/Clusters/"
-accuracyRanking(inputfolder = inputfolder ) -> rankingPlt.obj
+inputfolder <- "/media/daewoooo/WORK/Clustering_project/WholeGenomeAnalysis/SaaRclust_results_DataQualFilt"
+accuracyRanking(inputfolder = inputfolder) -> rankingPlt.obj
 destination <- file.path(inputfolder, "rankingPlot.RData") 
 save(file = destination, rankingPlt.obj)
 
 accuracyRanking <- function(inputfolder=NULL) {
-  files2process <- list.files(inputfolder, pattern = "clusters.RData", full.names = TRUE)
+  files2process <- list.files(file.path(inputfolder, 'Clusters'), pattern = "clusters.RData", full.names = TRUE)
   
   allCluster.ranks <- list()
   all.prob.trueClust <- list()
   for (file in files2process) {
-    data.file <- get(load(file))
     fileID <- basename(file)
+    message("Processing file: ",fileID)
+    
+    #load required data
+    data.file <- get(load(file))
+    
     num.clusters <- length(data.file$pi.param)
     
     #check accuracy only for autosomes and sex chrmosomes
@@ -457,6 +389,7 @@ accuracyRanking <- function(inputfolder=NULL) {
   allCluster.ranks.sums <- Reduce("+", allCluster.ranks)
   
   #plotting
+  library('scales')
   table.ranks.df <- data.frame(rank.acc=names(allCluster.ranks.sums), Freq=allCluster.ranks.sums)
   table.ranks.df$rank.acc <- factor( table.ranks.df$rank.acc, levels= table.ranks.df$rank.acc)
   ranking.plt <- ggplot(table.ranks.df, aes(x=rank.acc, y=Freq)) + geom_bar(fill="chartreuse4", stat="identity") + xlab("Probability ranking of true cluster") + ylab("Frequency") + theme_bw() + scale_y_continuous(labels=comma)

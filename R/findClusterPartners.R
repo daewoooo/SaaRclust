@@ -5,6 +5,8 @@
 #'
 #' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
 #' @return A \code{vector} of pairs of clusters IDs that belong to the same chromosome.
+#' @importFrom maxmatching maxmatching
+#' @importFrom igraph graph E
 #' @author David Porubsky, Maryam Ghareghani
 #' @export
 
@@ -25,7 +27,7 @@ findClusterPartners <- function(theta.param=NULL) {
   simil.sum <- rowSums(pairwise.simil.m)
   G <- igraph::graph(c(rbind(pairs[,1], pairs[,2])), directed = FALSE)
   igraph::E(G)$weight <- simil.sum
-  max.match <- maxmatching(G, weighted = TRUE)
+  max.match <- maxmatching::maxmatching(G, weighted = TRUE)
   
   return(max.match$matching)
 }
@@ -37,6 +39,7 @@ findClusterPartners <- function(theta.param=NULL) {
 #'
 #' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
 #' @return A \code{vector} of pairs of clusters IDs that belong to the same chromosome.
+#' @importFrom igraph graph max_cliques
 #' @author David Porubsky
 #' @export
 
@@ -58,29 +61,7 @@ findSplitedClusters <- function(theta.param=NULL) {
   zscores <- (simil.sum - mean(simil.sum)) / sd(simil.sum)
   idx <- zscores > 3.291 #99.9 confidence interval
   G <- igraph::graph(c(rbind(pairs[idx,1], pairs[idx,2])), directed = FALSE)
-  sub.G <- max_cliques(G, min = 2)
+  sub.G <- igraph::max_cliques(G, min = 2)
   
   return(sub.G)
 }
-
-
-#' Merge splitted clusters
-#'
-#' This function merges initialy divided clusters that belongs to the same chromosome.
-#'
-#' @param cluster2merge ...
-#' @param soft.pVal ...
-#' @author David Porubsky
-#' @export
-
-mergeSplitedClusters <- function(cluster2merge=NULL, soft.pVal=NULL) {
-  
-  merged.pVals <- list()
-  for (i in 1:length(cluster2merge)) {
-    merge.idx <- cluster2merge[[i]]
-    merge.pVal <- apply(soft.pVal[,merge.idx], 1, max)
-    merged.pVals[[i]] <- merge.pVal
-  }  
-  
-  return(do.call(cbind,merged.pVals))
-} 

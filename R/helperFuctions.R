@@ -35,7 +35,6 @@ getQualMeasure <- function(inputData) {
 #'
 #' @param clusters List of clusters with predicted chromosome identity for each PB read
 #' @author David Porubsky
-#' @export
 
 getClusterAcc <- function(clusters) {
   stat <- list()
@@ -62,12 +61,15 @@ getClusterAcc <- function(clusters) {
 
                                
 #' Computes the performance of the hard clustering algorithm
-#' @param hard.clust hard clustring result
-#' @param pb.chr The true chromosomes of PB reads
-#' @param pb.flag The flags of PB reads
-#' @param tab.filt table of filtered read counts
-#' @param female a binary argument showing the sex of the individual
-#' @author Maryam Ghareghani
+#' 
+#' This function takes hard clustering results and check the accuracy against know genomic locations of PacBio reads
+#' 
+#' @param hard.clust An \code{integer} vecotr of cluster assignements of each PacBio read.
+#' @param pb.chr The true chromosomes of PacBio reads.
+#' @param pb.flag The true directionality of PacBio reads.
+#' @param tab.filt A \code{data.frame} obejct containing selected the best PacBio alignments.
+#' @param female Set to \code{TRUE} if analyzed data are coming from female individual.
+#' @author Maryam Ghareghani, David Porubsky
 #' @export
 
 hardClustAccuracy <- function(hard.clust, pb.chr, pb.flag, tab.filt, female=TRUE)
@@ -110,32 +112,8 @@ hardClustAccuracy <- function(hard.clust, pb.chr, pb.flag, tab.filt, female=TRUE
   df <- df[order(clust.purity.perClust),]
   
   
-  list(acc=clust.purity, missed.clusters = missed)
+  return( list(acc=clust.purity, missed.clusters = missed) )
 }
-
-#' Rescale theta values for WC cell type
-#'
-#' Set WC probs based on WW and CC probs distribution (if ratio of WW and CC == 1 then WC region with high prob)
-#'
-#' @param theta.l List of estmated theta values for every single cell.
-#' @author David Porubsky
-#' @export
-
-rescaleTheta <- function(theta.l) {
-
-  new.theta <- list()
-  for (i in 1:length(theta.l)) {
-    theta.cell <- theta.l[[i]]
-    ratios <- theta.cell[,1] / theta.cell[,2]
-    mask <- ratios>0.8 & ratios<1.2
-    theta.cell[mask,1] <- 0.05
-    theta.cell[mask,2] <- 0.05
-    theta.cell[mask,3] <- 0.9
-    new.theta[[i]] <- theta.cell
-  }
-  return(new.theta)
-}  
-
 
 
 #' Simulate random theta estimates for cell type
@@ -147,6 +125,7 @@ rescaleTheta <- function(theta.l) {
 #' @author David Porubsky
 #' @export
 
+#TODO: set parameter alpha to be optional
 randomTheta <- function(num.cells=100, num.clusters=44) {
   theta.l <- list()
   for (j in 1:num.cells) {
@@ -207,7 +186,6 @@ kahansum <- function(x) {
   }
   ks
 }
-
 
 
 #' Export best cluster IDs for each PB read

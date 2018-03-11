@@ -9,35 +9,6 @@
 #' @author David Porubsky, Maryam Ghareghani
 #' @export
 
-#countProb <- function(minusCounts, plusCounts, alpha=0.1) {
-  
-  #TODO: it's equivalent to dbinom function 
-  
-#  minusCounts <- as.numeric(minusCounts)
-#  plusCounts <- as.numeric(plusCounts)
-  
-  #calculate that given PB read is WW
-#  prob.w <- (1-alpha)^minusCounts
-#  prob.c <- alpha^plusCounts 
-#  prob.ww <- prob.w * prob.c
-  
-  #calculate that given PB read is CC
-#  prob.w <- alpha^minusCounts 
-#  prob.c <- (1-alpha)^plusCounts
-#  prob.cc <- prob.w * prob.c
-  
-  #calculate that given PB read is WC
-#  prob.w <- 0.5^minusCounts
-#  prob.c <- 0.5^plusCounts
-#  prob.wc <- prob.w * prob.c
-  
-#  prob.mix <- prob.wc
-  
-#  prob.m <- choose(n=minusCounts+plusCounts, k=plusCounts) * cbind(prob.ww, prob.cc, prob.mix)
-  
-#  return(prob.m)
-#}
-
 countProb <- function(minusCounts, plusCounts, alpha=0.1) {
   
   sumCounts <- minusCounts + plusCounts
@@ -57,11 +28,12 @@ countProb <- function(minusCounts, plusCounts, alpha=0.1) {
 
 #' Calculate gamma function of EM algorithm
 #'
-#' Takes binomial probabilites for every cluster ...
+#' Takes binomial probabilites for every cluster and update these probabilies given the assigment of Pacbio reads to clusters.
 #'
-#' @param clust.prob A \code{list} of binomial probabilities (multiplied by theta & pi) of each PB read in every possible cluster
+#' @param clust.prob A \code{list} of binomial probabilities (multiplied by theta & pi parameter) of each PB read in every possible cluster
 #' @param pi Paramter estimate of the size of each cluster
-#' @return A \code{list} of ...
+#' @param cellNum Number of Strand-seq cells used for clustering.
+#' @return A \code{matrix} of unormalized probalities of cell states per cluster.
 #' @author David Porubsky, Maryam Ghareghani
 #' @export
 
