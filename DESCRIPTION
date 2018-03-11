@@ -14,17 +14,17 @@ Depends:
     ComplexHeatmap,
     cowplot,
     RColorBrewer,
-    gsubfn,
-    data.table,
-    igraph,
-    maxmatching,
+    igraph
 Imports:
-    car,
-    dplyr
+    dplyr,
+    maxmatching,
+    data.table
 Suggests:
     knitr,
-    testthat
+    testthat,
+    BiocStyle,
+    rmarkdown
 License: 
 LazyLoad: yes
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
