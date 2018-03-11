@@ -2,16 +2,16 @@
 % Please edit documentation in R/hardClust.R
 \name{mergeClusters}
 \alias{mergeClusters}
-\title{Hierarchical clustering for merging the kmeans clusters}
+\title{Hierarchical clustering for merging the kmeans clusters.}
 \usage{
-mergeClusters(kmeans.clust, theta.l, k = 46)
+mergeClusters(hard.clust, theta.l, k = 46)
 }
 \arguments{
-\item{kmeans.clust}{The kmeans hard clustering.}
+\item{hard.clust}{The kmeans hard clustering.}
 
 \item{theta.l}{A \code{list} of estimated theta values for each cluster and cell.}
 
-\item{k}{Desired number of clusters.}
+\item{k}{Desired number of clusters after merging.}
 }
 \value{
 A new hard clustering with the correct number of clusters
@@ -22,4 +22,3 @@ This function takes as input the kmeans hard clustering output and the initializ
 \author{
 Maryam Ghareghani
 }
-

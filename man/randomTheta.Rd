@@ -17,4 +17,3 @@ Function to simulate random theta values in order to initialize EM algorithm.
 \author{
 David Porubsky
 }
-

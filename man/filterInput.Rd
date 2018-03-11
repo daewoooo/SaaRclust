@@ -23,4 +23,3 @@ This function filters loaded data from the minimap.
 \author{
 David Porubsky
 }
-

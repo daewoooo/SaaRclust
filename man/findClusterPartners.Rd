@@ -18,4 +18,3 @@ This function solves the Maximum matching problem for all possible pairs of clus
 \author{
 David Porubsky, Maryam Ghareghani
 }
-

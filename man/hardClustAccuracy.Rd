@@ -7,20 +7,19 @@
 hardClustAccuracy(hard.clust, pb.chr, pb.flag, tab.filt, female = TRUE)
 }
 \arguments{
-\item{hard.clust}{hard clustring result}
+\item{hard.clust}{An \code{integer} vecotr of cluster assignements of each PacBio read.}
 
-\item{pb.chr}{The true chromosomes of PB reads}
+\item{pb.chr}{The true chromosomes of PacBio reads.}
 
-\item{pb.flag}{The flags of PB reads}
+\item{pb.flag}{The true directionality of PacBio reads.}
 
-\item{tab.filt}{table of filtered read counts}
+\item{tab.filt}{A \code{data.frame} obejct containing selected the best PacBio alignments.}
 
-\item{female}{a binary argument showing the sex of the individual}
+\item{female}{Set to \code{TRUE} if analyzed data are coming from female individual.}
 }
 \description{
-Computes the performance of the hard clustering algorithm
+This function takes hard clustering results and check the accuracy against know genomic locations of PacBio reads
 }
 \author{
-Maryam Ghareghani
+Maryam Ghareghani, David Porubsky
 }
-

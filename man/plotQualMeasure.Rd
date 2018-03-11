@@ -15,4 +15,3 @@ Takes imported data table and plots some relevant data quality measures.
 \author{
 David Porubsky
 }
-

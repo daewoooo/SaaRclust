@@ -15,4 +15,3 @@ Plot distribution of short reads mapped on top of PB reads
 \author{
 David Porubsky
 }
-

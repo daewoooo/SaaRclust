@@ -17,4 +17,3 @@ Export corresponding clusters for true chromosome
 \author{
 David Porubsky
 }
-

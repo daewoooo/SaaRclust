@@ -18,4 +18,3 @@ This function finds cluster coming from the same chromosome and having the same 
 \author{
 David Porubsky
 }
-

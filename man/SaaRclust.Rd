@@ -22,7 +22,7 @@ SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
 
 \item{minLib}{Minimal number of StrandS libraries being represent per long PB read}
 
-\item{upperQ}{...}
+\item{upperQ}{Filter out given percentage of PacBio reads with the highest number of alignments.}
 
 \item{store.counts}{Logical if to store raw read counts per PB read}
 
@@ -34,4 +34,3 @@ Wrapper function to run saarclust pipeline for a given number of PB reads.
 \author{
 David Porubsky
 }
-

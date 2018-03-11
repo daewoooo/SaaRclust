@@ -7,17 +7,18 @@
 gammaFunction(clust.prob = NULL, pi = NULL, cellNum = NULL)
 }
 \arguments{
-\item{clust.prob}{A \code{list} of binomial probabilities (multiplied by theta & pi) of each PB read in every possible cluster}
+\item{clust.prob}{A \code{list} of binomial probabilities (multiplied by theta & pi parameter) of each PB read in every possible cluster}
 
 \item{pi}{Paramter estimate of the size of each cluster}
+
+\item{cellNum}{Number of Strand-seq cells used for clustering.}
 }
 \value{
-A \code{list} of ...
+A \code{matrix} of unormalized probalities of cell states per cluster.
 }
 \description{
-Takes binomial probabilites for every cluster ...
+Takes binomial probabilites for every cluster and update these probabilies given the assigment of Pacbio reads to clusters.
 }
 \author{
 David Porubsky, Maryam Ghareghani
 }
-

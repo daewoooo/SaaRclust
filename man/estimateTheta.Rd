@@ -4,12 +4,12 @@
 \alias{estimateTheta}
 \title{Estimate theta values based on hard clustering}
 \usage{
-estimateTheta(counts.l = NULL, ord = NULL, alpha = 0.1)
+estimateTheta(counts.l = NULL, hard.clust = NULL, alpha = 0.1)
 }
 \arguments{
 \item{counts.l}{A \code{list} of directional read counts per PB read per library.}
 
-\item{ord}{A \code{integer} of cluster IDs.}
+\item{hard.clust}{A \code{integer} of cluster assignments for each PacBio read.}
 
 \item{alpha}{Estimated level of background Strand-seq reads.}
 }
@@ -22,4 +22,3 @@ This function takes results of hard clustering and estimates majority cell types
 \author{
 David Porubsky
 }
-

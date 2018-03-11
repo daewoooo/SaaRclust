@@ -6,9 +6,9 @@
 \usage{
 runSaaRclust(inputfolder = NULL, outputfolder = "SaaRclust_results",
   num.clusters = 54, EM.iter = 100, alpha = 0.01, minLib = 10,
-  logL.th = 1, theta.constrain = FALSE, store.counts = FALSE,
-  store.bestAlign = TRUE, numAlignments = 30000, HC.only = TRUE,
-  verbose = TRUE)
+  upperQ = 0.95, logL.th = 1, theta.constrain = FALSE,
+  store.counts = FALSE, store.bestAlign = TRUE, numAlignments = 30000,
+  HC.only = TRUE, verbose = TRUE)
 }
 \arguments{
 \item{inputfolder}{A folder name where minimap files are stored.}
@@ -23,15 +23,17 @@ runSaaRclust(inputfolder = NULL, outputfolder = "SaaRclust_results",
 
 \item{minLib}{Minimal number of StrandS libraries being represent per long PB read}
 
+\item{upperQ}{Filter out given percentage of PacBio reads with the highest number of alignments.}
+
 \item{store.counts}{Logical if to store raw read counts per PB read}
 
 \item{store.bestAlign}{Store best alignements in RData object.}
 
-\item{numAlignments}{...}
+\item{numAlignments}{Required number of best PBvsSS alignmnets to selest for hard clustering.}
 
 \item{HC.only}{Perform only hard clustering and skip the rest of the pipeline.}
 
-\item{verbose}{...}
+\item{verbose}{Set to \code{TRUE} to print function messages.}
 }
 \description{
 Wrapper function to run saarclust pipeline.
@@ -39,4 +41,3 @@ Wrapper function to run saarclust pipeline.
 \author{
 David Porubsky, Maryam Ghareghani
 }
-

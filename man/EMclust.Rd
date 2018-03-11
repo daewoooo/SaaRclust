@@ -27,4 +27,3 @@ This function performs basic steps of EM algorithm.
 \author{
 David Porubsky, Maryam Ghareghani
 }
-
