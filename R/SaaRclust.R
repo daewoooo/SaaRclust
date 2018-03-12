@@ -8,12 +8,13 @@
 #' @param EM.iter Number of iteration to run EM for.
 #' @param store.counts Logical if to store raw read counts per PB read
 #' @param HC.input Filaname where hard clustering results are stored
+#' @param cellNum specifies the number of single cells to be used in clustering
 #' @inheritParams countProb
 #' @export
 #' @author David Porubsky
 
 
-SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=47, EM.iter=100, alpha=0.1, minLib=10, upperQ=0.95, theta.param=NULL, pi.param=NULL, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL) {
+SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=47, EM.iter=100, alpha=0.1, minLib=10, upperQ=0.95, theta.param=NULL, pi.param=NULL, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL, cellNum=NULL) {
 
   #get ID of a file to be processed
   fileID <- basename(minimap.file)
@@ -104,6 +105,12 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   
   #### Count directional reads ###
   counts.l <- countDirectionalReads(tab.l)
+  
+  # subsetting single cell libraries
+  if (!is.null(cellNum))
+  {
+    counts.l = counts.l[1:cellNum]
+  }
   
   if (store.counts) {
     destination <- file.path(rawdata.store, paste0(fileID, "_counts.RData"))

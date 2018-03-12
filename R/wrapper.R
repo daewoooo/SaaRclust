@@ -4,12 +4,14 @@
 #' @param store.bestAlign Store best alignements in RData object.
 #' @param HC.only Perform only hard clustering and skip the rest of the pipeline.
 #' @param numAlignments Required number of best PBvsSS alignmnets to selest for hard clustering.
-#' @param verbose Set to \code{TRUE} to print function messages. 
+#' @param verbose Set to \code{TRUE} to print function messages.
+#' @param HC.input Filaname where hard clustering results are stored
+#' @param cellNum specifies the number of single cells to be used in clustering
 #' @inheritParams SaaRclust
 #' @export
 #' @author David Porubsky, Maryam Ghareghani
 
-runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num.clusters=54, EM.iter=100, alpha=0.01, minLib=10, upperQ=0.95, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, numAlignments=30000, HC.only=TRUE, verbose=TRUE) {
+runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num.clusters=54, EM.iter=100, alpha=0.01, minLib=10, upperQ=0.95, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, numAlignments=30000, HC.only=TRUE, verbose=TRUE, cellNum=NULL) {
   
   #=========================#
   ### Create directiories ###
@@ -80,6 +82,12 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     
     ### Count directional reads ###
     counts.l <- countDirectionalReads(tab.l)
+    
+    # subsetting single cell libraries
+    if (!is.null(cellNum))
+    {
+      counts.l = counts.l[1:cellNum]
+    }
     
     ### Perform k-means hard clustering method ###
     set.seed(1000) #in order to reproduce hard clustering results
