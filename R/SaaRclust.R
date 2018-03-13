@@ -19,7 +19,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   #get ID of a file to be processed
   fileID <- basename(minimap.file)
   fileID <- strsplit(fileID, "\\.")[[1]][1]
-  
+
   #prepare locations for export
   rawdata.store <- file.path(outputfolder, 'RawData')
   if (!file.exists(rawdata.store)) {
@@ -43,9 +43,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   
   ### Write README file ###
   savename <- file.path(outputfolder, 'README.txt')
-  if (!file.exists(savename)) {
-    dir.create(savename)
-  }
+  
   cat("", file=savename)
   cat("Current folder contains the following folders.\n", file=savename, append=TRUE)
   cat("==============================================\n", file=savename, append=TRUE)
@@ -76,10 +74,6 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   ### get some quality measures on imported data ### [OPTIONAL]
   data.qual.measures <- getQualMeasure(tab.in)
   destination <- file.path(rawdata.store, paste0(fileID, "_dataQuals.RData"))
-  if (!file.exists(destination))
-  {
-    dir.create(destination)
-  }
   save(file = destination, data.qual.measures)
   
   ### Filter imported data ###
@@ -93,10 +87,6 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   #counts.upperQ.l <- countDirectionalReads(tab.upperQ.l)
   ptm <- startTimedMessage("Writing upperQ reads into a file")
   destination <- file.path(trashbin.store, paste0(fileID, "_upperQreads.gz"))
-  if (!file.exists(destination))
-  {
-    dir.create(destination)
-  }
   gzf = gzfile(destination, 'w')
   write.table(x = upperQ.tab, file = gzf, quote = F, row.names = F)
   close(gzf)
@@ -140,10 +130,6 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   
   if (store.counts) {
     destination <- file.path(rawdata.store, paste0(fileID, "_counts.RData"))
-    if (!file.exists(destination))
-    {
-      dir.create(destination)
-    }
     save(file = destination, counts.l)
   }
   
@@ -170,9 +156,6 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   soft.clust.obj$pb.readLen <- tab.filt$PBreadLen[match(rownames(soft.clust.obj$soft.pVal), tab.filt$PBreadNames)]  #report PB read length
   #export data in RData object
   destination <- file.path(Clusters.store, paste0(fileID, "_clusters.RData"))
-  if (!file.exists(destination)) {
-    dir.create(destination)
-  }
   
   save(file = destination, soft.clust.obj)
 
