@@ -18,7 +18,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
   #=========================#
   
   #Create a master output directory
-  outputfolder.destination <- file.path(inputfolder, outputfolder)
+  outputfolder.destination <- file.path(outputfolder)
   if (!file.exists( outputfolder.destination)) {
     dir.create( outputfolder.destination)
   }
