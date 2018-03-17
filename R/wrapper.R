@@ -57,13 +57,13 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
   }
   
   #Load Hard clustering results if they were already created
-  destination <- file.path(Clusters.store, paste0("hardClusteringResults_", as.integer(numAlignments),".RData"))
+  destination <- file.path(Clusters.store, "hardClusteringResults.RData")
   if (!file.exists(destination)) {
     message("Hard clustering results not available!!!")
     message("Running Hard clustering")
     
     ### Get representative alignments to estimate theta and pi values ###
-    destination <- file.path(rawdata.store, paste0("representativeAligns_", as.integer(numAlignments),".RData"))
+    destination <- file.path(rawdata.store, "representativeAligns.RData")
     #reuse existing data if they were already created and save in a given location
     if (!file.exists(destination)) {
       best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.9), minSSlibs=c(35,Inf))
@@ -141,7 +141,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     
     #save hard clustering results into a file
     hard.clust <- list(ord=hardClust.ord.merged, theta.param=theta.param, pi.param=pi.param)
-    destination <- file.path(Clusters.store, paste0("hardClusteringResults_", as.integer(numAlignments), ".RData"))
+    destination <- file.path(Clusters.store, "hardClusteringResults.RData")
     if (!file.exists(destination)) {
       save(file = destination, hard.clust)
     }  
@@ -174,4 +174,3 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
   }
 
 }
-
