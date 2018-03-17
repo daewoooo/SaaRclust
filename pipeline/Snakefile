@@ -1,0 +1,104 @@
+#minimap parameters
+w = 1
+k = 15
+f = 0.05
+L = 50
+
+#SaaRclust parameters
+outputfolder = "SaaRclust_results"
+numClustersHard = 54
+numClustersSoft = 47
+EMiter          = 20
+alpha           = 0.01
+minLib          = 1
+upperQ          = 0.95
+logLth          = 1
+theta_constrain = "FALSE"
+numAlignments   = 30000
+Strand_seq_reads = "strandS_libs_NA12878_allLibs_withDups.fq"
+
+# get the sample name and the chunks
+sample, chunkID, = glob_wildcards("raw_reads/chunks/{sample}_chunk{chunkID}")
+sample = sample[1]
+
+rule all:
+    input: expand("{outputfolder}_{sample}/Clusters/{sample}_chunk{chunks}_clusters.RData", outputfolder=outputfolder, sample=sample, chunks=chunkID)
+
+
+rule minimap_align_chunks:
+    input:
+        pb_reads="raw_reads/chunks/{sample}_chunk{chunks}",
+        ss_reads=expand("raw_reads/{Strand_seq_reads}", Strand_seq_reads=Strand_seq_reads)
+
+    output:
+        "aligns/{sample}_chunk{chunks}.maf.gz"
+
+    log:
+        "aligns/{sample}_chunk{chunks}.maf.gz.log"
+    
+#    conda:
+#	"env/environment.yaml"
+
+    threads: 8
+
+    shell:
+        "minimap -t {threads} -k{k} -w{w} -L{L} -f{f} {input.pb_reads} {input.ss_reads} 2> {log} | perl processMinimaptab.pl | gzip -c > {output}"
+
+
+rule install_SaaRclust:
+    output:
+        "utils/R-packages/SaaRclust/R/SaaRclust"
+    log:
+        "log/saarclust-install.log"
+    shell:
+        """
+        TAR=$(which tar) Rscript utils/install_SaaRclust.R > {log} 2>&1
+        """
+
+rule HARD_clustering:
+    input:
+        minimapFiles = expand("aligns/{sample}_chunk{chunks}.maf.gz", sample=sample, chunks=chunkID), 
+        saarclust="utils/R-packages/SaaRclust/R/SaaRclust"
+
+    output:
+        "{outputfolder}_{sample}/Clusters/hardClusteringResults.RData"
+    log:
+        "log/saarclust_hardclust.log"
+    shell:
+        """
+        (time Rscript utils/SaaRclust_hardclust_pipeline.R \
+                aligns \
+		{outputfolder}_{sample} \
+                {numClustersHard} \
+                {alpha} \
+		{numAlignments} \
+                $(pwd)/utils/R-packages/) \
+                > {log} 2>&1
+        """
+
+rule SOFT_clustering:
+    input:
+        minimapFile = "aligns/{sample}_chunk{chunks}.maf.gz",
+        HCclustFile = "{outputfolder}_{sample}/Clusters/hardClusteringResults.RData"
+    
+    output:
+        "{outputfolder}_{sample}/Clusters/{sample}_chunk{chunks}_clusters.RData"
+    log:
+        "log/saarclust_softclust_{sample}_chunk{chunks}.log"
+    shell:
+        """
+        (time Rscript utils/SaaRclust_softclust_pipeline.R \
+                {input.minimapFile} \
+                {outputfolder}_{sample} \
+                {numClustersSoft} \
+                {EMiter} \
+                {alpha} \
+                {minLib} \
+                {upperQ} \
+                {logLth} \
+                {input.HCclustFile} \
+                $(pwd)/utils/R-packages/) \
+                > {log} 2>&1
+        """
+
+
