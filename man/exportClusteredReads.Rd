@@ -2,7 +2,7 @@
 % Please edit documentation in R/helperFuctions.R
 \name{exportClusteredReads}
 \alias{exportClusteredReads}
-\title{Export corresponding clusters for true chromosome}
+\title{Print names of long reads into separate files based on soft clustering assignment.}
 \usage{
 exportClusteredReads(inputfolder = NULL, prob.th = NULL, minLib = NULL)
 }
@@ -14,7 +14,7 @@ exportClusteredReads(inputfolder = NULL, prob.th = NULL, minLib = NULL)
 \item{minLib}{Filter out long reads with number of StrandS libraries being represented below this threshold}
 }
 \description{
-Export corresponding clusters for true chromosome
+Print names of long reads into separate files based on soft clustering assignment.
 }
 \author{
 David Porubsky

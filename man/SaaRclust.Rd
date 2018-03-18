@@ -13,7 +13,7 @@ SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
 \arguments{
 \item{minimap.file}{A path to the minimap file to load.}
 
-\item{outputfolder}{A folder name to export to results.}
+\item{outputfolder}{A folder name to export the results.}
 
 \item{num.clusters}{Expected number of clusters. (for 22 autosomes == 44 clusters)}
 
@@ -25,11 +25,15 @@ SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
 
 \item{upperQ}{Filter out given percentage of PacBio reads with the highest number of alignments.}
 
+\item{logL.th}{Set difference between objective function from the current and previous interation for the algorithm to converge.}
+
+\item{theta.constrain}{Recalibrate theta values to meet expected distribution of W and C strand across Strand-seq libraries.}
+
 \item{store.counts}{Logical if to store raw read counts per PB read}
 
 \item{HC.input}{Filaname where hard clustering results are stored}
 
-\item{cellNum}{specifies the number of single cells to be used in clustering}
+\item{cellNum}{Specifies the number of single cells to be used in clustering}
 }
 \description{
 Wrapper function to run saarclust pipeline for a given number of PB reads.

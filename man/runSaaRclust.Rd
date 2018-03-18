@@ -13,7 +13,7 @@ runSaaRclust(inputfolder = NULL, outputfolder = "SaaRclust_results",
 \arguments{
 \item{inputfolder}{A folder name where minimap files are stored.}
 
-\item{outputfolder}{A folder name to export to results.}
+\item{outputfolder}{A folder name to export the results.}
 
 \item{num.clusters}{Expected number of clusters. (for 22 autosomes == 44 clusters)}
 
@@ -24,6 +24,10 @@ runSaaRclust(inputfolder = NULL, outputfolder = "SaaRclust_results",
 \item{minLib}{Minimal number of StrandS libraries being represent per long PB read}
 
 \item{upperQ}{Filter out given percentage of PacBio reads with the highest number of alignments.}
+
+\item{logL.th}{Set difference between objective function from the current and previous interation for the algorithm to converge.}
+
+\item{theta.constrain}{Recalibrate theta values to meet expected distribution of W and C strand across Strand-seq libraries.}
 
 \item{store.counts}{Logical if to store raw read counts per PB read}
 

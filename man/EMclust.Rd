@@ -17,6 +17,8 @@ EMclust(counts.l, theta.param = NULL, pi.param = NULL, num.iter = 100,
 \item{num.iter}{Set number of iteration to EM algorithm.}
 
 \item{alpha}{Estimated level of background Strand-seq reads.}
+
+\item{logL.th}{Set the difference between objective function from the current and the previous interation for EM algorithm to converge.}
 }
 \value{
 A \code{list} of various exported results [pVal, pVal.logL, log.l, theta.param, pi.param].
