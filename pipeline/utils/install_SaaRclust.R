@@ -1,5 +1,8 @@
 #!/usr/bin/env Rscript
 
+#This Rscript installs SaaRclust package from the github repository along with all dependencies.
+#author: David Porubsky
+
 Sys.setenv(Renv='PWD')
 library(devtools)
 

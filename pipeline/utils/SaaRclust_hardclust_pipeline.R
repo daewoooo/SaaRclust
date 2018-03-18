@@ -1,5 +1,8 @@
 #!/usr/bin/Rscript
 
+#This Rscript runs kmeans based hard clustering implenented in package SaaRclust.
+#author: David Porubsky
+
 args=commandArgs(TRUE)
 print(args)
 

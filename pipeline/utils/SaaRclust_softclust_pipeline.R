@@ -1,5 +1,8 @@
 #!/usr/bin/Rscript
 
+#This Rscript runs EM (Expectation Maximization) based soft clustering algorithm implenented in package SaaRclust.
+#author: David Porubsky
+
 args=commandArgs(TRUE)
 print(args)
 

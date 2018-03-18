@@ -1,3 +1,7 @@
+#Snakemake based pipeline allowing parallel execution of minimap based mapping and SaaRclust based soft clustering of long reads into chromosome based clusters.  
+#
+#authors: David Porubsky, Maryam Ghareghani & Tobias Marschall
+
 #minimap parameters
 w = 1
 k = 15
