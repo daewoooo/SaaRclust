@@ -1,4 +1,4 @@
-#' EM function
+#' EM (Expectation maximization) function
 #'
 #' This function performs basic steps of EM algorithm.
 #'

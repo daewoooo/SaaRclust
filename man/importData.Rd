@@ -4,7 +4,7 @@
 \alias{importData}
 \title{Import pre-processed output from the minimap}
 \usage{
-importData(infile = NULL, removeDuplicates = TRUE)
+importData(infile = NULL)
 }
 \arguments{
 \item{infile}{A path to the minimap file to load.}

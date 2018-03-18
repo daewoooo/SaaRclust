@@ -8,6 +8,8 @@ importTestData(infile = NULL, removeDuplicates = TRUE)
 }
 \arguments{
 \item{infile}{A path to the minimap file to load.}
+
+\item{removeDuplicates}{Set to \code{TRUE} if you want to remove duplicate reads based on the flag.}
 }
 \value{
 A \code{data.frame}.

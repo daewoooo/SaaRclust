@@ -1,10 +1,5 @@
 
-
-#minimap test files are present in TestData folder
-#minimap.file <- "/media/daewoooo/WORK/SS2PacBio_alignment_HG00733/WholeGenomeAnalysis/subsetMinimap.txt"
-#minimap.file <- "/media/daewoooo/WORK/SS2PacBio_alignment_HG00733/Test_cluster_chr21&chr22/Minimap_out/SS2Pacbio_minimap_HG00733_k13_w1_L70_f0.01_Chr21andChr22_allSSreads"
-
-#load the function below into R if you want to run all steps in one command
+#Load the function below into R if you want to run all steps in one command [ONGOING]
 
 library("foreach")
 library("doParallel")

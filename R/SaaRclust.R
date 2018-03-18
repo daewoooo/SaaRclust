@@ -67,9 +67,8 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   }  
   
   ### Read in minimap alignment file ###
-  suppressWarnings( tab.in <- importData(infile = minimap.file, removeDuplicates = TRUE) )
+  suppressWarnings( tab.in <- importData(infile = minimap.file) )
   #suppressWarnings( tab.in <- importTestData(infile = minimap.file, removeDuplicates = TRUE) ) #SLOW because test data have to be processed differently
-  #suppressWarnings( tab.in <- importOldTestData(infile = minimap.file, removeDuplicates = TRUE) ) #use this function to import old test data (HG00733) from HGSVC
   
   ### get some quality measures on imported data ### [OPTIONAL]
   data.qual.measures <- getQualMeasure(tab.in)
@@ -88,7 +87,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   ptm <- startTimedMessage("Writing upperQ reads into a file")
   destination <- file.path(trashbin.store, paste0(fileID, "_upperQreads.gz"))
   gzf = gzfile(destination, 'w')
-  write.table(x = upperQ.tab, file = gzf, quote = F, row.names = F)
+  utils::write.table(x = upperQ.tab, file = gzf, quote = F, row.names = F)
   close(gzf)
   stopTimedMessage(ptm)
   #data.table::fwrite(upperQ.tab, destination)

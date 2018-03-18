@@ -2,7 +2,7 @@
 % Please edit documentation in R/EMclust.R
 \name{EMclust}
 \alias{EMclust}
-\title{EM function}
+\title{EM (Expectation maximization) function}
 \usage{
 EMclust(counts.l, theta.param = NULL, pi.param = NULL, num.iter = 100,
   alpha = 0.1, logL.th = 1)
