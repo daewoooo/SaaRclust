@@ -284,7 +284,19 @@ getClusterIdentityPerChr <- function(soft.clust, chr.rows) {
 #' @export
 
 exportClusteredReads <- function(inputfolder=NULL, prob.th=NULL, minLib=NULL) {
-  destination <- file.path(inputfolder, "ReadPerCluster")
+  
+  #Helper function
+  #This function exports group of largest probabilites per PacBio read.
+  getMaxPvals <- function(pval.vector) {
+    srt.pval <- sort(pval.vector, decreasing = T)
+    breakpoint <- which.min(diff(srt.pval))
+    max.pvals <- srt.pval[1:breakpoint]
+    max.pvals.clust <- which(pval.vector %in% max.pvals)
+    return(max.pvals.clust)
+  }  
+  
+  folder.name <- paste0("ReadPerCluster_minLib", minLib, "_probTh", prob.th)
+  destination <- file.path(inputfolder, folder.name)
   if (!file.exists(destination)) {
     dir.create(destination)
   } else {
@@ -316,15 +328,23 @@ exportClusteredReads <- function(inputfolder=NULL, prob.th=NULL, minLib=NULL) {
     filt <- pb.minLib >= minLib
     prob.tab <- prob.tab[filt,]
     
-    max.prob <- apply(prob.tab, 1, max)
-    mask <- max.prob >= prob.th
+    #filter reads based on set probability treshold
+    if (prob.th > 0 & !is.null(prob.th)) {
+      max.prob <- apply(prob.tab, 1, max)
+      mask <- max.prob >= prob.th
+      Clust.locations <- apply(prob.tab[mask,], 1, which.max)
+      readNames.perCluster <- split(names(Clust.locations), Clust.locations)
+    } else {
+      Clust.locations <- apply(prob.tab, 1, getMaxPvals)
+      Clust.locations.expanded <- unlist(Clust.locations) #expand list of vectors
+      names(Clust.locations.expanded) <- rep(names(Clust.locations), lengths(Clust.locations)) #assigne proper PB read names to expanded vector
+      readNames.perCluster <- split(names(Clust.locations.expanded), Clust.locations.expanded)
+    }
     
-    Clust.locations <- apply(prob.tab[mask,], 1, which.max) 
-    readNames.perCluster <- split(names(Clust.locations), Clust.locations)
     for (k in 1:length(readNames.perCluster)) {
       filename <- paste0("reads_cluster", k, "_minLib", minLib, "_probTh", prob.th, ".txt")
       path2file <- file.path(destination, filename)
-      write.table(readNames.perCluster[[k]], file = path2file, append = T, quote = F, row.names = F, col.names = F)
+      write.table(readNames.perCluster[[k]], file = path2file, append = TRUE, quote = FALSE, row.names = FALSE, col.names = FALSE)
     }
   } 
-}  
+} 
