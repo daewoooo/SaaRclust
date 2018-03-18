@@ -1,0 +1,26 @@
+#!/usr/bin/Rscript
+
+args=commandArgs(TRUE)
+
+outputfolder <- args[1]
+source('~/SaaRclust/utils/postProcessing.R')
+
+inputfolder <- "/home/porubsky/WORK/PROJECTS/SaaRclust_project/SaaRclust_results_aligns_k15_w1_L50_f0.05/"
+thresholds <- c(0, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99)
+
+message("Preparing clustering accuracy lollipop plot ...")
+ClustersAccuracyPerChrPerDir(inputfolder=inputfolder, thresholds=thresholds, minLib=5) -> accplt.obj
+
+message("Preparing clustering accuracy boxplot ...")
+boxplotDistSSlibsPerPB(inputfolder=inputfolder, thresholds=0) -> boxplt.obj
+
+message("Preparing accuracy ranking plot ...")
+accuracyRanking(inputfolder = inputfolder) -> rankingPlt.obj
+
+message("Exporting plot data ...")
+destination <- file.path(outputfolder, "accPlot.RData") 
+save(file = destination, accplt.obj)
+destination <- file.path(outputfolder, "accBoxplot.RData") 
+save(file = destination, boxplt.obj)
+destination <- file.path(outputfolder, "rankingPlot.RData") 
+save(file = destination, rankingPlt.obj)
