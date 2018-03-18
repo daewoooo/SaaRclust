@@ -13,19 +13,41 @@ vignette: >
 
 # Introduction
 
-We introduce a novel latent variable model and a corresponding Expectation Maximization (EM) algorithm, termed 
 Strand-seq is a single-cell sequencing technique able to preserve contiguity of individual parental homologues in single-cell. This feature has been shown to be valuable for scaffolding early build genome assemblies as well finding chimeric or misoriented contigs. Here we introduce a SaaRclust as an R based package that implements a novel latent variable model and a corresponding Expectation Maximization (EM) algorithm in order to reliably cluster long sequencing reads by chromosome. Briefly, our approach produces, for each long read, a posterior probability distribution over all chromosomes of origin and read directionalities. In this way, it allows to assess the amount of uncertainty inherent to sparse Strand-seq data on the level of individual reads.
 
 \newpage
 
+# Parameters
+\textbf{inputfolder:} A folder name where minimap file(s) is stored. \hfill \break
+\textbf{outputfolder:} A folder name to export the results. \hfill \break
+\textbf{num.clusters:} Expected number of clusters. (for 22 human autosomes == 44 clusters). However overclusterring (~ 54 clusters) is recommended such that smaller chromosomes are not missed \hfill \break
+\textbf{EM.iter:} Number of iteration of EM algorithm. \hfill \break
+\textbf{alpha:} Estimated level of background in Strand-seq reads. In other words expected noise in sequencing data caused either by library prepration or mapping to repetitive parts of the genome. \hfill \break
+\textbf{minLib:} Minimal number of different Strand-seq libraries being represent per every long read. \hfill \break
+\textbf{upperQ:} Filter out given percentage of long reads with the highest number of Strand-seq alignments. \hfill \break
+\textbf{logL.th:} Set the difference between objective function from the current and the previous interation for EM algorithm to converge. \hfill \break
+\textbf{theta.constrain:} Recalibrate theta values to meet expected distribution of W and C strands across all Strand-seq libraries. \hfill \break
+\textbf{store.counts:} Logical TRUE/FALSE if to store raw read counts aligned to each long read. \hfill \break
+\textbf{store.bestAlign:} If set to TRUE (best) representative alignements will be stored in RData object \hfill \break
+\textbf{numAlignments:} Required number of (best) representative alignmnets to be used in hard clustering. \hfill \break
+\textbf{HC.only:} If set to TRUE only the hard clustering will be performed and the rest of the clustering pipeline will be skipped. \hfill \break
+\textbf{HC.input:} A location to a filaname where the hard clustering results are stored. \hfill \break
+\textbf{verbose:} Set to TRUE if progress messages should be printed. \hfill \break
+
 # Quick Start
+
+Download example data from the github repository
+```
+git clone https://github.com/daewoooo/SaaRclustExampleData
+```
+
 Set the location of the example data
 ```
 inputfolder <- 'SaaRclust_exampleData'
 ```
 
 ## Hard Clustering
-In order to run only hard clustering on a example data, type:
+In order to run only k-means based hard clustering on a example data.
 ```
 # Hard clustering
 # Remember to set HC.only=TRUE
@@ -54,7 +76,7 @@ theta.constrain=FALSE, store.counts=FALSE, HC.input=HC.input)
 ```
 
 ## Hard & Soft Clustering
-In order to run hard and soft clustering in single command, type:
+In order to run both, hard and soft clustering in a single command.
 ```
 # Hard clustering
 # Remember to set HC.only=FALSE
@@ -64,15 +86,21 @@ EM.iter=100,alpha=0.01, minLib=10, upperQ=0.95, logL.th=1, theta.constrain=FALSE
 store.counts=FALSE, store.bestAlign=TRUE, numAlignments=3000, HC.only=FALSE, verbose=TRUE)
 ```
 
-\newpage
-
-# Examples
-
+## Export clustered long reads
+In order export soft clustered long sequencing reads use function below.
+Set required threshold for probalility values and minimal number of libraries being represented per long read.
 ```
-# Example minimap table
+exportClusteredReads(inputfolder="SaaRclust_results", prob.th=0.5, minLib=5)
 ```
 
-
+## Plot clustering accuracy plots
+NOTE: Working only for data from the original publication.
+\hfill \break 
+Rscript below plots clustering accuracy measures presented in the orignal paper (Fig4 b,d,c)
+```
+run from the commnad line:
+Rscript /SaaRclust/utils/runPostProcessing.R /SaaRclust/utils/postProcessing.R <outputdirectory>
+```
 
 \newpage
 
