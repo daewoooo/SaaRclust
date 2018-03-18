@@ -1,14 +1,16 @@
 #' Wrapper function to run saarclust pipeline for a given number of PB reads.
 #'
 #' @param minimap.file A path to the minimap file to load.
-#' @param outputfolder A folder name to export to results.
+#' @param outputfolder A folder name to export the results.
 #' @param num.clusters Expected number of clusters. (for 22 autosomes == 44 clusters)
 #' @param minLib Minimal number of StrandS libraries being represent per long PB read
 #' @param upperQ Filter out given percentage of PacBio reads with the highest number of alignments.
 #' @param EM.iter Number of iteration to run EM for.
+#' @param logL.th Set difference between objective function from the current and previous interation for the algorithm to converge.
+#' @param theta.constrain Recalibrate theta values to meet expected distribution of W and C strand across Strand-seq libraries.
 #' @param store.counts Logical if to store raw read counts per PB read
 #' @param HC.input Filaname where hard clustering results are stored
-#' @param cellNum specifies the number of single cells to be used in clustering
+#' @param cellNum Specifies the number of single cells to be used in clustering
 #' @inheritParams countProb
 #' @export
 #' @author David Porubsky

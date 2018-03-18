@@ -6,6 +6,7 @@
 #' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
 #' @param pi.param A \code{vector} of estimated sizes of each cluster based on initial hard clustering.
 #' @param num.iter Set number of iteration to EM algorithm.
+#' @param logL.th Set the difference between objective function from the current and the previous interation for EM algorithm to converge.
 #' @inheritParams countProb
 #' @return A \code{list} of various exported results [pVal, pVal.logL, log.l, theta.param, pi.param].
 #' @author David Porubsky, Maryam Ghareghani

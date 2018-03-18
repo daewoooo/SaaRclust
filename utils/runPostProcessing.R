@@ -2,8 +2,11 @@
 
 args=commandArgs(TRUE)
 
-outputfolder <- args[1]
-source('~/SaaRclust/utils/postProcessing.R')
+source(args[1])
+outputfolder <- args[2]
+
+#load ggplot2 library
+library('ggplot2')
 
 inputfolder <- "/home/porubsky/WORK/PROJECTS/SaaRclust_project/SaaRclust_results_aligns_k15_w1_L50_f0.05/"
 thresholds <- c(0, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99)
