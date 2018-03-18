@@ -275,7 +275,7 @@ getClusterIdentityPerChr <- function(soft.clust, chr.rows) {
 }
 
 
-#' Export corresponding clusters for true chromosome
+#' Print names of long reads into separate files based on soft clustering assignment.
 #'
 #' @param inputfolder Path to the data analysis folder
 #' @param prob.th Filter out long reads with max probability below this threshold
@@ -285,7 +285,6 @@ getClusterIdentityPerChr <- function(soft.clust, chr.rows) {
 
 exportClusteredReads <- function(inputfolder=NULL, prob.th=NULL, minLib=NULL) {
   
-  #Helper function
   #This function exports group of largest probabilites per PacBio read.
   getMaxPvals <- function(pval.vector) {
     srt.pval <- sort(pval.vector, decreasing = T)
