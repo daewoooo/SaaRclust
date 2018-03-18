@@ -7,7 +7,8 @@
 SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
   num.clusters = 47, EM.iter = 100, alpha = 0.1, minLib = 10,
   upperQ = 0.95, theta.param = NULL, pi.param = NULL, logL.th = 1,
-  theta.constrain = FALSE, store.counts = FALSE, HC.input = NULL)
+  theta.constrain = FALSE, store.counts = FALSE, HC.input = NULL,
+  cellNum = NULL)
 }
 \arguments{
 \item{minimap.file}{A path to the minimap file to load.}
@@ -27,6 +28,8 @@ SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
 \item{store.counts}{Logical if to store raw read counts per PB read}
 
 \item{HC.input}{Filaname where hard clustering results are stored}
+
+\item{cellNum}{specifies the number of single cells to be used in clustering}
 }
 \description{
 Wrapper function to run saarclust pipeline for a given number of PB reads.

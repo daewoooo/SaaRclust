@@ -8,25 +8,42 @@
 #' @param EM.iter Number of iteration to run EM for.
 #' @param store.counts Logical if to store raw read counts per PB read
 #' @param HC.input Filaname where hard clustering results are stored
+#' @param cellNum specifies the number of single cells to be used in clustering
 #' @inheritParams countProb
 #' @export
 #' @author David Porubsky
 
 
-SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=47, EM.iter=100, alpha=0.1, minLib=10, upperQ=0.95, theta.param=NULL, pi.param=NULL, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL) {
+SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=47, EM.iter=100, alpha=0.1, minLib=10, upperQ=0.95, theta.param=NULL, pi.param=NULL, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL, cellNum=NULL) {
 
   #get ID of a file to be processed
   fileID <- basename(minimap.file)
   fileID <- strsplit(fileID, "\\.")[[1]][1]
-  
+
   #prepare locations for export
   rawdata.store <- file.path(outputfolder, 'RawData')
+  if (!file.exists(rawdata.store)) {
+    dir.create(rawdata.store)
+  }
+  
   Clusters.store <- file.path(outputfolder, 'Clusters')
+  if (!file.exists(Clusters.store)) {
+    dir.create(Clusters.store)
+  }
+  
   plots.store <- file.path(outputfolder, 'Plots')
+  if (!file.exists(plots.store)) {
+    dir.create(plots.store)
+  }
+  
   trashbin.store <- file.path(outputfolder, 'TrashBin')
+  if (!file.exists(trashbin.store)) {
+    dir.create(trashbin.store)
+  }
   
   ### Write README file ###
   savename <- file.path(outputfolder, 'README.txt')
+  
   cat("", file=savename)
   cat("Current folder contains the following folders.\n", file=savename, append=TRUE)
   cat("==============================================\n", file=savename, append=TRUE)
@@ -105,6 +122,12 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   #### Count directional reads ###
   counts.l <- countDirectionalReads(tab.l)
   
+  # subsetting single cell libraries
+  if (!is.null(cellNum))
+  {
+    counts.l = counts.l[1:cellNum]
+  }
+  
   if (store.counts) {
     destination <- file.path(rawdata.store, paste0(fileID, "_counts.RData"))
     save(file = destination, counts.l)
@@ -133,6 +156,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   soft.clust.obj$pb.readLen <- tab.filt$PBreadLen[match(rownames(soft.clust.obj$soft.pVal), tab.filt$PBreadNames)]  #report PB read length
   #export data in RData object
   destination <- file.path(Clusters.store, paste0(fileID, "_clusters.RData"))
+  
   save(file = destination, soft.clust.obj)
 
   return(soft.clust.obj)

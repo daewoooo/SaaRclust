@@ -8,7 +8,7 @@ runSaaRclust(inputfolder = NULL, outputfolder = "SaaRclust_results",
   num.clusters = 54, EM.iter = 100, alpha = 0.01, minLib = 10,
   upperQ = 0.95, logL.th = 1, theta.constrain = FALSE,
   store.counts = FALSE, store.bestAlign = TRUE, numAlignments = 30000,
-  HC.only = TRUE, verbose = TRUE)
+  HC.only = TRUE, verbose = TRUE, cellNum = NULL)
 }
 \arguments{
 \item{inputfolder}{A folder name where minimap files are stored.}
@@ -34,6 +34,10 @@ runSaaRclust(inputfolder = NULL, outputfolder = "SaaRclust_results",
 \item{HC.only}{Perform only hard clustering and skip the rest of the pipeline.}
 
 \item{verbose}{Set to \code{TRUE} to print function messages.}
+
+\item{cellNum}{specifies the number of single cells to be used in clustering}
+
+\item{HC.input}{Filaname where hard clustering results are stored}
 }
 \description{
 Wrapper function to run saarclust pipeline.

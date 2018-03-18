@@ -4,19 +4,21 @@
 #' @param store.bestAlign Store best alignements in RData object.
 #' @param HC.only Perform only hard clustering and skip the rest of the pipeline.
 #' @param numAlignments Required number of best PBvsSS alignmnets to selest for hard clustering.
-#' @param verbose Set to \code{TRUE} to print function messages. 
+#' @param verbose Set to \code{TRUE} to print function messages.
+#' @param HC.input Filaname where hard clustering results are stored
+#' @param cellNum specifies the number of single cells to be used in clustering
 #' @inheritParams SaaRclust
 #' @export
 #' @author David Porubsky, Maryam Ghareghani
 
-runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num.clusters=54, EM.iter=100, alpha=0.01, minLib=10, upperQ=0.95, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, numAlignments=30000, HC.only=TRUE, verbose=TRUE) {
+runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num.clusters=54, EM.iter=100, alpha=0.01, minLib=10, upperQ=0.95, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, numAlignments=30000, HC.only=TRUE, verbose=TRUE, cellNum=NULL) {
   
   #=========================#
   ### Create directiories ###
   #=========================#
   
   #Create a master output directory
-  outputfolder.destination <- file.path(inputfolder, outputfolder)
+  outputfolder.destination <- file.path(outputfolder)
   if (!file.exists( outputfolder.destination)) {
     dir.create( outputfolder.destination)
   }
@@ -55,13 +57,13 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
   }
   
   #Load Hard clustering results if they were already created
-  destination <- file.path(Clusters.store, paste0("hardClusteringResults_", as.integer(numAlignments),".RData"))
+  destination <- file.path(Clusters.store, "hardClusteringResults.RData")
   if (!file.exists(destination)) {
     message("Hard clustering results not available!!!")
     message("Running Hard clustering")
     
     ### Get representative alignments to estimate theta and pi values ###
-    destination <- file.path(rawdata.store, paste0("representativeAligns_", as.integer(numAlignments),".RData"))
+    destination <- file.path(rawdata.store, "representativeAligns.RData")
     #reuse existing data if they were already created and save in a given location
     if (!file.exists(destination)) {
       best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.9), minSSlibs=c(35,Inf))
@@ -80,6 +82,12 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     
     ### Count directional reads ###
     counts.l <- countDirectionalReads(tab.l)
+    
+    # subsetting single cell libraries
+    if (!is.null(cellNum))
+    {
+      counts.l = counts.l[1:cellNum]
+    }
     
     ### Perform k-means hard clustering method ###
     set.seed(1000) #in order to reproduce hard clustering results
@@ -133,7 +141,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     
     #save hard clustering results into a file
     hard.clust <- list(ord=hardClust.ord.merged, theta.param=theta.param, pi.param=pi.param)
-    destination <- file.path(Clusters.store, paste0("hardClusteringResults_", as.integer(numAlignments), ".RData"))
+    destination <- file.path(Clusters.store, "hardClusteringResults.RData")
     if (!file.exists(destination)) {
       save(file = destination, hard.clust)
     }  
@@ -166,4 +174,3 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
   }
 
 }
-
