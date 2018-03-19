@@ -66,7 +66,13 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     destination <- file.path(rawdata.store, "representativeAligns.RData")
     #reuse existing data if they were already created and save in a given location
     if (!file.exists(destination)) {
-      best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.9), minSSlibs=c(35,Inf))
+      # setting the min number of SS libs as a cutoff to use PB reads in hard clustering
+      cov.cutoff = 35
+      if (!is.null(cellNum))
+      {
+        cov.cutoff <- round(cellNum/4)
+      }
+      best.alignments <- getRepresentativeAlignments(inputfolder=inputfolder, numAlignments=numAlignments, quantileSSreads=c(0,0.9), minSSlibs=c(cov.cutoff,Inf))
       if (store.bestAlign) {
         save(file = destination, best.alignments)
       }
