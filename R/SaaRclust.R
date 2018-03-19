@@ -1,4 +1,4 @@
-#' Wrapper function to run saarclust pipeline for a given number of PB reads.
+#' Wrapper function to run saarclust pipeline for a given number of long reads reads.
 #'
 #' @param minimap.file A path to the minimap file to load.
 #' @param outputfolder A folder name to export the results.
@@ -18,11 +18,17 @@
 
 SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=47, EM.iter=100, alpha=0.1, minLib=10, upperQ=0.95, theta.param=NULL, pi.param=NULL, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL, cellNum=NULL) {
 
-  #get ID of a file to be processed
+  #Get ID of a file to be processed
   fileID <- basename(minimap.file)
   fileID <- strsplit(fileID, "\\.")[[1]][1]
 
-  #prepare locations for export
+  #Prepare locations for export
+  #Create a master output directory if it wasn't created before
+  outputfolder <- file.path(outputfolder)
+  if (!file.exists(outputfolder)) {
+    dir.create(outputfolder)
+  }
+  
   rawdata.store <- file.path(outputfolder, 'RawData')
   if (!file.exists(rawdata.store)) {
     dir.create(rawdata.store)
@@ -124,8 +130,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   counts.l <- countDirectionalReads(tab.l)
   
   # subsetting single cell libraries
-  if (!is.null(cellNum))
-  {
+  if (!is.null(cellNum)) {
     counts.l = counts.l[1:cellNum]
   }
   

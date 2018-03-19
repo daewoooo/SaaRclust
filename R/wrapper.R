@@ -89,9 +89,8 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     ### Count directional reads ###
     counts.l <- countDirectionalReads(tab.l)
     
-    # subsetting single cell libraries
-    if (!is.null(cellNum))
-    {
+    #subsetting single cell libraries
+    if (!is.null(cellNum)) {
       counts.l = counts.l[1:cellNum]
     }
     
