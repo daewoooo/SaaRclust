@@ -98,8 +98,12 @@ NOTE: Working only for data from the original publication.
 \hfill \break 
 Rscript below plots clustering accuracy measures presented in the orignal paper (Fig4 b,d,c)
 ```
+plotScripts = /SaaRclust/utils/postProcessing.R
+inputdir = SaaRclust_results
+outputdir = user_defined
+
 run from the commnad line:
-Rscript /SaaRclust/utils/runPostProcessing.R /SaaRclust/utils/postProcessing.R <outputdirectory>
+Rscript /SaaRclust/utils/runPostProcessing.R <plotScripts> <inputdir> <outputdir>
 ```
 
 \newpage

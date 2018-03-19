@@ -3,12 +3,12 @@
 args=commandArgs(TRUE)
 
 source(args[1])
-outputfolder <- args[2]
+inputfolder <- args[2]
+outputfolder <- args[3]
 
 #load ggplot2 library
 library('ggplot2')
 
-inputfolder <- "/home/porubsky/WORK/PROJECTS/SaaRclust_project/SaaRclust_results_aligns_k15_w1_L50_f0.05/"
 thresholds <- c(0, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99)
 
 message("Preparing clustering accuracy lollipop plot ...")
