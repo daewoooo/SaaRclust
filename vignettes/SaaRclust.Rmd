@@ -20,6 +20,7 @@ Strand-seq is a single-cell sequencing technique able to preserve contiguity of 
 # Parameters
 \textbf{inputfolder:} A folder name where minimap file(s) is stored. \hfill \break
 \textbf{outputfolder:} A folder name to export the results. \hfill \break
+\textbf{minimap.file:} A path to the minimap file to load. \hfill \break
 \textbf{num.clusters:} Expected number of clusters. (for 22 human autosomes == 44 clusters). However overclusterring (~ 54 clusters) is recommended such that smaller chromosomes are not missed \hfill \break
 \textbf{EM.iter:} Number of iteration of EM algorithm. \hfill \break
 \textbf{alpha:} Estimated level of background in Strand-seq reads. In other words expected noise in sequencing data caused either by library prepration or mapping to repetitive parts of the genome. \hfill \break
@@ -62,12 +63,11 @@ If RData object containing hard clustering results is already available you can 
 ```
 # Setting some variables
 
-HC.input='SaaRclust_results/Clusters/'
-minimap.file='SaaRclust_exampleData/...'
+HC.input='SaaRclust_results/Clusters/hardClusteringResults.RData'
+minimap.file='SaaRclust_exampleData/NA12878_WashU_PBreads_chunk9126.maf.gz'
 ```
 
 ```
-# Soft clustering
 # If theta.param & pi.param are set to NULL SaaRclust will try to load them from HC.input.
 
 SaaRclust(minimap.file=minimap.file, outputfolder='SaaRclust_results', num.clusters=47,

@@ -95,14 +95,13 @@ ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL, thresholds=NULL, minL
   clust.acc.df$th.clustReads <- clust.acc.df$acc.th.sum / clust.acc.df$allReads
   
   #get genome size
-  library("biovizBase")
+  suppressMessages( library("biovizBase") )
   hg38Ideogram <- getIdeogram("hg38", cytoband = FALSE)
   hg38Ideogram <- keepSeqlevels(hg38Ideogram, paste0('chr', c(1:22,'X')))
   genome.size <- sum(as.numeric(seqlengths(hg38Ideogram)))
   clust.acc.df$depth <- ceiling(clust.acc.df$seq.bases/genome.size)
   
   acc.plt <- ggplot(clust.acc.df) + geom_point(aes(x=th.acc, y=th.clustReads), color="deepskyblue4", size=10) + geom_linerange(aes(ymin=-Inf, x=th.acc, ymax=th.clustReads),color="deepskyblue4") + scale_y_continuous(limits = c(0.8, 1)) + scale_x_continuous(limits = c(0,1)) + scale_y_continuous(limits = c(0,1)) + ylab("(%) evaluated PB reads") + xlab("(%) correctly assigned PB reads") + geom_text(aes(x=th.acc, y=th.clustReads), label=c('all', thresholds[-1]), color="white") + theme_bw()  + theme_bw() + geom_text(aes(x=th.acc, y=th.clustReads+0.05), label=paste0(clust.acc.df$depth, "x"), color="black")
-  message("DONE!!!")
   return(list(acc.plot=acc.plt, plot.table=clust.acc.df))
 } 
 

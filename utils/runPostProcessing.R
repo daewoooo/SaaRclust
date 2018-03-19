@@ -14,13 +14,13 @@ thresholds <- c(0, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99)
 message("Preparing clustering accuracy lollipop plot ...")
 ClustersAccuracyPerChrPerDir(inputfolder=inputfolder, thresholds=thresholds, minLib=5) -> accplt.obj
 
-message("Preparing clustering accuracy boxplot ...")
+message("\nPreparing clustering accuracy boxplot ...")
 boxplotDistSSlibsPerPB(inputfolder=inputfolder, thresholds=0) -> boxplt.obj
 
-message("Preparing accuracy ranking plot ...")
+message("\nPreparing accuracy ranking plot ...")
 accuracyRanking(inputfolder = inputfolder) -> rankingPlt.obj
 
-message("Exporting plot data ...")
+message("\nExporting plot data ...")
 destination <- file.path(outputfolder, "accPlot.RData") 
 save(file = destination, accplt.obj)
 destination <- file.path(outputfolder, "accBoxplot.RData") 
