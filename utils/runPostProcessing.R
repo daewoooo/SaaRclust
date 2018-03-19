@@ -6,6 +6,10 @@ source(args[1])
 inputfolder <- args[2]
 outputfolder <- args[3]
 
+# install "biovizBase" Package
+source("https://bioconductor.org/biocLite.R")
+biocLite("biovizBase")
+
 #load ggplot2 library
 library('ggplot2')
 
