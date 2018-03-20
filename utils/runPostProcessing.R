@@ -15,6 +15,11 @@ library('ggplot2')
 
 thresholds <- c(0, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99)
 
+message("Venn diagram statistics...")
+venn.stats <- VennDiagramStats(inputfolder = inputfolder, thresholds = thresholds)
+venn <- file.path(outputfolder, "VennStatistics.txt")
+write.table(venn.stats, file = venn, sep = "\t")
+
 message("Preparing clustering accuracy lollipop plot ...")
 ClustersAccuracyPerChrPerDir(inputfolder=inputfolder, thresholds=thresholds, minLib=5) -> accplt.obj
 

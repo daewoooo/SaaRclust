@@ -247,4 +247,66 @@ accuracyRanking <- function(inputfolder=NULL) {
   overal.acc <- sum(all.prob.trueClust.v)/length(all.prob.trueClust.v)
   
   return(list(ranking.plt=ranking.plt, ranking.table=table.ranks.df,  overal.acc=overal.acc))
+}
+
+
+
+VennDiagramStats <- function(inputfolder=NULL, thresholds=c(0.5,0.75)) {
+  Clusters2process <- list.files(file.path(inputfolder, 'Clusters'), pattern = "clusters.RData", full.names = TRUE)
+  #Quals2process <- list.files(file.path(inputfolder, 'RawData'), pattern = "dataQuals.RData", full.names = TRUE)
+  
+  venn.stats <- matrix(0L, nrow=3+length(thresholds), ncol=3+length(thresholds))
+  rownames(venn.stats) <- c("mapped_normal_chroms", "mapped_unknown_chroms", "unmapped", paste0("threshold",thresholds))
+  colnames(venn.stats) <- rownames(venn.stats)
+  
+  allClusters <- list()
+  for (i in 1:length(Clusters2process)) {
+    fileID <- basename(Clusters2process[i])
+    message("Processing file: ",fileID)
+    
+    #load required data
+    data.file <- get(load(Clusters2process[i]))
+    #data.qual <- get(load(Quals2process[i]))
+    #pb.readLen <- data.file$pb.readLen
+    
+    # getting total number of reads and three different sets of PB reads
+    num.pb.reads <- length(data.file$PBchrom)
+    
+    mapped.normal.chroms <- which(grepl('^chr[0-9X][0-9]?$', data.file$PBchrom))
+    mapped.unknown.chroms <- setdiff(1:num.pb.reads, mapped.normal.chroms)
+    unmapped <- which(data.file$PBflag == 4)
+    
+    # update intersection matrix
+    venn.stats[1,1] = venn.stats[1,1] + length(mapped.normal.chroms)
+    venn.stats[2,2] = venn.stats[2,2] + length(mapped.unknown.chroms)
+    venn.stats[3,3] = venn.stats[3,3] + length(unmapped)
+    
+    prob.tab <- data.file$soft.pVal
+    
+    #Find WC cluster in all cells
+    theta.sums <- Reduce("+", data.file$theta.param)
+    remove.clust <- which.max(theta.sums[,3])
+    #Remove probabilities for always WC cluster
+    prob.tab <- prob.tab[,-remove.clust]
+    
+    filt.pb.reads <- list()
+    for (j in 1:length(thresholds)) {
+      message("    Set threshold: ", thresholds[j])
+      max.prob <- apply(prob.tab, 1, max)
+      filt.pb.reads[[j]] <- which(max.prob >= thresholds[j])
+      
+      # update intersection matrix
+      venn.stats[j+3,j+3] <- venn.stats[j+3,j+3]+length(filt.pb.reads[[j]])
+    }
+    
+    # update intersection matrix
+    for (j in 1:length(thresholds))
+    {
+      venn.stats[1,j+3] <- venn.stats[1,j+3] + length(intersect(mapped.normal.chroms, filt.pb.reads[[j]]))
+      venn.stats[2,j+3] <- venn.stats[2,j+3] + length(intersect(mapped.unknown.chroms, filt.pb.reads[[j]]))
+      venn.stats[3,j+3] <- venn.stats[3,j+3] + length(intersect(unmapped, filt.pb.reads[[j]]))
+    }
+  }
+  
+  return(venn.stats)
 } 
