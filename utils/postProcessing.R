@@ -310,3 +310,33 @@ VennDiagramStats <- function(inputfolder=NULL, thresholds=c(0.5,0.75)) {
   
   return(venn.stats)
 } 
+                       
+                       
+getProbDiff <- function(inputfolder=NULL) {
+  Clusters2process <- list.files(file.path(inputfolder, 'Clusters'), pattern = "clusters.RData", full.names = TRUE)
+  #Quals2process <- list.files(file.path(inputfolder, 'RawData'), pattern = "dataQuals.RData", full.names = TRUE)
+  
+  diff.probs <- NULL
+  for (i in 1:length(Clusters2process)) {
+    fileID <- basename(Clusters2process[i])
+    message("Processing file: ",fileID)
+    
+    #load required data
+    data.file <- get(load(Clusters2process[i]))
+    
+    prob.tab <- data.file$soft.pVal
+    
+    #Find WC cluster in all cells
+    theta.sums <- Reduce("+", data.file$theta.param)
+    remove.clust <- which.max(theta.sums[,3])
+    #Remove probabilities for always WC cluster
+    prob.tab <- prob.tab[,-remove.clust]
+    
+    # Normalize prob.tab after removong the garnage cluster
+    prob.tab <- prob.tab / rowSums(prob.tab)
+    
+    diff.probs <- c(diff.probs, sapply(1:nrow(prob.tab), function(i) (max(prob.tab[i,]) - sort(prob.tab[i,], decreasing = T)[2])))
+  }
+  
+  return(diff.probs)
+}
