@@ -97,6 +97,8 @@ exportClusteredReads(inputfolder="SaaRclust_results", prob.th=0.5, minLib=5)
 NOTE: Working only for data from the original publication.
 \hfill \break 
 Rscript below plots clustering accuracy measures presented in the orignal paper (Fig4 b,d,c)
+\hfill \break 
+Before running the script make sure that biovizBase and ggplot2 packages are installed on your machine.
 ```
 plotScripts = /SaaRclust/utils/postProcessing.R
 inputdir = SaaRclust_results

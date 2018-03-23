@@ -6,12 +6,9 @@ source(args[1])
 inputfolder <- args[2]
 outputfolder <- args[3]
 
-# install "biovizBase" Package
-source("https://bioconductor.org/biocLite.R")
-biocLite("biovizBase")
-
-#load ggplot2 library
-library('ggplot2')
+#load ggplot2 and biovizBase library
+suppressPackageStartupMessages( library('ggplot2') )
+suppressPackageStartupMessages( library('biovizBase') )
 
 thresholds <- c(0, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99)
 
