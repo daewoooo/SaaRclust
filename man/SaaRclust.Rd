@@ -2,7 +2,7 @@
 % Please edit documentation in R/SaaRclust.R
 \name{SaaRclust}
 \alias{SaaRclust}
-\title{Wrapper function to run saarclust pipeline for a given number of PB reads.}
+\title{Wrapper function to run saarclust pipeline for a given number of long reads reads.}
 \usage{
 SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
   num.clusters = 47, EM.iter = 100, alpha = 0.1, minLib = 10,
@@ -36,7 +36,7 @@ SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
 \item{cellNum}{Specifies the number of single cells to be used in clustering}
 }
 \description{
-Wrapper function to run saarclust pipeline for a given number of PB reads.
+Wrapper function to run saarclust pipeline for a given number of long reads reads.
 }
 \author{
 David Porubsky

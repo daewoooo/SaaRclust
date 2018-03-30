@@ -10,7 +10,6 @@ Description: This package implements functions for pre genome assembly of long
     reads.
 Depends:
     R (>= 3.3.0),
-    ggplot2,
     ComplexHeatmap,
     cowplot,
     RColorBrewer,
@@ -18,7 +17,9 @@ Depends:
 Imports:
     dplyr,
     maxmatching,
-    data.table
+    data.table,
+    reshape2,
+    ggplot2
 Suggests:
     knitr,
     testthat,

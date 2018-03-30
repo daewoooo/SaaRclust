@@ -137,6 +137,7 @@ plotClustAccuracy <- function(pVal.df=NULL, num.clusters=NULL, thresh=c(0.5,0.6,
 #'
 #' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
 #' @param title A \code{character} to use as a title of the plot.
+#' @importFrom reshape2 melt
 #' @author David Porubsky
 #' @export
 
@@ -146,7 +147,7 @@ plotThetaEstimates <- function(theta.param=NULL, title=NULL) {
   for (j in 1:length(theta.param)) {
     df <- as.data.frame(theta.param[[j]])
     df$clustID <- rownames(df)
-    df.plt <- suppressMessages( melt(df) )
+    df.plt <- suppressMessages( reshape2::melt(df) )
     df.plt$cell <- j
     plt.data[[j]] <- df.plt
   }
