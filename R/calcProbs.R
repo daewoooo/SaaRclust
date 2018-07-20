@@ -6,6 +6,7 @@
 #' @param plusCounts Plus (Crick) read counts aligned to PacBio reads.
 #' @param alpha Estimated level of background in Strand-seq reads.
 #' @return A \code{matrix} of binomial probabilities for a given counts of plus and minus reads for a single cell. (rows=reads/genomic segments, cols=strand states)
+#' @importFrom matrixStats logSumExp
 #' @author David Porubsky, Maryam Ghareghani
 #' @export
 

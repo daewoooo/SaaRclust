@@ -13,13 +13,14 @@ Depends:
     ComplexHeatmap,
     cowplot,
     RColorBrewer,
+    ggplot2,
     igraph
 Imports:
     dplyr,
     maxmatching,
     data.table,
     reshape2,
-    ggplot2
+    matrixStats
 Suggests:
     knitr,
     testthat,
