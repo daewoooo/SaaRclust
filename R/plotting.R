@@ -64,6 +64,7 @@ plotHeatmap <- function(pVal.df=NULL, colOrder=NULL, num.clusters=NULL) {
   #order clusters based on most likely chromosome partners                               
   if (!is.null(colOrder)) {                               
     pVal.df[,1:length(colOrder)] <- pVal.df[,colOrder]
+    colnames(pVal.df)[1:num.clusters] <- colOrder
   }
   
   if (!is.null(num.clusters)) {
