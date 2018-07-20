@@ -11,7 +11,7 @@ estimateTheta(counts.l = NULL, hard.clust = NULL, alpha = 0.1)
 
 \item{hard.clust}{A \code{integer} of cluster assignments for each PacBio read.}
 
-\item{alpha}{Estimated level of background Strand-seq reads.}
+\item{alpha}{Estimated level of background in Strand-seq reads.}
 }
 \value{
 A \code{list} of estimated theta values for every cluster and cell.

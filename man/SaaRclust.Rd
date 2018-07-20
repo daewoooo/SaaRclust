@@ -19,7 +19,7 @@ SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
 
 \item{EM.iter}{Number of iteration to run EM for.}
 
-\item{alpha}{Estimated level of background Strand-seq reads.}
+\item{alpha}{Estimated level of background in Strand-seq reads.}
 
 \item{minLib}{Minimal number of StrandS libraries being represent per long PB read}
 

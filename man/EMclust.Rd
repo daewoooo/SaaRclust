@@ -5,18 +5,18 @@
 \title{EM (Expectation maximization) function}
 \usage{
 EMclust(counts.l, theta.param = NULL, pi.param = NULL, num.iter = 100,
-  alpha = 0.1, logL.th = 1)
+  alpha = 0.1, logL.th = 1, log.scale = FALSE)
 }
 \arguments{
 \item{counts.l}{A \code{list} of PB alignmetns separated per cell.}
 
-\item{theta.param}{A \code{list} of estimated cell types for each cluster and each cell.}
+\item{theta.param}{A \code{list} of estimated cell types for each single cell. (rows=clusters, cols=strand states)}
 
 \item{pi.param}{A \code{vector} of estimated sizes of each cluster based on initial hard clustering.}
 
 \item{num.iter}{Set number of iteration to EM algorithm.}
 
-\item{alpha}{Estimated level of background Strand-seq reads.}
+\item{alpha}{Estimated level of background in Strand-seq reads.}
 
 \item{logL.th}{Set the difference between objective function from the current and the previous interation for EM algorithm to converge.}
 }

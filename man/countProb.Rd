@@ -4,17 +4,17 @@
 \alias{countProb}
 \title{Calculate probability of PacBio reads having WW, CC or WC state.}
 \usage{
-countProb(minusCounts, plusCounts, alpha = 0.1)
+countProb(minusCounts, plusCounts, alpha = 0.1, log = FALSE)
 }
 \arguments{
 \item{minusCounts}{Minus (Watson) read counts aligned to PacBio reads.}
 
 \item{plusCounts}{Plus (Crick) read counts aligned to PacBio reads.}
 
-\item{alpha}{Estimated level of background Strand-seq reads.}
+\item{alpha}{Estimated level of background in Strand-seq reads.}
 }
 \value{
-A \code{list} of binomial probabilities for a given counts of plus and minus reads
+A \code{matrix} of binomial probabilities for a given counts of plus and minus reads for a single cell. (rows=reads/genomic segments, cols=strand states)
 }
 \description{
 Import counts of directional Strand-seq reads aligned to PacBio reads and calculates binomial probabilites of PacBio reads being WW, CC or WC state.
