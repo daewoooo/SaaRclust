@@ -7,7 +7,7 @@ args=commandArgs(TRUE)
 print(args)
 
 #add user defined path to load needed libraries
-.libPaths( c( .libPaths(), args[10]) )
+.libPaths( c( .libPaths(), args[11]) )
 
 suppressPackageStartupMessages(library(SaaRclust))
 
