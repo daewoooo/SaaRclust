@@ -8,7 +8,7 @@ SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
   num.clusters = 47, EM.iter = 100, alpha = 0.1, minLib = 10,
   upperQ = 0.95, theta.param = NULL, pi.param = NULL, logL.th = 1,
   theta.constrain = FALSE, store.counts = FALSE, HC.input = NULL,
-  cellNum = NULL)
+  cellNum = NULL, log.scale = FALSE)
 }
 \arguments{
 \item{minimap.file}{A path to the minimap file to load.}
@@ -25,7 +25,11 @@ SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
 
 \item{upperQ}{Filter out given percentage of PacBio reads with the highest number of alignments.}
 
-\item{logL.th}{Set difference between objective function from the current and previous interation for the algorithm to converge.}
+\item{theta.param}{A \code{list} of estimated cell types for each single cell. (rows=clusters, cols=strand states)}
+
+\item{pi.param}{A \code{vector} of estimated sizes of each cluster based on initial hard clustering.}
+
+\item{logL.th}{Set the difference between objective function from the current and the previous interation for EM algorithm to converge.}
 
 \item{theta.constrain}{Recalibrate theta values to meet expected distribution of W and C strand across Strand-seq libraries.}
 

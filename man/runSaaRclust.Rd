@@ -8,7 +8,7 @@ runSaaRclust(inputfolder = NULL, outputfolder = "SaaRclust_results",
   num.clusters = 54, EM.iter = 100, alpha = 0.01, minLib = 10,
   upperQ = 0.95, logL.th = 1, theta.constrain = FALSE,
   store.counts = FALSE, store.bestAlign = TRUE, numAlignments = 30000,
-  HC.only = TRUE, verbose = TRUE, cellNum = NULL)
+  HC.only = TRUE, verbose = TRUE, cellNum = NULL, log.scale = FALSE)
 }
 \arguments{
 \item{inputfolder}{A folder name where minimap files are stored.}
@@ -25,7 +25,7 @@ runSaaRclust(inputfolder = NULL, outputfolder = "SaaRclust_results",
 
 \item{upperQ}{Filter out given percentage of PacBio reads with the highest number of alignments.}
 
-\item{logL.th}{Set difference between objective function from the current and previous interation for the algorithm to converge.}
+\item{logL.th}{Set the difference between objective function from the current and the previous interation for EM algorithm to converge.}
 
 \item{theta.constrain}{Recalibrate theta values to meet expected distribution of W and C strand across Strand-seq libraries.}
 

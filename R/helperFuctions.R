@@ -348,19 +348,3 @@ exportClusteredReads <- function(inputfolder=NULL, prob.th=NULL, minLib=NULL) {
   } 
 } 
 
-
-
-
-
-
-## Function to take postion-wise logSumExp across all matrices (Like Reduce("+", listOfMatrices))
-reduceByLogSumExp <- function(matrix.list=NULL) {
-  reducedMatrix <- matrix(nrow=nrow(matrix.list[[1]]), ncol=ncol(matrix.list[[1]]), data=0)
-  for (row in 1:nrow(reducedMatrix)) {
-    for (col in 1:ncol(reducedMatrix)) {
-      sum <- logSumExp( sapply(matrix.list, '[[', row,col) )
-      reducedMatrix[row,col] <- sum
-    }
-  }
-  return(reducedMatrix)
-}

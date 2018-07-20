@@ -6,17 +6,17 @@
 #' @param minLib Minimal number of StrandS libraries being represent per long PB read
 #' @param upperQ Filter out given percentage of PacBio reads with the highest number of alignments.
 #' @param EM.iter Number of iteration to run EM for.
-#' @param logL.th Set difference between objective function from the current and previous interation for the algorithm to converge.
 #' @param theta.constrain Recalibrate theta values to meet expected distribution of W and C strand across Strand-seq libraries.
 #' @param store.counts Logical if to store raw read counts per PB read
 #' @param HC.input Filaname where hard clustering results are stored
 #' @param cellNum Specifies the number of single cells to be used in clustering
 #' @inheritParams countProb
+#' @inheritParams EMclust
 #' @export
 #' @author David Porubsky
 
 
-SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=47, EM.iter=100, alpha=0.1, minLib=10, upperQ=0.95, theta.param=NULL, pi.param=NULL, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL, cellNum=NULL) {
+SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.clusters=47, EM.iter=100, alpha=0.1, minLib=10, upperQ=0.95, theta.param=NULL, pi.param=NULL, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, HC.input=NULL, cellNum=NULL, log.scale=FALSE) {
 
   #Get ID of a file to be processed
   fileID <- basename(minimap.file)
@@ -140,13 +140,13 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   }
   
   ### EM algorithm ###
-  soft.clust.obj <- EMclust(counts.l, theta.param=theta.param, pi.param=pi.param, num.iter=EM.iter, alpha=alpha, logL.th=logL.th)
+  soft.clust.obj <- EMclust(counts.l, theta.param=theta.param, pi.param=pi.param, num.iter=EM.iter, alpha=alpha, logL.th=logL.th, log.scale=log.scale)
   
   #rescale theta parameter and run one more iteration to redo soft clustering [EXPERIMENTAL]
   if (theta.constrain) {
     theta.expected <- num.clusters * c(0.25,0.25,0.5)
     theta.rescaled <- thetaRescale(theta.param=soft.clust.obj$theta.param, theta.expected=theta.expected)
-    soft.clust.obj <- EMclust(counts.l, theta.param=theta.rescaled, pi.param=soft.clust.obj$pi.param, num.iter=1, alpha=alpha, logL.th=logL.th)
+    soft.clust.obj <- EMclust(counts.l, theta.param=theta.rescaled, pi.param=soft.clust.obj$pi.param, num.iter=1, alpha=alpha, logL.th=logL.th, log.scale=log.scale)
   }
   
   #Get pairs of clusters coming from the same chromosome but differs in directionality of PB reads  [EXPERIMENTAL]
