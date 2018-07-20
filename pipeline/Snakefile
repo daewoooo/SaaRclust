@@ -18,6 +18,7 @@ minLib          = 1
 upperQ          = 0.95
 logLth          = 1
 theta_constrain = "FALSE"
+log_scale = "FALSE"
 numAlignments   = 30000
 Strand_seq_reads = "strandS_libs_NA12878_allLibs_withDups.fq"
 
@@ -101,6 +102,7 @@ rule SOFT_clustering:
                 {upperQ} \
                 {logLth} \
                 {input.HCclustFile} \
+		{log_scale} \
                 $(pwd)/utils/R-packages/) \
                 > {log} 2>&1
         """
