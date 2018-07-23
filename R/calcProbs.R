@@ -53,8 +53,10 @@ gammaFunction <- function(clust.prob=NULL, pi.scaled=NULL, cellNum=NULL, log.sca
   }
   
   if (log.scale) {
-    matrix.sums <- reduceByLogSumExp(clust.prob) #sum over clusters (matrices) position-wise
-    clust.sums <- apply(matrix.sums, 1, logSumExp) #sum over rows
+    #matrix.sums <- reduceByLogSumExp(clust.prob) #sum over clusters (matrices) position-wise
+    matrix.sums <- apply(simplify2array(clust.prob), c(1,2), logSumExp) #sum over clusters (matrices) position-wise
+    #clust.sums <- apply(matrix.sums, 1, logSumExp) #sum over rows
+    clust.sums <- rowLogSumExps(matrix.sums) #sum over rows
     clust.gamma.l <- list()
     #loop over all clusters
     for (i in 1:length(clust.prob)) {

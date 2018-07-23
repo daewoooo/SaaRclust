@@ -93,7 +93,8 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
       ## Take sums over strand states (cols) for every read/genomic segment (rows) of each cluster ##
       ## clusters.per.cell[[[j]]: a list of vectors per cluster. Each vector represent rowSums of each cluster (matrix)
       if (log.scale) {
-        clusters.per.cell[[j]] <- lapply(clusters, function(x) apply(x, 1, logSumExp))
+        #clusters.per.cell[[j]] <- lapply(clusters, function(x) apply(x, 1, logSumExp))
+        clusters.per.cell[[j]] <- lapply(clusters, rowLogSumExps)
       } else {
         clusters.per.cell[[j]] <- lapply(clusters, rowSums)
       }  
@@ -120,7 +121,8 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
   
       ## Take sum over all reads/genomic segments ##
       if (log.scale) { 
-        clust.gammas.colsums <- lapply(clust.gammas.l, function(x) apply(x, 2, logSumExp))
+        #clust.gammas.colsums <- lapply(clust.gammas.l, function(x) apply(x, 2, logSumExp))
+        clust.gammas.colsums <- lapply( clust.gammas.l, function(x) rowLogSumExps(t(x)) )
       } else {  
         clust.gammas.colsums <- lapply(clust.gammas.l, colSums) ## clust.gammas.colsums: matrix with rows=clusters, cols=strand states
       }
@@ -128,7 +130,8 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
       
       ## Updating theta parameters
       if (log.scale) {
-        theta.update <- clust.gammas.colsums - apply(clust.gammas.colsums, 1, logSumExp)
+        #theta.update <- clust.gammas.colsums - apply(clust.gammas.colsums, 1, logSumExp)
+        theta.update <- clust.gammas.colsums - rowLogSumExps(clust.gammas.colsums)
       } else {
         theta.update <- clust.gammas.colsums / rowSums(clust.gammas.colsums)
       }  
@@ -152,8 +155,9 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
     ## Update pi parameter ##
     ## Take sum over all cell types
     if (log.scale) {
-      strand.states.sums <- sapply(clust.gammas.colsums.l, function(x) apply(x, 1, logSumExp)) #sums over all strand states per single cell. Results in matrix with rows=clusters, cols=cells
-      pi.update <- apply(strand.states.sums, 1, logSumExp)
+      #strand.states.sums <- sapply(clust.gammas.colsums.l, function(x) apply(x, 1, logSumExp)) #sums over all strand states per single cell. Results in matrix with rows=clusters, cols=cells
+      #pi.update <- apply(strand.states.sums, 1, logSumExp)
+      pi.update <- rowLogSumExps(sapply(clust.gammas.colsums.l, rowLogSumExps)) #sums over all strand states per single cell. Results in matrix with rows=clusters, cols=cells
       
       ## Normalize pi parameter to 1 and update pi
       pi.norm.update <- pi.update - logSumExp(pi.update)
@@ -235,7 +239,8 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
   #if (num.iter==1) {
   ## Scaling soft probabilities to 1
   if (log.scale) {
-    soft.probs.tab.norm <- cluts.tab.update - apply(cluts.tab.update, 1, logSumExp)
+    #soft.probs.tab.norm <- cluts.tab.update - apply(cluts.tab.update, 1, logSumExp)
+    soft.probs.tab.norm <- cluts.tab.update - rowLogSumExps(cluts.tab.update)
     soft.probs.tab.norm <- exp(soft.probs.tab.norm) #get non-log scale probabilities
   } else {
     soft.probs.tab.norm <- cluts.tab.update / rowSums(cluts.tab.update)
