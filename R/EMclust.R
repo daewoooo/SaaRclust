@@ -9,7 +9,7 @@
 #' @param logL.th Set the difference between objective function from the current and the previous interation for EM algorithm to converge.
 #' @inheritParams countProb
 #' @return A \code{list} of various exported results [pVal, pVal.logL, log.l, theta.param, pi.param].
-#' @importFrom matrixStats logSumExp
+#' @importFrom matrixStats logSumExp rowLogSumExps
 #' @author David Porubsky, Maryam Ghareghani
 #' @export
 
