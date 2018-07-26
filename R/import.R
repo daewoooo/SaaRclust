@@ -110,7 +110,7 @@ importTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO modify
 #' @param quantileSSreads A quantile range for number of SSreads mapped to PB read. (default: 0.4-0.9)
 #' @param minSSlibs A range for the minimal and maximal number of StrandS libs being represented per PB read.
 #' @return A filtered \code{data.frame}.
-#' @import dplyr
+#' @importFrom dplyr group_by summarise
 #' @author David Porubsky
 #' @export
 
@@ -145,7 +145,7 @@ filterInput <- function(inputData=NULL, quantileSSreads=c(0,0.9), minSSlibs=c(20
   }
   
   #filter reads based on the number of SS libs per PB read [FAST]
-  inputData.filt %>% group_by(PBreadNames) %>% summarise(counts = length(unique(SSlibNames))) -> SSlib.perPB.counts
+  inputData.filt %>% dplyr::group_by(PBreadNames) %>% dplyr::summarise(counts = length(unique(SSlibNames))) -> SSlib.perPB.counts
   maskNames <- SSlib.perPB.counts$PBreadNames[SSlib.perPB.counts$counts >= minSSlibs[1] & SSlib.perPB.counts$counts <= minSSlibs[2]]
   inputData.filt <- inputData.filt[inputData.filt$PBreadNames %in% maskNames,]
   
@@ -208,4 +208,70 @@ getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=30000, q
   bestAligns.tab <- bestAligns.tab[bestAligns.tab$PBreadNames %in% sample,]
   
   return(bestAligns.tab)
+}
+
+
+#' Import BAM(s) and count reads
+#'
+#' Import aligned reads from a multiple BAM files and counts directional reads in specified genomic locations.
+#' Results are stored in a \code{list} of matrices with each element of a \code{list} representing counts for single BAM file.
+#'
+#' @param bamfolder A folder where BAM files to be processed are stored.
+#' @param chromosomes If only a subset of the chromosomes should be binned, specify them here.
+#' @param pairedEndReads Set to \code{TRUE} if you have paired-end reads in your file.
+#' @param bin.length A length of a bin to count reads in.
+#' @return A \code{list} of matrices (columns: minus (W) and plus (C) counts; rows: genomic regions).
+#' @importFrom data.table data.table
+#' @author David Porubsky
+#' @export
+
+importBams <- function(bamfolder=bamfolder, chromosomes=NULL, bin.length=1000000) {
+  ## List bams present in a directory
+  bamfiles <- list.files(bamfolder, pattern = '.bam$', full.names = T)
+  
+  counts.l <- list()
+  for (j in 1:length(bamfiles)) {
+    bam <- bamfiles[j]
+    bam.name <- basename(bam)
+    message("Processing ", bam.name)
+    
+    ## Load reads from BAM into GRanges object
+    #fragments <- bam2GRanges(file = bam, chromosomes=chromosomes, pairedEndReads = T, min.mapq = 10, keep.duplicate.reads = F, what = 'mapq')
+    suppressWarnings( fragments <- readBamFileAsGRanges(file=bam, chromosomes=chromosomes, pairedEndReads=TRUE, min.mapq=10, remove.duplicate.reads=TRUE, pair2frgm=FALSE, filtAlt=TRUE) )
+    
+    if (bin.length) {
+      ## Get genome bins
+      bins.gr <- unlist( GenomicRanges::tileGenome(seqlengths = seqlengths(fragments), tilewidth = bin.length) )
+      hits <- findOverlaps(fragments, bins.gr, select = "first") #TODO: make sure the same read connot end up in two neighbouring bins!!!
+      
+      ## Add missing values if there is no reads in any given bin
+      bin.num <- 1:length(bins.gr)
+      missing.bin <- which(!bin.num %in% hits)
+      
+      ## Append bin location to the contig name
+      if (length(missing.bin) > 0) {
+        fragments$ID <- rep(as.character(bins.gr)[-missing.bin], table(hits))
+      } else {
+        fragments$ID <- rep(as.character(bins.gr), table(hits))
+      }  
+      
+    } else {
+      fragments$ID <- seqnames(fragments)
+    }
+    
+    ## Transform GRanges obejct into a data.frame
+    fragments.df <- as(fragments[,'ID'], 'data.frame')
+    fragments.df$ID <- factor(fragments.df$ID, levels=as.character(bins.gr))
+    fragments.df$strand <- factor(as.character(fragments.df$strand))
+    
+    ## Count reads
+    counts <- data.table::data.table(fragments.df)[,table(strand),by=ID] #even faster option TEST
+    cov.reads <- unique(counts$ID)
+    uncov.reads <- levels(cov.reads)[!levels(cov.reads) %in% cov.reads]
+    counts <- rbind(matrix(counts$V1, ncol=2, byrow = T), matrix(rep(0, 2*length(uncov.reads)), ncol=2) )
+    rownames(counts) <- c(as.character(unique(cov.reads)), uncov.reads)
+    counts <- counts[order(match(rownames(counts),levels(fragments.df$ID))),]
+    counts.l[[j]] <- counts  
+  }
+  return(counts.l)
 }
