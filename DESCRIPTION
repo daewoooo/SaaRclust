@@ -14,13 +14,17 @@ Depends:
     cowplot,
     RColorBrewer,
     ggplot2,
+    GenomicRanges,
     igraph
 Imports:
     dplyr,
     maxmatching,
     data.table,
     reshape2,
-    matrixStats
+    matrixStats,
+    IRanges,
+    Rsamtools,
+    GenomicAlignments,
 Suggests:
     knitr,
     testthat,

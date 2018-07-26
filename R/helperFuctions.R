@@ -3,7 +3,7 @@
 #' Takes imported data table and export relevant data quality measures.
 #'
 #' @param inputData A \code{data.frame} loaded by \code{\link[SaaRclust]{importTestData}}
-#' @import dplyr
+#' @importFrom dplyr group_by summarise
 #' @author David Porubsky
 #' @export
 
@@ -14,7 +14,7 @@ getQualMeasure <- function(inputData) {
   SSreads.perPB <- sort(table(inputData$PBreadNames), decreasing = T) #this won't be needed when output will be already sorted by PBreads
   
   #get number of SS libs per PB read
-  inputData %>% group_by(PBreadNames) %>% summarise(counts = length(unique(SSlibNames))) -> SSlib.perPB
+  inputData %>% dplyr::group_by(PBreadNames) %>% dplyr::summarise(counts = length(unique(SSlibNames))) -> SSlib.perPB
   
   #get number of SS reads per lib per PB read
   SSreads.perPB.l <- split(inputData$SSlibNames, inputData$PBreadNames)
