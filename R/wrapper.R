@@ -89,6 +89,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     
     ### Count directional reads ###
     counts.l <- countDirectionalReads(tab.l)
+    #counts.l <- importBams(bamfolder = bamfolder, chromosomes = chromosomes, bin.length = 1000000) TODO: implement as an option
     
     #subsetting single cell libraries
     if (!is.null(cellNum)) {
