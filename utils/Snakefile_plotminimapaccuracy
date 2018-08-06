@@ -1,0 +1,20 @@
+input_folder = "/MMCI/TM/saarclust/work/Test_minimap_settings/aligns_100000reads"
+output_folder = "/MMCI/TM/scratch/maryam/clustering/minimap_test"
+
+FILES, = glob_wildcards(input_folder + "/{file}.maf.gz.log")
+print(set(FILES))
+
+rule all:
+	input: output_folder + "/minimap_test_plot.pdf"
+
+rule output_minimap_accuracy:
+	input: input_folder + "/{file}.maf.gz"
+	output: output_folder + "/{file}_accuracy.data"
+	log: "log/{file}_accuracy.log"
+	script: "minimap_test_outout_accuracy.snakemake.R"
+
+rule plot_minimap_accuracy:
+	input: expand(output_folder + "/{file}_accuracy.data", file=FILES)
+	output: output_folder + "/minimap_test_plot.pdf"
+	log: "log/plot_minimap_accuracy.log"
+	script: "minimap_test_plot.snakemake.R"
