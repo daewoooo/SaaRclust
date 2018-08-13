@@ -16,7 +16,6 @@ getClusterIdentityPerChrPerDir <- function(soft.clust, chr.rows, chr.flag) {
 #This function calculates clustering accuracy over different probability cutoffs.
 #Depth of coverage is reported as a cumulative numeber of bases sequenced (sum of PB read lenghts/genome size)
 
-<<<<<<< HEAD
 ClustersAccuracyPerChrPerDir <- function(Clusters2process=NULL, Quals2process=NULL, thresholds=1:10/10, minLib=0) {
 	allClusters <- list()
 	fileID <- basename(Clusters2process)
