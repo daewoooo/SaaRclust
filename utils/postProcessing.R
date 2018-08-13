@@ -97,7 +97,7 @@ ClustersAccuracyPerChrPerDir <- function(inputfolder=NULL, thresholds=NULL, minL
   #get genome size
   suppressMessages( library("biovizBase") )
   hg38Ideogram <- getIdeogram("hg38", cytoband = FALSE)
-  hg38Ideogram <- keepSeqlevels(hg38Ideogram, paste0('chr', c(1:22,'X')))
+  hg38Ideogram <- keepSeqlevels(hg38Ideogram, paste0('chr', c(1:22,'X')), pruning.mode="coarse")
   genome.size <- sum(as.numeric(seqlengths(hg38Ideogram)))
   clust.acc.df$depth <- ceiling(clust.acc.df$seq.bases/genome.size)
   
