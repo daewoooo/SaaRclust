@@ -1,0 +1,43 @@
+input_folder = "/MMCI/TM/scratch/maryam/clustering/SaaRclust_experiments/allCells_100itr/aligns_k15_w1_L50_f0.05_withDupsNoS/SaaRclust_results/NULLcells/100EMiter"
+output_folder = input_folder+"/Plot"
+
+ChunkID, = glob_wildcards(input_folder + "/Clusters/NA12878_WashU_PBreads_chunk{chunkID}_clusters.RData")
+
+rule all:
+	input:
+		accuracy_plot=output_folder + "/saarclust_accuracy_plot.pdf",
+		accuracy_table=output_folder + "/saarclust_accuracy_table.data",
+		boxplot=output_folder + "/saarclust_boxplot.pdf",
+		boxplot_table=output_folder + "/saarclust_boxplot_table.data"
+
+rule output_saarclust_accuracy_table:
+	input:
+		clusters=input_folder + "/Clusters/NA12878_WashU_PBreads_chunk{chunkID}_clusters.RData",
+		raw_data=input_folder + "/RawData/NA12878_WashU_PBreads_chunk{chunkID}_dataQuals.RData"
+	output: output_folder + "/NA12878_WashU_PBreads_chunk{chunkID}_saarclust_accuracy.data"
+	log: "log/chunk{chunkID}_saarclust_output_accuracy_table.log"
+	script: "saarclust_output_accuracy_plot.snakemake.R"
+
+rule plot_saarclust_accuracy:
+	input: expand(output_folder + "/NA12878_WashU_PBreads_chunk{chunkID}_saarclust_accuracy.data", chunkID=ChunkID)
+	output: 
+		accuracy_plot=output_folder + "/saarclust_accuracy_plot.pdf",
+		accuracy_table=output_folder + "/saarclust_accuracy_table.data"
+	log: "log/plot_saarclust_accuracy.log"
+	script: "saarclust_accuracy_plot.snakemake.R"
+
+rule output_saarclust_baxplot_table:
+	input:
+		clusters=input_folder + "/Clusters/NA12878_WashU_PBreads_chunk{chunkID}_clusters.RData",
+		raw_data=input_folder + "/RawData/NA12878_WashU_PBreads_chunk{chunkID}_dataQuals.RData"
+	output: output_folder + "/NA12878_WashU_PBreads_chunk{chunkID}_boxplot.RData"
+	log: "log/chunk{chunkID}_saarclust_output_boxplot_table.log"
+	script: "saarclust_output_boxplot.snakemake.R"
+
+rule plot_saarclust_baxplot:
+	input: expand(output_folder + "/NA12878_WashU_PBreads_chunk{chunkID}_boxplot.RData", chunkID=ChunkID)
+	output: 
+		boxplot=output_folder + "/saarclust_boxplot.pdf",
+		boxplot_table=output_folder + "/saarclust_boxplot_table.data"
+	log: "log/plot_boxplot.log"
+	script: "saarclust_plot_boxplot.snakemake.R"
