@@ -146,70 +146,50 @@ boxplotDistSSlibsPerPB <- function(Clusters2process=NULL, Quals2process=NULL, th
 #Rank1 = max probability being the true cluster
 #Rank2 = second best probability being the true cluster
 
-accuracyRanking <- function(inputfolder=NULL) {
-  files2process <- list.files(file.path(inputfolder, 'Clusters'), pattern = "clusters.RData", full.names = TRUE)
+accuracyRanking <- function(inputfile=NULL) {
+  fileID <- basename(inputfile)
+  message("Processing file: ",fileID)
   
-  allCluster.ranks <- list()
-  all.prob.trueClust <- list()
-  for (file in files2process) {
-    fileID <- basename(file)
-    message("Processing file: ",fileID)
-    
-    #load required data
-    data.file <- get(load(file))
-    
-    num.clusters <- length(data.file$pi.param)
-    
-    #check accuracy only for autosomes and sex chrmosomes
-    mask <- which(grepl('^chr[0-9X][0-9]?$', data.file$PBchrom))
-    
-    #get clusters IDs corresponding to a given chromosome
-    chr.rows <- data.file$PBchrom[mask]
-    chr.flag <- data.file$PBflag[mask]
-    prob.tab <- data.file$soft.pVal[mask,]
-    
-    #filter out duplicates
-    mask <- which(chr.flag == 16 | chr.flag == 0) 
-    chr.rows <- chr.rows[mask]
-    chr.flag <- chr.flag[mask]
-    prob.tab <- prob.tab[mask,]
-    
-    #Find WC cluster in all cells
-    theta.sums <- Reduce("+", data.file$theta.param)
-    remove.clust <- which.max(theta.sums[,3])
-    #Remove probabilities for always WC cluster
-    prob.tab <- prob.tab[,-remove.clust]
-    
-    Clust.IDs <- getClusterIdentityPerChrPerDir(soft.clust=prob.tab, chr.rows=chr.rows, chr.flag=chr.flag)
-    
-    #for each row of probability matrix select max probability corresponding to true cluster id
-    prob.trueClust <- sapply(1:nrow(prob.tab), function(x) prob.tab[x,Clust.IDs[x]])
-    rank.acc <- sapply(1:nrow(prob.tab), function(x) which(sort(prob.tab[x,], decreasing = T) == prob.trueClust[x]))
-    rank.acc <- unlist(rank.acc)
-    #create empty vector to store data
-    ranks.store <- rep(0, num.clusters)
-    names(ranks.store) <- 1:num.clusters
-    #count ranks per file
-    table.ranks <- sort(table(rank.acc), decreasing = T)
-    #store table of ranks
-    ranks.store[names(table.ranks)] <- as.numeric(table.ranks)
-    allCluster.ranks[[fileID]] <- ranks.store
-    #store max prob for true cluster
-    all.prob.trueClust[[fileID]] <- prob.trueClust
-  }
-  allCluster.ranks.sums <- Reduce("+", allCluster.ranks)
+  #load required data
+  data.file <- get(load(inputfile))
   
-  #plotting
-  library('scales')
-  table.ranks.df <- data.frame(rank.acc=names(allCluster.ranks.sums), Freq=allCluster.ranks.sums)
-  table.ranks.df$rank.acc <- factor( table.ranks.df$rank.acc, levels= table.ranks.df$rank.acc)
-  ranking.plt <- ggplot(table.ranks.df, aes(x=rank.acc, y=Freq)) + geom_bar(fill="chartreuse4", stat="identity") + xlab("Probability ranking of true cluster") + ylab("Frequency") + theme_bw() + scale_y_continuous(labels=comma)
+  num.clusters <- length(data.file$pi.param)
   
-  #get accuracy measure (sum probabilities of true cluster divided by all PB reads)
-  all.prob.trueClust.v <- unlist(all.prob.trueClust)
-  overal.acc <- sum(all.prob.trueClust.v)/length(all.prob.trueClust.v)
+  #check accuracy only for autosomes and sex chrmosomes
+  mask <- which(grepl('^chr[0-9X][0-9]?$', data.file$PBchrom))
   
-  return(list(ranking.plt=ranking.plt, ranking.table=table.ranks.df,  overal.acc=overal.acc))
+  #get clusters IDs corresponding to a given chromosome
+  chr.rows <- data.file$PBchrom[mask]
+  chr.flag <- data.file$PBflag[mask]
+  prob.tab <- data.file$soft.pVal[mask,]
+  
+  #filter out duplicates
+  mask <- which(chr.flag == 16 | chr.flag == 0) 
+  chr.rows <- chr.rows[mask]
+  chr.flag <- chr.flag[mask]
+  prob.tab <- prob.tab[mask,]
+  
+  #Find WC cluster in all cells
+  theta.sums <- Reduce("+", data.file$theta.param)
+  remove.clust <- which.max(theta.sums[,3])
+  #Remove probabilities for always WC cluster
+  prob.tab <- prob.tab[,-remove.clust]
+  
+  Clust.IDs <- getClusterIdentityPerChrPerDir(soft.clust=prob.tab, chr.rows=chr.rows, chr.flag=chr.flag)
+  
+  #for each row of probability matrix select max probability corresponding to true cluster id
+  prob.trueClust <- sapply(1:nrow(prob.tab), function(x) prob.tab[x,Clust.IDs[x]])
+  rank.acc <- sapply(1:nrow(prob.tab), function(x) which(sort(prob.tab[x,], decreasing = T) == prob.trueClust[x]))
+  rank.acc <- unlist(rank.acc)
+  #create empty vector to store data
+  ranks.store <- rep(0, num.clusters)
+  names(ranks.store) <- 1:num.clusters
+  #count ranks per file
+  table.ranks <- sort(table(rank.acc), decreasing = T)
+  #store table of ranks
+  ranks.store[names(table.ranks)] <- as.numeric(table.ranks)
+
+	return(list(ranks=ranks.store, trueClust=prob.trueClust))
 }
 
 
