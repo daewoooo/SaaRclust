@@ -49,9 +49,9 @@ findClusterPartners2 <- function(theta.param=NULL) {
   
   # get only wc thetas
   theta.param.wc <- lapply(theta.param, function(x) x[,3])
-  # rbid wc thetas for all single cells
-  all.theta.param.wc <- do.call(rbind, theta.param.wc)
-  # compute the pairwise distance of all wc thetas
+  # cbid wc thetas for all single cells
+  all.theta.param.wc <- do.call(cbind, theta.param.wc)
+  # compute the pairwise distance of all clusters wc thetas
   d <- as.matrix(dist(all.theta.param.wc))
   # convert distance to a similarity measure
   d <- max(d) - d
