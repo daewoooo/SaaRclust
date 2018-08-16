@@ -33,6 +33,37 @@ findClusterPartners <- function(theta.param=NULL) {
 }
 
 
+
+#' Get pairs of clusters coming from the same chromosome with different directionalities
+#'
+#' This function solves the Maximum matching problem for all possible pairs of clusters and reports pairs with highest similarity.
+#'
+#' @param theta.param A \code{list} containing estimated cell types per cluster for each cell.
+#' @return A \code{vector} of pairs of clusters IDs that belong to the same chromosome.
+#' @importFrom maxmatching maxmatching
+#' @importFrom igraph graph E
+#' @author Maryam Ghareghani, David Porubsky
+#' @export
+
+findClusterPartners2 <- function(theta.param=NULL) {
+  
+  # get only wc thetas
+  theta.param.wc <- lapply(theta.param, function(x) x[,3])
+  # rbid wc thetas for all single cells
+  all.theta.param.wc <- do.call(rbind, theta.param.wc)
+  # compute the pairwise distance of all wc thetas
+  d <- as.matrix(dist(all.theta.param.wc))
+  # convert distance to a similarity measure
+  d <- max(d) - d
+  for (i in 1:nrow(d)){d[i,i] <- 0}
+  G <- igraph::graph.adjacency(d, mode="undirected", weighted=TRUE)
+  #TODO: replce the following code by another package or code (maxmatching doesn't work)
+  max.match <- maxmatching::maxmatching(G, weighted = TRUE)
+  
+  return(max.match$matching)
+}
+
+
 #' Get pairs of clusters coming from the same chromosome
 #'
 #' This function finds cluster coming from the same chromosome and having the same directionality
