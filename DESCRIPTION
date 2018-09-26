@@ -34,4 +34,4 @@ License: Artistic-2.0
 LazyLoad: yes
 VignetteBuilder: knitr, rmarkdown
 URL: https://github.com/daewoooo/SaaRclust.git
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0

@@ -4,8 +4,8 @@
 \alias{plotClustAccuracy}
 \title{Plot accuracy of clustring in respect to known location of each PacBio read.}
 \usage{
-plotClustAccuracy(pVal.df = NULL, num.clusters = NULL, thresh = c(0.5,
-  0.6, 0.7, 0.8, 0.9, 0.99))
+plotClustAccuracy(pVal.df = NULL, num.clusters = NULL,
+  thresh = c(0.5, 0.6, 0.7, 0.8, 0.9, 0.99))
 }
 \arguments{
 \item{pVal.df}{A \code{data.frame} of probability values.}

@@ -4,8 +4,8 @@
 \alias{EMclust}
 \title{EM (Expectation maximization) function}
 \usage{
-EMclust(counts.l, theta.param = NULL, pi.param = NULL, num.iter = 100,
-  alpha = 0.1, logL.th = 1, log.scale = FALSE)
+EMclust(counts.l, theta.param = NULL, pi.param = NULL,
+  num.iter = 100, alpha = 0.1, logL.th = 1, log.scale = FALSE)
 }
 \arguments{
 \item{counts.l}{A \code{list} of PB alignmetns separated per cell.}

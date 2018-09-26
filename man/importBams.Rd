@@ -4,7 +4,8 @@
 \alias{importBams}
 \title{Import BAM(s) and count reads}
 \usage{
-importBams(bamfolder = bamfolder, chromosomes = NULL, bin.length = 1e+06)
+importBams(bamfolder = bamfolder, chromosomes = NULL,
+  bin.length = 1e+06)
 }
 \arguments{
 \item{bamfolder}{A folder where BAM files to be processed are stored.}

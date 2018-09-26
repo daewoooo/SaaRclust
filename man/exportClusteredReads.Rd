@@ -4,7 +4,8 @@
 \alias{exportClusteredReads}
 \title{Print names of long reads into separate files based on soft clustering assignment.}
 \usage{
-exportClusteredReads(inputfolder = NULL, prob.th = NULL, minLib = NULL)
+exportClusteredReads(inputfolder = NULL, prob.th = NULL,
+  minLib = NULL)
 }
 \arguments{
 \item{inputfolder}{Path to the data analysis folder}
