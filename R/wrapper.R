@@ -165,7 +165,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     pi.param <- hard.clust$pi.param 
     
     #List files to process
-    file.list <- list.files(path = inputfolder, pattern = "chunk.+maf", full.names = TRUE)
+    file.list <- list.files(path = inputfolder, pattern = "chunk.+maf.gz$", full.names = TRUE)
   
     ### Main loop to process all files using EM algorithm ###
     for (file in file.list) {

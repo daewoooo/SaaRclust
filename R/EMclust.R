@@ -242,6 +242,9 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
     #soft.probs.tab.norm <- cluts.tab.update - apply(cluts.tab.update, 1, logSumExp)
     soft.probs.tab.norm <- cluts.tab.update - rowLogSumExps(cluts.tab.update)
     soft.probs.tab.norm <- exp(soft.probs.tab.norm) #get non-log scale probabilities
+    #convert theta.param and pi.param back to non-log scale probabilities
+    theta.param <- lapply(theta.param, exp)
+    pi.param <- exp(pi.param)
   } else {
     soft.probs.tab.norm <- cluts.tab.update / rowSums(cluts.tab.update)
   }
