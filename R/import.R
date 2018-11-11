@@ -15,7 +15,7 @@ importData <- function(infile=NULL) {  #TODO modify this function for input wher
   
   #filetype = summary( file(infile) )$class #If it's gzipped, filetype will be gzfile
   if (summary( file(infile) )$class == 'gzfile') {
-    data <- data.table::fread(cmd=paste0('gunzip -cq ',infile), header=T, verbose = F, showProgress = F)
+    data <- data.table::fread(paste0('zcat ',infile), header=T, verbose = F, showProgress = F)
   } else {
     data <- data.table::fread(infile, header=T, verbose = F, showProgress = F)
   }
