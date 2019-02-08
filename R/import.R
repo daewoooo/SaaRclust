@@ -16,6 +16,8 @@ importData <- function(infile=NULL) {  #TODO modify this function for input wher
   #filetype = summary( file(infile) )$class #If it's gzipped, filetype will be gzfile
   if (summary( file(infile) )$class == 'gzfile') {
     data <- data.table::fread(paste0('zcat ',infile), header=T, verbose = F, showProgress = F)
+    # select columns:
+    data <- data[, .(SSreadNames, SSlibNames, SSflag, SSchrom, SSpos, strand, PBreadNames, PBflag, PBchrom, PBpos, PBreadLen, TargetCoordStart, TargetCoordend, MatchedBasesWithGaps)]
   } else {
     data <- data.table::fread(infile, header=T, verbose = F, showProgress = F)
   }
