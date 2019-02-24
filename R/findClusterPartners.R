@@ -20,7 +20,7 @@ findClusterPartners <- function(theta.param=NULL) {
     # set diagonal values to zero
     diag(d) <- 0
     # Find pairs of clusters with the highest similarity
-    max.partners <- lp.assign(d, "max")
+    max.partners <- lpSolve::lp.assign(d, "max")
     max.partners.m <- max.partners$solution #matrix with pairs of clusters with maximal similarity
     # Extract indices of pair of clusters
     max.partners.idx <- which(max.partners.m > 0, arr.ind = TRUE)
