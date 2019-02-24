@@ -10,11 +10,11 @@ findClusterPartners(theta.param = NULL)
 \item{theta.param}{A \code{list} of estimated cell types for each cluster and each cell.}
 }
 \value{
-A \code{vector} of pairs of clusters IDs that belong to the same chromosome.
+A \code{matrix} of pairs of clusters IDs that belong to the same chromosome.
 }
 \description{
-This function solves the Maximum matching problem for all possible pairs of clusters and reports pairs with highest similarity.
+This function solves problem of finding the best clustering partners using linear programing function.
 }
 \author{
-David Porubsky, Maryam Ghareghani
+David Porubsky
 }

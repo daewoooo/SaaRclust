@@ -19,6 +19,7 @@ Depends:
 Imports:
     dplyr,
     maxmatching,
+    lpSolve,
     data.table,
     reshape2,
     matrixStats,
