@@ -9,20 +9,30 @@
 #' @export
 
 findClusterPartners <- function(theta.param=NULL) {
-    # get only wc thetas
+    
+    ## If there is an uneven number of clusters remove the one with the most WC states
+    num.clusters <- nrow(theta.param[[1]])
+    if (num.clusters %% 2 != 0) {
+      #Find cluster with WC state in majority of cells
+      theta.sums <- Reduce("+", theta.param)
+      remove.clust <- which.max(theta.sums[,3])
+      theta.param <- lapply(theta.param, function(x) x[-remove.clust,])
+    }
+  
+    ## get only wc thetas
     theta.param.wc <- lapply(theta.param, function(x) x[,3])
-    # cbid wc thetas for all single cells
+    ## cbind wc thetas for all single cells
     all.theta.param.wc <- do.call(cbind, theta.param.wc)
-    # compute the pairwise distance of all clusters wc thetas
+    ## compute the pairwise distance of all clusters wc thetas
     d <- as.matrix(dist(all.theta.param.wc))
-    # convert distance to a similarity measure
+    ## convert distance to a similarity measure
     d <- max(d) - d
-    # set diagonal values to zero
+    ## set diagonal values to zero
     diag(d) <- 0
-    # Find pairs of clusters with the highest similarity
+    ## Find pairs of clusters with the highest similarity
     max.partners <- lpSolve::lp.assign(d, "max")
     max.partners.m <- max.partners$solution #matrix with pairs of clusters with maximal similarity
-    # Extract indices of pair of clusters
+    ## Extract indices of pair of clusters
     max.partners.idx <- which(max.partners.m > 0, arr.ind = TRUE)
     max.partners.idx <- max.partners.idx[max.partners.idx[,1] < max.partners.idx[,2],] #remove duplicate cluster partners
     colnames(max.partners.idx) <- c('Cluster1', 'Cluster2')
@@ -41,7 +51,9 @@ findClusterPartners <- function(theta.param=NULL) {
 
 findClusterPartners_maxMatch <- function(theta.param=NULL) {
   
-  euc.dist.v <- function(v) sqrt(sum((v[1] - v[2]) ^ 2)) #calculate euclidean distance for pair of datapoints
+  ## Helper function
+  #calculate euclidean distance for pair of datapoints
+  euc.dist.v <- function(v) sqrt(sum((v[1] - v[2]) ^ 2))
   
   pairwise.dist <- list()
   for (i in 1:length(theta.param)) {
