@@ -16,6 +16,7 @@ Depends:
     ggplot2,
     GenomicRanges
 Imports:
+    tidyr,
     dplyr,
     lpSolve,
     data.table,

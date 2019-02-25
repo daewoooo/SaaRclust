@@ -2,6 +2,8 @@
 
 export(EMclust)
 export(SaaRclust)
+export(clusters2ranges)
+export(collapseBins)
 export(countDirectionalReads)
 export(countProb)
 export(estimateTheta)
@@ -48,3 +50,4 @@ importFrom(lpSolve,lp.assign)
 importFrom(matrixStats,logSumExp)
 importFrom(matrixStats,rowLogSumExps)
 importFrom(reshape2,melt)
+importFrom(tidyr,separate)
