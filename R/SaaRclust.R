@@ -126,7 +126,7 @@ SaaRclust <- function(minimap.file=NULL, outputfolder='SaaRclust_results', num.c
   tab.l <- split(tab.filt, tab.filt$SSlibNames)
   stopTimedMessage(ptm)
   
-  #### Count directional reads ###
+  ### Count directional reads ###
   counts.l <- countDirectionalReads(tab.l)
   
   # subsetting single cell libraries

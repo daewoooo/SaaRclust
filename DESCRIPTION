@@ -14,11 +14,9 @@ Depends:
     cowplot,
     RColorBrewer,
     ggplot2,
-    GenomicRanges,
-    igraph
+    GenomicRanges
 Imports:
     dplyr,
-    maxmatching,
     lpSolve,
     data.table,
     reshape2,

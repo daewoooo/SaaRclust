@@ -244,10 +244,9 @@ mergeSplitedClusters <- function(cluster2merge=NULL, soft.pVal=NULL) {
 #'
 #' @param theta.param A \code{list} containing estimated cell types per cluster for each cell.
 #' @return A \code{vector} of pairs of clusters IDs that belong to the same chromosome.
-#' @importFrom maxmatching maxmatching
-#' @importFrom igraph graph E
+# @importFrom maxmatching maxmatching
+# @importFrom igraph graph E
 #' @author Maryam Ghareghani, David Porubsky
-#' @export
 
 findClusterPartners2 <- function(theta.param=NULL) {
   
@@ -273,9 +272,8 @@ findClusterPartners2 <- function(theta.param=NULL) {
 #'
 #' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
 #' @return A \code{vector} of pairs of clusters IDs that belong to the same chromosome.
-#' @importFrom igraph graph max_cliques
+# @importFrom igraph graph max_cliques
 #' @author David Porubsky
-#' @export
 
 findSplitedClusters <- function(theta.param=NULL) {
   
