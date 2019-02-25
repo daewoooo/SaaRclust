@@ -16,6 +16,7 @@ findClusterPartners <- function(theta.param=NULL) {
       #Find cluster with WC state in majority of cells
       theta.sums <- Reduce("+", theta.param)
       remove.clust <- which.max(theta.sums[,3])
+      message("    Removed cluster ", remove.clust, " to ensure even number of clusters!!!")
       theta.param <- lapply(theta.param, function(x) x[-remove.clust,])
     }
   
