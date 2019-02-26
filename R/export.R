@@ -30,7 +30,7 @@ clusters2ranges <- function(saarclust.obj = NULL, best.prob = 1, prob.th = 0.5) 
   ## Report cluster ID based on a defined number of highest p-values
   if (best.prob == 1) {
     clust.ID <- apply(soft.prob, 1, which.max)
-    regions.gr$clust1 <- clust.ID
+    regions.gr$clust.ID <- clust.ID
   } else {
     # TODO report more than one cluster per region
   }
