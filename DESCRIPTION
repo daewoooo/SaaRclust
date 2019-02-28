@@ -19,6 +19,7 @@ Imports:
     tidyr,
     dplyr,
     lpSolve,
+    igraph,
     data.table,
     reshape2,
     matrixStats,

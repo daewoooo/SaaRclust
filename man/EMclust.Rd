@@ -8,7 +8,7 @@ EMclust(counts.l, theta.param = NULL, pi.param = NULL,
   num.iter = 100, alpha = 0.1, logL.th = 1, log.scale = FALSE)
 }
 \arguments{
-\item{counts.l}{A \code{list} of PB alignmetns separated per cell.}
+\item{counts.l}{A \code{list} of plus and minus alignments per genomic region.}
 
 \item{theta.param}{A \code{list} of estimated cell types for each single cell. (rows=clusters, cols=strand states)}
 

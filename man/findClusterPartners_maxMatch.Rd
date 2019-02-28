@@ -2,7 +2,7 @@
 % Please edit documentation in R/findClusterPartners.R
 \name{findClusterPartners_maxMatch}
 \alias{findClusterPartners_maxMatch}
-\title{Get pairs of clusters coming from the same chromosome that differs in directionality.}
+\title{Get pairs of clusters coming from the same chromosome that differs in directionality. [DEPRECATED!!!]}
 \usage{
 findClusterPartners_maxMatch(theta.param = NULL)
 }
