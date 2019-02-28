@@ -7,7 +7,7 @@
 #' @return A \code{\link{GRanges-class}} object.
 #' @author David Porubsky
 #' @export
-
+#' 
 collapseBins <- function(gr, id.field=0) {
   ## Include seqnames into the unique ID
   unique.ID <- paste0(seqnames(gr), '_', mcols(gr)[,id.field])
@@ -18,4 +18,25 @@ collapseBins <- function(gr, id.field=0) {
   collapsed.gr <- GenomicRanges::GRanges(seqnames=seqnames(gr[ind.first]), ranges=IRanges(start=start(gr[ind.first]), end=end(gr[ind.last])), mcols=mcols(gr[ind.first]))
   names(mcols(collapsed.gr)) <- names(mcols(gr[ind.first]))
   return(collapsed.gr)
+}
+
+
+#' Reverse orientation of directional read counts
+#'
+#' This function flips the orientation of directional reads counts for each genomic position.
+#'
+#' @param counts.l A \code{list} of plus and minus alignments per genomic region.
+#' @return A \code{list} of matrices (columns: minus (W) and plus (C) counts; rows: genomic regions).
+#' @export
+#' 
+flipCounts <- function(counts.l) {
+  flipped.counts.l <- list()
+  for (i in 1:length(counts.l)) {
+    toFlip <- counts.l[[i]]
+    toFlip[,1] <- counts.l[[i]][,2]
+    toFlip[,2] <- counts.l[[i]][,1]
+    rownames(toFlip) <- paste0(rownames(toFlip),"_rev")
+    flipped.counts.l[[i]] <- toFlip
+  }
+  return(flipped.counts.l)
 }
