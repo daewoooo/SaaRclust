@@ -240,11 +240,15 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, bin.length=1000000
     ## Load reads from BAM into GRanges object
     #fragments <- bam2GRanges(file = bam, chromosomes=chromosomes, pairedEndReads = T, min.mapq = 10, keep.duplicate.reads = F, what = 'mapq')
     suppressWarnings( fragments <- readBamFileAsGRanges(file=bam, chromosomes=chromosomes, pairedEndReads=TRUE, min.mapq=10, remove.duplicate.reads=TRUE, pair2frgm=FALSE, filtAlt=TRUE) )
+    ## Sort fragments by seqlevels
+    fragments <- GenomicRanges::sort(fragments, ignore.strand=TRUE)
     
     if (bin.length) {
       ## Get genome bins
       bins.gr <- unlist( GenomicRanges::tileGenome(seqlengths = seqlengths(fragments), tilewidth = bin.length) )
-      hits <- findOverlaps(fragments, bins.gr, select = "first") #TODO: make sure the same read connot end up in two neighbouring bins!!!
+      hits <- IRanges::findOverlaps(fragments, bins.gr, select = "first") #TODO: make sure the same read can't end up in two neighbouring bins!!!
+      
+      #runLength(seqnames(fragments))[which(runValue(seqnames(fragments)) == 'Super-Scaffold_365')]
       
       ## Add missing values if there is no reads in any given bin
       bin.num <- 1:length(bins.gr)
@@ -261,19 +265,23 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, bin.length=1000000
       fragments$ID <- seqnames(fragments)
     }
     
-    ## Transform GRanges obejct into a data.frame
+    ## Transform GRanges object into a data.frame
     fragments.df <- as(fragments[,'ID'], 'data.frame')
     fragments.df$ID <- factor(fragments.df$ID, levels=as.character(bins.gr))
     fragments.df$strand <- factor(as.character(fragments.df$strand))
     
+    #table(fragments.df[fragments.df$seqnames == 'Super-Scaffold_365',]$strand)
+    #tmp <- fragments.df[fragments.df$seqnames == 'Super-Scaffold_365',]
+    
     ## Count reads
-    counts <- data.table::data.table(fragments.df)[,table(strand),by=ID] #even faster option TEST
+    counts <- data.table::data.table(fragments.df)[,table(strand),by=ID]
     cov.reads <- unique(counts$ID)
     uncov.reads <- levels(cov.reads)[!levels(cov.reads) %in% cov.reads]
     counts <- rbind(matrix(counts$V1, ncol=2, byrow = T), matrix(rep(0, 2*length(uncov.reads)), ncol=2) )
     rownames(counts) <- c(as.character(unique(cov.reads)), uncov.reads)
     counts <- counts[order(match(rownames(counts),levels(fragments.df$ID))),]
-    counts.l[[j]] <- counts  
+    #counts.l[[j]] <- counts
+    counts.l[[bam.name]] <- counts  #TEST
   }
   return(counts.l)
 }
