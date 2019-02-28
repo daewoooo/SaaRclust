@@ -40,7 +40,7 @@ findClusterPartners <- function(theta.param=NULL) {
     return(max.partners.idx)
 }
     
-#' Get pairs of clusters coming from the same chromosome that differs in directionality.
+#' Get pairs of clusters coming from the same chromosome that differs in directionality. [DEPRECATED!!!]
 #'
 #' This function solves the Maximum matching problem for all possible pairs of clusters and reports pairs with highest similarity.
 #'
@@ -53,8 +53,18 @@ findClusterPartners <- function(theta.param=NULL) {
 findClusterPartners_maxMatch <- function(theta.param=NULL) {
   
   ## Helper function
-  #calculate euclidean distance for pair of datapoints
+  ## Calculate euclidean distance for pair of datapoints
   euc.dist.v <- function(v) sqrt(sum((v[1] - v[2]) ^ 2))
+  
+  ## If there is an uneven number of clusters remove the one with the most WC states
+  num.clusters <- nrow(theta.param[[1]])
+  if (num.clusters %% 2 != 0) {
+    #Find cluster with WC state in majority of cells
+    theta.sums <- Reduce("+", theta.param)
+    remove.clust <- which.max(theta.sums[,3])
+    message("    Removed cluster ", remove.clust, " to ensure even number of clusters!!!")
+    theta.param <- lapply(theta.param, function(x) x[-remove.clust,])
+  }
   
   pairwise.dist <- list()
   for (i in 1:length(theta.param)) {
@@ -74,43 +84,103 @@ findClusterPartners_maxMatch <- function(theta.param=NULL) {
   return(max.match$matching)
 }
     
-    
 
-#' Get pairs of clusters coming from the same chromosome with different directionalities
+#' Get pairs of clusters likely coming from the same chromosome
 #'
-#' This function finds the pairs by computing the pairwise distances between clusters theta_wc parameters, and pais each cluster with the cluster with min dist
-#' Note that the first 23 minimum values should form a matching in the complete graph of clusters (this condition is observed to be held in practice)
-#' TODO: We should replace this simple function by a proper max matching algorithm or some other solution that properly solves this problem and finds non-overlappinh pairs of clusters
-#' 
-#' @param theta.param A \code{list} containing estimated cell types per cluster for each cell.
-#' @return A \code{vector} of pairs of clusters IDs that belong to the same chromosome.
-#' @author Maryam Ghareghani
+#' This function finds cluster likely coming from the same chromosome by looking for clusters that share the same
+#' directionality across multiple Strand-seq libraries.
+#'
+#' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
+#' @return A \code{matrix} of pairs of clusters IDs that belong to the same chromosome.
+#' @author David Porubsky
 #' @export
+#' 
+findSplitedClusters <- function(theta.param=NULL, z.limit=2.58) {
+  
+  ## Helper function
+  ## Calculate euclidean distance for pair of datapoints
+  euc.dist.v <- function(v) sqrt(sum((v[1] - v[2]) ^ 2))
+  
+  ## If there is an uneven number of clusters remove the one with the most WC states
+  num.clusters <- nrow(theta.param[[1]])
+  if (num.clusters %% 2 != 0) {
+    #Find cluster with WC state in majority of cells
+    theta.sums <- Reduce("+", theta.param)
+    remove.clust <- which.max(theta.sums[,3])
+    message("    Removed cluster ", remove.clust, " to ensure even number of clusters!!!")
+    theta.param <- lapply(theta.param, function(x) x[-remove.clust,])
+  }
+  
+  pairwise.dist <- list()
+  for (i in 1:length(theta.param)) {
+    cell.theta <- theta.param[[i]]
+    pairs <- t(combn(nrow(cell.theta), 2))
+    pairs.w <- cbind( cell.theta[pairs[,1],1], cell.theta[pairs[,2],1] )
+    dist <- apply(pairs.w, 1, euc.dist.v)
+    pairwise.dist[[i]] <- dist
+  }
+  pairwise.dist.m <- do.call(cbind, pairwise.dist)
+  pairwise.simil.m <- max(pairwise.dist.m)-pairwise.dist.m
+  simil.sum <- rowSums(pairwise.simil.m)
+  zscores <- (simil.sum - mean(simil.sum)) / sd(simil.sum)
+  idx <- zscores > z.limit #user defined confidence interval
+  simil.partners.idx <- cbind(pairs[idx,1], pairs[idx,2])
+  colnames(simil.partners.idx) <- c('Cluster1', 'Cluster2')
+  
+  return(simil.partners.idx)
+}
 
-findClusterPartners_simple <- function(theta.param=NULL) {
+
+#' Get pairs of clusters likely coming from the same chromosome but differ in directionality
+#'
+#' This function finds cluster likely coming from the same chromosome by looking for clusters that have opposite
+#' directionality across multiple Strand-seq libraries.
+#'
+#' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
+#' @return A \code{matrix} of pairs of clusters IDs that belong to the same chromosome.
+#' @author David Porubsky
+#' @importFrom igraph graph clusters V
+#' @export
+#' 
+findAntiparallelClusters <- function(theta.param=NULL, z.limit=2.58) {
   
-  # get only wc thetas
-  theta.param.wc <- lapply(theta.param, function(x) x[,3])
-  # cbid wc thetas for all single cells
-  all.theta.param.wc <- do.call(cbind, theta.param.wc)
-  # compute the pairwise distance of all wc thetas (all pairs of clusters)
-  d <- as.matrix(dist(all.theta.param.wc))
-  # compute the min index in each row (excluding the diogonal element)
-  min.cost.clust.pair <- sapply(1:nrow(d), function(i) return(which.min(d[i,-i])))
-  min.cost.clust.pair <- data.table(first_clust=1:nrow(d), second_clust=as.numeric(names(min.cost.clust.pair)))
-  # put the min rank cluster in the first column
-  min.cost.clust.pair[, min_id_clust:=min(first_clust, second_clust), by=1:nrow(min.cost.clust.pair)]
-  min.cost.clust.pair[, second_clust:=max(first_clust, second_clust), by=1:nrow(min.cost.clust.pair)]
-  min.cost.clust.pair[, `:=`(first_clust=min_id_clust, min_id_clust=NULL)]
+  ## Helper function
+  ## Calculate euclidean distance for pair of datapoints
+  euc.dist.v <- function(v) sqrt(sum((v[1] - v[2]) ^ 2))
   
-  # compute the frequencies of each cluster in this pairing
-  fr <- table(c(min.cost.clust.pair$first_clust, min.cost.clust.pair$second_clust))
+  ## If there is an uneven number of clusters remove the one with the most WC states
+  num.clusters <- nrow(theta.param[[1]])
+  if (num.clusters %% 2 != 0) {
+    #Find cluster with WC state in majority of cells
+    theta.sums <- Reduce("+", theta.param)
+    remove.clust <- which.max(theta.sums[,3])
+    message("    Removed cluster ", remove.clust, " to ensure even number of clusters!!!")
+    theta.param <- lapply(theta.param, function(x) x[-remove.clust,])
+  }
   
-  # check whether the pairing is a matching
-  assert_that(all(sort(unique(fr))==1:3) & length(which(duplicated(min.cost.clust.pair)))==floor(nrow(min.cost.clust.pair)/2)) %>% invisible()
+  pairwise.dist <- list()
+  for (i in 1:length(theta.param)) {
+    cell.theta <- theta.param[[i]]
+    pairs <- t(combn(nrow(cell.theta), 2))
+    pairs.w <- cbind( cell.theta[pairs[,1],1], cell.theta[pairs[,2],2] )
+    dist <- apply(pairs.w, 1, euc.dist.v)
+    pairwise.dist[[i]] <- dist
+  }
+  pairwise.dist.m <- do.call(cbind, pairwise.dist)
+  pairwise.simil.m <- max(pairwise.dist.m)-pairwise.dist.m
+  simil.sum <- rowSums(pairwise.simil.m)
+  zscores <- (simil.sum - mean(simil.sum)) / sd(simil.sum)
+  idx <- zscores > z.limit #user defined confidence interval
   
-  # keep only the duplicated rows (keep the matching and kick out the garbage cluster)
-  min.cost.clust.pair <- min.cost.clust.pair[duplicated(min.cost.clust.pair)]
+  vertices <- c(rbind(pairs[idx,1], pairs[idx,2]))
+  G <- igraph::graph(vertices, directed = FALSE)
+  cl <- igraph::clusters(G)
   
-  return(min.cost.clust.pair)
+  cluster.l <- lapply(seq_along(cl$csize), function(x) V(G)[cl$membership %in% x])
+  cluster.l <- cluster.l[lengths(cluster.l) > 1]
+  
+  #anti.partners.idx <- cbind(pairs[idx,1], pairs[idx,2])
+  #colnames(anti.partners.idx) <- c('Cluster1', 'Cluster2')
+  
+  return(cluster.l)
 }
