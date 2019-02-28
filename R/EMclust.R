@@ -2,7 +2,7 @@
 #'
 #' This function performs basic steps of EM algorithm.
 #'
-#' @param counts.l A \code{list} of PB alignmetns separated per cell.
+#' @param counts.l A \code{list} of plus and minus alignments per genomic region.
 #' @param theta.param A \code{list} of estimated cell types for each single cell. (rows=clusters, cols=strand states)
 #' @param pi.param A \code{vector} of estimated sizes of each cluster based on initial hard clustering.
 #' @param num.iter Set number of iteration to EM algorithm.
