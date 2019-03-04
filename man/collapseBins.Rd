@@ -4,7 +4,7 @@
 \alias{collapseBins}
 \title{Collapse consecutive bins with the same ID value}
 \usage{
-collapseBins(gr, id.field = 0)
+collapseBins(gr, id.field = 0, measure.field = NULL)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object.}
