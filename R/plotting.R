@@ -241,3 +241,92 @@ plotReadAlignments <- function(minimap.tab=NULL) {
   plt <- ggplot(all.libs.df) + geom_linerange(data=readLen, aes(x=0, ymin=start, ymax=end), color="black") + geom_linerange(aes(x=level, ymin=start, ymax=end, color=strand)) + coord_flip() + scale_color_manual(values = c("paleturquoise4","sandybrown")) + xlab("") + facet_grid(SSlibNames ~ ., scales = 'free') + geom_text(aes(x=Inf,y=0, vjust=1, hjust=0), label=all.libs.df$probs) + ggtitle(readID) + theme(strip.text.y = element_text(angle = 360))
   return(plt)
 }
+
+
+#' Plot contig strand states per cell 
+#' 
+#' This function takes \code{data.frame} of strand states per contig [rows] and per cell [columns]
+#' and plots heatmap of order or unordered strand states.
+#'
+#' @param contig.states A \code{data.frame} of strand states per contig and per cell.
+#' @param cluster.rows If set to \code{TRUE}, will order rows by hierarchical clustering.
+#' @param cluster.cols If set to \code{TRUE}, will order columns by hierarchical clustering.
+#' @param filt.cols If set to \code{TRUE}, will remove columns with the same strand-state across all contigs.
+#' @author David Porubsky
+#' @export
+#' 
+plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, cluster.cols=FALSE, filt.cols=FALSE) {
+  ## Remove columns that have the same strand state across all contigs ('uninformative cells')
+  if (filt.cols) {
+    mask <- apply(contig.states, 2, function(x) length(unique(x)) > 1)
+    if (length(mask[mask == TRUE]) > 1) {
+      contig.states <- contig.states[,mask]
+    } else {
+      message("Parameter 'filt.cols' would leave only one cell, skipping ...")
+    }  
+  }
+  ## Order rows by hierarchical clustering
+  plt.df <- contig.states
+  if (cluster.rows) {
+    contig.dist <- stats::dist(contig.states)
+    hc.clust <- stats::hclust(contig.dist)
+    contig.order <- hc.clust$order
+  }
+  ## Order columns by hierarchical clustering
+  if (cluster.cols) {
+    cell.dist <- stats::dist(t(contig.states))
+    hc.clust <- stats::hclust(cell.dist)
+    cell.order <- hc.clust$order
+  }
+  ## Prepare data for plotting
+  if (cluster.rows && cluster.cols) {
+    plt.df <- plt.df[,cell.order]
+    plt.df$contig <- factor(rownames(plt.df), levels = rownames(plt.df)[contig.order])
+  } else if (cluster.rows && !cluster.cols) {
+    plt.df$contig <- factor(rownames(plt.df), levels = rownames(plt.df)[contig.order])
+  } else if (cluster.cols && !cluster.rows) {
+    plt.df <- plt.df[,cell.order]
+    plt.df$contig <- factor(rownames(plt.df), levels = rownames(plt.df))
+  } else {
+    plt.df$contig <- factor(rownames(plt.df), levels = rownames(plt.df))
+  }
+  plt.df <- reshape2::melt(plt.df, id.vars = 'contig')
+  ## Plot contigs
+  plt <- ggplot2::ggplot(plt.df) + 
+    geom_tile(aes(x=variable, y=contig, fill=factor(value))) +
+    scale_fill_manual(values = brewer.pal(n=4, name = 'Set1'), name='States') +
+    xlab("Cell number") +
+    ylab("Contig ID")
+  ## Return final plot
+  return(plt)
+} 
+
+
+#' Plot genome-wide position of clustered contigs
+#'
+#' @param gr A \code{\link{GRanges-class}} object with contig position and their cluster assignment in 'clust.ID' and 'group.ID' metacolumn.
+#' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
+#' @return A \code{ggplot} object.
+#' @author David Porubsky
+#' @export
+#' 
+plotContigsGenomeWide <- function(gr=NULL, bsgenome=NULL) {
+  ## Use standard chromosomes only
+  chroms <- paste0('chr', c(1:22, 'X','Y'))
+  ## Prepare ideogram plot
+  seq.len <- seqlengths(bsgenome)[chroms]
+  ideo.df <- data.frame(seqnames=names(seq.len), length=seq.len)
+  ideo.df$seqnames <- factor(ideo.df$seqnames, levels=chroms)
+  plt.df <- as.data.frame(gr.collapsed)
+  ## Plot contigs on ideogram
+  plt <- ggplot2::ggplot() + geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill="white", color="black") +
+    facet_grid(seqnames ~ ., switch = 'y') +
+    geom_rect(data=plt.df , aes(xmin=start, xmax=end, ymin=0, ymax=1, fill=group.ID)) +
+    scale_x_continuous(expand = c(0,0)) +
+    theme_void() +
+    theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+    theme(strip.text.y = element_text(angle = 180))
+  ## Return final plot
+  return(plt)
+}
