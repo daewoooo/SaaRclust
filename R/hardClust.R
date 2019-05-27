@@ -25,8 +25,9 @@ hardClust <- function(counts.l=NULL, num.clusters=NULL, nstart=10, iter.max=10) 
   }
    
   ratios.m <- do.call(cbind, ratios.l)
-  ratios.m[ratios.m<0] <- -1
-  ratios.m[ratios.m>0] <- 1
+  #ratios.m[ratios.m < 0.5] <- -1
+  #ratios.m[ratios.m > 0.5] <- 1
+  ratios.m[] <- as.numeric(findInterval(ratios.m, c(-0.5, 0.5)))
   
   #hard clustering using kmeans
   km <- suppressWarnings( kmeans(ratios.m, centers = num.clusters, nstart = nstart, iter.max = iter.max) )
