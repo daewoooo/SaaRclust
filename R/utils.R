@@ -50,3 +50,64 @@ flipCounts <- function(counts.l) {
   }
   return(flipped.counts.l)
 }
+
+
+#' Function to obtain co-inheritance matrix based on shared strand states
+#' 
+#' This function takes \code{data.frame} of strand states per contig [rows] and per cell [columns]
+#' and converts it into a matrix of contig similarities based on co-inheritance patterns.
+#'
+#' @param contig.states A \code{data.frame} of strand states per contig and per cell.
+#' @param scale If set to \code{TRUE} returned values will be scaled to 1.
+#' @return A symetric \code{matrix} of similarities for each contig pair.
+#' @author David Porubsky
+#' @export
+#' 
+getCoinheritanceMatrix <- function(contig.states = NULL, scale=FALSE) {
+  ## Initialize empty matrix
+  n.contigs <- nrow(contig.states)
+  coinherit.m <- matrix(nrow = n.contigs, ncol = n.contigs)
+  pairs <- as.matrix(expand.grid(1:n.contigs, 1:n.contigs))
+  for (i in 1:nrow(pairs)) {
+    pair <- pairs[i,]
+    comp <- contig.states[pair[1],] == contig.states[pair[2],]
+    coinherit.score <- length(comp[comp == TRUE])
+    coinherit.m[pair[1], pair[2]] <- coinherit.score
+  }
+  ## Convert coinheritance to similarity
+  coinherit.m <- max(coinherit.m) - coinherit.m
+  ## Scale similarities to 1
+  if (scale) {
+    coinherit.m <- coinherit.m / sum(coinherit.m)
+  }
+  ## Add row and column names and return
+  rownames(coinherit.m) <- rownames(contig.states)
+  colnames(coinherit.m) <- rownames(contig.states)
+  return(coinherit.m)
+}
+
+
+#' Assign group.ID for similar cluster.IDs
+#' 
+#' This function will write extra metacolumn 'group.ID' into an input \code{\link{GRanges-class}} object
+#' based on cluster.groups parameter.
+#'
+#' @param cluster.gr A \code{\link{GRanges-class}} object with contig position and their cluster assignment in 'clust.ID' metacolumn.
+#' @param cluster.groups A \code{list} of grouped 'clust.IDs'.
+#' @return A \code{\link{GRanges-class}} object with an extra metacolumn group.ID.
+#' @author David Porubsky
+#' @export
+#' 
+addClusterGroup <- function(cluster.gr=NULL, cluster.groups=NULL) {
+  ## Initialize cluster group with clust.ID
+  cluster.gr$group.ID <- cluster.gr$clust.ID
+  ## Add cluster group for pair of clusters specified in cluster.pairs
+  for (i in seq_along(cluster.groups)) {
+    clust.group <- cluster.groups[[i]]
+    ## Assign common cluster group for a pair of clusters
+    cluster.gr.sub <- cluster.gr[cluster.gr$clust.ID %in% clust.group]
+    cluster.gr.sub$group.ID <- paste0('cluster',i)
+    cluster.gr[cluster.gr$clust.ID %in% clust.group] <- cluster.gr.sub
+  }
+  return(cluster.gr)
+} 
