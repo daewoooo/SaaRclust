@@ -7,6 +7,7 @@
 #' @param method Set one of the method to solve TSP, default: 'cheapest_insertion'.
 #' @param trials Number of random trials to solve TSP.
 #' @param filt.cols If set to \code{TRUE}, will remove columns with the same strand-state across all contigs.
+#' @importFrom TSP TSP solve_TSP
 #' @author David Porubsky
 #' @export
 #' 
@@ -37,8 +38,8 @@ orderContigsTSP <- function(contig.states=NULL, method='cheapest_insertion', tri
   colnames(dists)[nrow(dists)] <- 'dummy'
   
   ## Find 'best' traversal through all contigs using TSP package
-  contig.tsp <- TSP(dists)
-  contigs.order <- solve_TSP(contig.tsp, method=method, control=list(rep=trials))
+  contig.tsp <- TSP::TSP(dists)
+  contigs.order <- TSP::solve_TSP(contig.tsp, method=method, control=list(rep=trials))
   ## Remove the dummy node
   contigs.order <- labels(contigs.order)[-c(which(labels(contigs.order)=='dummy'))]
   
