@@ -22,7 +22,7 @@ To install the development version from Github, follow the steps given below. Th
 	Or alternatively if the above line doesn't work:
 	install_git("git://github.com/daewoooo/SaaRclust.git", branch = "master")
 	
-## External Code
+#### External Code
 This package implements source code of orderContigsGreedy from [ContiBAIT](https://bioconductor.org/packages/contiBAIT) package. 
 Copyright (c) 2015, Kieran O'Neill, Mark Hills, Mike Gottlieb
 
