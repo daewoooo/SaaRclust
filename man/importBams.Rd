@@ -5,16 +5,21 @@
 \title{Import BAM(s) and count reads}
 \usage{
 importBams(bamfolder = bamfolder, chromosomes = NULL,
-  bin.length = 1e+06)
+  pairedEndReads = TRUE, min.mapq = 10, bin.length = 1e+06,
+  mask.collapses = TRUE)
 }
 \arguments{
 \item{bamfolder}{A folder where BAM files to be processed are stored.}
 
 \item{chromosomes}{If only a subset of the chromosomes should be binned, specify them here.}
 
+\item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
+
+\item{min.mapq}{Minimum mapping quality when importing from BAM files.}
+
 \item{bin.length}{A length of a bin to count reads in.}
 
-\item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
+\item{mask.collapses}{If set to \code{TRUE} read pileups of more than 4 reads will be removed (default=TRUE).}
 }
 \value{
 A \code{list} of matrices (columns: minus (W) and plus (C) counts; rows: genomic regions).
