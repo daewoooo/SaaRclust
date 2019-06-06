@@ -272,11 +272,19 @@ plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, clu
     hc.clust <- stats::hclust(contig.dist)
     contig.order <- hc.clust$order
   }
+  ## Order rows by user defined order
+  if (is.numeric(cluster.rows)) {
+    contig.order <- cluster.rows
+  }
   ## Order columns by hierarchical clustering
   if (cluster.cols) {
     cell.dist <- stats::dist(t(contig.states))
     hc.clust <- stats::hclust(cell.dist)
     cell.order <- hc.clust$order
+  }
+  ## Order columns by hierarchical clustering
+  if (is.numeric(cluster.cols)) {
+    contig.order <- cluster.cols
   }
   ## Prepare data for plotting
   if (cluster.rows && cluster.cols) {
@@ -327,6 +335,28 @@ plotContigsGenomeWide <- function(gr=NULL, bsgenome=NULL) {
     theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
     theme(strip.text.y = element_text(angle = 180))
+  ## Return final plot
+  return(plt)
+}
+
+#' Plot genome-wide position of clustered contigs
+#'
+#' @param gr A \code{\link{GRanges-class}} object with contig position and their cluster assignment in 'clust.ID' and 'group.ID' metacolumn.
+#' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
+#' @return A \code{ggplot} object.
+#' @importFrom reshape2 melt
+#' @author David Porubsky
+#' @export
+#'
+plotDistanceMatrix <- function(dist.matrix, col.low="chartreuse4", col.high="cadetblue1") {
+  coinht.m.long <- reshape2::melt(coinht.m)
+  plt <- ggplot2::ggplot(coinht.m.long, aes(x = Var2, y = Var1)) + 
+    geom_raster(aes(fill = value)) + 
+    scale_fill_gradient(low = col.low, high = col.high) +
+    coord_fixed() +
+    xlab("") +
+    ylab("") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
   ## Return final plot
   return(plt)
 }
