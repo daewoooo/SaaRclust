@@ -54,7 +54,7 @@ clusters2ranges <- function(saarclust.obj = NULL, best.prob = 1, prob.th = 0.5) 
 #' @export 
 #' 
 counts2ranges <- function(counts.l=NULL, saarclust.obj=NULL, best.prob=1, prob.th=0.5) {
-  ## TODO check if submited object is of class 'saarclust'
+  ## TODO check if submitted object is of class 'saarclust'
   
   soft.prob <- saarclust.obj$soft.pVal
   
@@ -80,13 +80,14 @@ counts2ranges <- function(counts.l=NULL, saarclust.obj=NULL, best.prob=1, prob.t
   ## Go over W and C counts for every cell
   counts.grl <- GenomicRanges::GRangesList()
   for (i in seq_along(counts.l)) {
+    cell.ID <- names(counts.l[i])
     counts.cell <- counts.l[[i]]
     ## Remove segments that do not reach reguired prob.th
     counts.cell <- counts.cell[mask,]
     counts.cell.gr <- regions.gr
     counts.cell.gr$C <- counts.cell[,1]
     counts.cell.gr$W <- counts.cell[,2]
-    counts.grl[[i]] <- counts.cell.gr 
+    counts.grl[[cell.ID]] <- counts.cell.gr 
   }
   return(counts.grl)
 }

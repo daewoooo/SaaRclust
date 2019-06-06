@@ -4,6 +4,7 @@
 #'
 #' @param gr A \code{\link{GRanges-class}} object.
 #' @param id.field A number of metadata column to use for region merging.
+#' @param measure.field A field column that contains measured value to be sum up.
 #' @return A \code{\link{GRanges-class}} object.
 #' @author David Porubsky
 #' @export
