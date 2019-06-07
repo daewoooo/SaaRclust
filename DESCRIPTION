@@ -19,6 +19,7 @@ Imports:
     dplyr,
     lpSolve,
     TSP,
+    Rcpp,
     igraph,
     data.table,
     reshape2,

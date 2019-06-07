@@ -314,27 +314,42 @@ plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, clu
 #'
 #' @param gr A \code{\link{GRanges-class}} object with contig position and their cluster assignment in 'clust.ID' and 'group.ID' metacolumn.
 #' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
+#' @param blacklist A \code{\link{GRanges-class}} object of regions to be removed from input gr.
 #' @return A \code{ggplot} object.
+#' @importFrom RColorBrewer brewer.pal.info brewer.pal
 #' @author David Porubsky
 #' @export
 #' 
-plotContigsGenomeWide <- function(gr=NULL, bsgenome=NULL) {
+plotContigsGenomeWide <- function(gr=NULL, bsgenome=NULL, blacklist=NULL) {
   ## Use standard chromosomes only
   chroms <- paste0('chr', c(1:22, 'X','Y'))
   ## Prepare ideogram plot
   seq.len <- seqlengths(bsgenome)[chroms]
   ideo.df <- data.frame(seqnames=names(seq.len), length=seq.len)
   ideo.df$seqnames <- factor(ideo.df$seqnames, levels=chroms)
-  plt.df <- as.data.frame(gr.collapsed)
+  plt.df <- as.data.frame(gr)
+  ## Set colors
+  n.colors <- length(unique(gr$group.ID))
+  qual.col.pals <- brewer.pal.info[brewer.pal.info$category == 'qual',]
+  col.vector <- unlist(mapply(brewer.pal, qual.col.pals$maxcolors, rownames(qual.col.pals)))
+  col.vector <- sample(col.vector, n.colors)
+  
   ## Plot contigs on ideogram
   plt <- ggplot2::ggplot() + geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill="white", color="black") +
     facet_grid(seqnames ~ ., switch = 'y') +
     geom_rect(data=plt.df , aes(xmin=start, xmax=end, ymin=0, ymax=1, fill=group.ID)) +
     scale_x_continuous(expand = c(0,0)) +
+    scale_fill_manual(values = col.vector) +
     theme_void() +
     theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
     theme(strip.text.y = element_text(angle = 180))
+  ## Plot blacklisted regions in white if defined
+  if (!is.null(blacklist)) {
+    blacklist.df <- as.data.frame(blacklist)
+    blacklist.df <- blacklist.df[blacklist.df$seqnames %in% chroms,]
+    plt <- plt + geom_rect(data=blacklist.df , aes(xmin=start, xmax=end, ymin=0, ymax=1), fill='white')
+  }
   ## Return final plot
   return(plt)
 }
@@ -349,8 +364,8 @@ plotContigsGenomeWide <- function(gr=NULL, bsgenome=NULL) {
 #' @export
 #'
 plotDistanceMatrix <- function(dist.matrix, col.low="chartreuse4", col.high="cadetblue1") {
-  coinht.m.long <- reshape2::melt(coinht.m)
-  plt <- ggplot2::ggplot(coinht.m.long, aes(x = Var2, y = Var1)) + 
+  dist.matrix.long <- reshape2::melt(dist.matrix)
+  plt <- ggplot2::ggplot(dist.matrix.long, aes(x = Var2, y = Var1)) + 
     geom_raster(aes(fill = value)) + 
     scale_fill_gradient(low = col.low, high = col.high) +
     coord_fixed() +

@@ -247,6 +247,17 @@ findSplitedClusters2 <- function(theta.param=NULL, z.limit=2.58) {
 }
 
 
+#' Get pairs of clusters likely coming from the same chromosome
+#'
+#' This function finds cluster likely coming from the same chromosome by looking for clusters that share the same
+#' directionality across multiple Strand-seq libraries.
+#'
+#' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
+#' @param z.limit Connect clusters with z-score equal or above this limit.
+#' @return A \code{matrix} of pairs of clusters IDs that belong to the same chromosome.
+#' @author David Porubsky
+#' @export
+#' 
 connectDividedClusters <- function(theta.param=NULL, z.limit=2.58) {
   
   ## Helper function ##
@@ -279,7 +290,7 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=2.58) {
   ## Calculate z-score to find strongly connected pairs of clusters
   simil.sum <- rowSums(pairwise.simil.m)
   zscores <- (simil.sum - mean(simil.sum)) / sd(simil.sum)
-  idx <- zscores > z.limit ## user defined confidence interval
+  idx <- zscores >= z.limit ## user defined confidence interval
   vertices <- c(rbind(pairs[idx,1], pairs[idx,2]))
   
   ## Find strongly connected clusters

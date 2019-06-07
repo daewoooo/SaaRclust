@@ -10,6 +10,8 @@ collapseBins(gr, id.field = 0, measure.field = NULL)
 \item{gr}{A \code{\link{GRanges-class}} object.}
 
 \item{id.field}{A number of metadata column to use for region merging.}
+
+\item{measure.field}{A field column that contains measured value to be sum up.}
 }
 \value{
 A \code{\link{GRanges-class}} object.

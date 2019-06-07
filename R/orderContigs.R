@@ -4,6 +4,7 @@
 #' and tries to order contigs based on shared strand states among all cells.
 #'
 #' @param contig.states A \code{data.frame} of strand states per contig and per cell.
+#' @param dist.matrix A symetric \code{matrix} of similarities for each contig pair.
 #' @param method Set one of the method to solve TSP, default: 'cheapest_insertion'.
 #' @param trials Number of random trials to solve TSP.
 #' @param filt.cols If set to \code{TRUE}, will remove columns with the same strand-state across all contigs.
@@ -72,11 +73,13 @@ orderContigsTSP <- function(contig.states=NULL, dist.matrix=NULL, method='neares
 #' All rights reserved.
 #'
 #' @param contig.states A \code{data.frame} of strand states per contig and per cell.
-#' @param randomAttempts 
+#' @param randomAttempts Number of random trials to solve contig ordering.
+#' @useDynLib SaaRclust
+#' @import Rcpp TSP
 #' @author Kieran O'Neill, Mark Hills, Mike Gottlieb (Modified by David Porubsky)
 #' @export
 #' 
-orderContigsContiBAIT <- function(contig.states, randomAttempts=1000) {
+orderContigsGreedy <- function(contig.states, randomAttempts=1000) {
   message("Running ContiBAIT ordering using ", randomAttempts, " random starts")
   
   best.order <- .Call('orderContigsGreedy', as.matrix(contig.states))

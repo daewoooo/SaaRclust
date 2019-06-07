@@ -64,7 +64,7 @@ flipCounts <- function(counts.l) {
 #' @author David Porubsky
 #' @export
 #' 
-getCoinheritanceMatrix <- function(contig.states = NULL, scale=FALSE) {
+getCoinheritanceMatrix <- function(contig.states = NULL, scale=FALSE, WWtoCC.penalty=TRUE) {
   ## Initialize empty matrix
   n.contigs <- nrow(contig.states)
   coinherit.m <- matrix(nrow = n.contigs, ncol = n.contigs)
@@ -73,7 +73,15 @@ getCoinheritanceMatrix <- function(contig.states = NULL, scale=FALSE) {
     pair <- pairs[i,]
     comp <- contig.states[pair[1],] == contig.states[pair[2],]
     coinherit.score <- length(comp[comp == TRUE])
-    coinherit.m[pair[1], pair[2]] <- coinherit.score
+    if (WWtoCC.penalty) {
+      ## Penalize cases where there is W and C state in a single cell
+      WWtoCC <- abs(contig.states[pair[1],] - contig.states[pair[2],]) == 1
+      WWtoCC.score <- length(WWtoCC[WWtoCC == TRUE]) #/ ncol(contig.states)
+      ## Assign coinherit.score
+      coinherit.m[pair[1], pair[2]] <- coinherit.score - WWtoCC.score
+    } else {
+      coinherit.m[pair[1], pair[2]] <- coinherit.score
+    }  
   }
   ## Convert coinheritance to similarity
   coinherit.m <- max(coinherit.m) - coinherit.m
@@ -112,3 +120,20 @@ addClusterGroup <- function(cluster.gr=NULL, cluster.groups=NULL) {
   }
   return(cluster.gr)
 } 
+
+#' Convert strings in
+#'
+#' @param region.string A \code{vector} object 
+#' @return A \code{\link{GRanges-class}} object with an extra metacolumn group.ID.
+#' @importFrom tidyr separate
+#' @author David Porubsky
+#' @export
+#' 
+string2GRanges <- function(region.string=NULL) {
+  regions.df <- data.frame(regions=region.string)
+  regions.df <- tidyr::separate(data = regions.df, col = regions, into = c('chr','start','end'), sep = ":|-")
+  regions.gr <- GenomicRanges::GRanges(seqnames=regions.df$chr, 
+                                       ranges=IRanges(start=as.numeric(regions.df$start), 
+                                                      end=as.numeric(regions.df$end)))
+  return(regions.gr)
+}

@@ -4,7 +4,8 @@
 \alias{getCoinheritanceMatrix}
 \title{Function to obtain co-inheritance matrix based on shared strand states}
 \usage{
-getCoinheritanceMatrix(contig.states = NULL, scale = FALSE)
+getCoinheritanceMatrix(contig.states = NULL, scale = FALSE,
+  WWtoCC.penalty = TRUE)
 }
 \arguments{
 \item{contig.states}{A \code{data.frame} of strand states per contig and per cell.}

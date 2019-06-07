@@ -21,7 +21,7 @@ int quick_score_cell(int *order, int pos, int size, int cell, int numSCE) {
   
   // add score for new contig
   if(p0 != 0) ++numSCE;
-  if((p0 == 1 && elm == 3) || (p0 == 3 && elm == 1)) numSCE += 5;
+  if((p0 == 1 && elm == 2) || (p0 == 2 && elm == 1)) numSCE += 5;
   
   int p1 = elm, j = pos;
   
@@ -34,13 +34,13 @@ int quick_score_cell(int *order, int pos, int size, int cell, int numSCE) {
     // remove old contribution from shifted contig
     if(p0 != s) {
       if(p0 != 0) --numSCE;
-      if((p0 == 1 && s == 3) || (p0 == 3 && s == 1)) numSCE -= 5;
+      if((p0 == 1 && s == 2) || (p0 == 2 && s == 1)) numSCE -= 5;
     }
     
     // calculate new contribution from shifted contig
     if(p1 != s) {
       ++numSCE; // we know p1 != 0;
-      if((p1 == 1 && s == 3) || (p1 == 3 && s == 1)) numSCE += 5;
+      if((p1 == 1 && s == 2) || (p1 == 2 && s == 1)) numSCE += 5;
     }
   }
   
