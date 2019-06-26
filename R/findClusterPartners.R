@@ -264,15 +264,30 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=2.58) {
   ## Calculate euclidean distance for pair of datapoints
   euc.dist.v <- function(v) sqrt(sum((v[1] - v[2]) ^ 2))
   
+  ## If there is an uneven number of clusters remove the one with the most WC states
+  num.clusters <- nrow(theta.param[[1]])
+  if (num.clusters %% 2 != 0) {
+    #Find cluster with WC state in majority of cells
+    theta.sums <- Reduce("+", theta.param)
+    remove.clust <- which.max(theta.sums[,3])
+    message("    Removed cluster ", remove.clust, " to ensure even number of clusters!!!")
+    theta.param <- lapply(theta.param, function(x) x[-remove.clust,])
+  }
+  
   pairwise.simil <- list()
+  #pairwise.dist <- list()
   for (i in 1:length(theta.param)) {
     cell.theta <- theta.param[[i]]
     ## Get all possible cluster pairs
     pairs <- t(combn(nrow(cell.theta), 2))
     ## Calculate similarity for CC and WW pairs
-    pairs.anti <- cbind( cell.theta[pairs[,1],1], cell.theta[pairs[,2],2] )
-    dist.anti <- apply(pairs.anti, 1, euc.dist.v)
-    simil.anti <- dist.anti
+    #pairs.anti <- cbind( cell.theta[pairs[,1],1], cell.theta[pairs[,2],2] )
+    #dist.anti <- apply(pairs.anti, 1, euc.dist.v)
+    #simil.anti <- dist.anti
+    ## Calculate similarity for WC pairs
+    pairs.wc <- cbind( cell.theta[pairs[,1],3], cell.theta[pairs[,2],3] )
+    dist.wc <- apply(pairs.wc, 1, euc.dist.v)
+    simil.wc <- dist.wc
     ## Calculate similarity for WW pairs
     pairs.ww <- cbind( cell.theta[pairs[,1],1], cell.theta[pairs[,2],1] )
     dist.ww <- apply(pairs.ww, 1, euc.dist.v)
@@ -282,15 +297,22 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=2.58) {
     dist.cc <- apply(pairs.cc, 1, euc.dist.v)
     simil.cc <- max(dist.cc) - dist.cc
     ## Sum all similarities
-    total.simil <- simil.anti + simil.ww + simil.cc
+    #total.simil <- simil.anti + simil.ww + simil.cc
+    total.simil <- simil.ww + simil.cc + simil.wc
+    #total.dist <- dist.anti + dist.ww + dist.cc
     pairwise.simil[[i]] <- total.simil
+    #pairwise.dist[[i]] <- total.dist
   }
+  #pairwise.dist.m <- do.call(cbind, pairwise.dist)
+  #pairwise.simil.m <- max(pairwise.dist.m)-pairwise.dist.m
+  #pairwise.simil.m <- max(pairwise.simil.m) - pairwise.simil.m
   pairwise.simil.m <- do.call(cbind, pairwise.simil)
   
   ## Calculate z-score to find strongly connected pairs of clusters
   simil.sum <- rowSums(pairwise.simil.m)
   zscores <- (simil.sum - mean(simil.sum)) / sd(simil.sum)
-  idx <- zscores >= z.limit ## user defined confidence interval
+  #idx <- zscores >= z.limit ## user defined confidence interval
+  idx <- zscores >= z.limit | zscores <= z.limit * -1 ## user defined confidence interval
   vertices <- c(rbind(pairs[idx,1], pairs[idx,2]))
   
   ## Find strongly connected clusters
