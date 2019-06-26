@@ -354,12 +354,12 @@ plotContigsGenomeWide <- function(gr=NULL, bsgenome=NULL, blacklist=NULL) {
   return(plt)
 }
 
-#' Plot genome-wide position of clustered contigs
+#' ...
 #'
-#' @param gr A \code{\link{GRanges-class}} object with contig position and their cluster assignment in 'clust.ID' and 'group.ID' metacolumn.
-#' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
+#' @param dist.matrix ...
+#' @param col.low ...
+#' @param col.high ...
 #' @return A \code{ggplot} object.
-#' @importFrom reshape2 melt
 #' @author David Porubsky
 #' @export
 #'

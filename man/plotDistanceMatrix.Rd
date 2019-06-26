@@ -2,21 +2,23 @@
 % Please edit documentation in R/plotting.R
 \name{plotDistanceMatrix}
 \alias{plotDistanceMatrix}
-\title{Plot genome-wide position of clustered contigs}
+\title{...}
 \usage{
 plotDistanceMatrix(dist.matrix, col.low = "chartreuse4",
   col.high = "cadetblue1")
 }
 \arguments{
-\item{gr}{A \code{\link{GRanges-class}} object with contig position and their cluster assignment in 'clust.ID' and 'group.ID' metacolumn.}
+\item{dist.matrix}{...}
 
-\item{bsgenome}{A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.}
+\item{col.low}{...}
+
+\item{col.high}{...}
 }
 \value{
 A \code{ggplot} object.
 }
 \description{
-Plot genome-wide position of clustered contigs
+...
 }
 \author{
 David Porubsky
