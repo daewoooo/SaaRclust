@@ -304,7 +304,8 @@ plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, clu
     geom_tile(aes(x=variable, y=contig, fill=factor(value))) +
     scale_fill_manual(values = brewer.pal(n=4, name = 'Set1'), name='States') +
     xlab("Cell number") +
-    ylab("Contig ID")
+    ylab("Contig ID") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
   ## Return final plot
   return(plt)
 } 
