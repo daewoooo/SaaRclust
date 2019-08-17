@@ -256,6 +256,10 @@ plotReadAlignments <- function(minimap.tab=NULL) {
 #' @export
 #' 
 plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, cluster.cols=FALSE, filt.cols=FALSE) {
+  ## Make sure that submitted object is a data.frame
+  if (class(contig.states) != 'data.frame') {
+    contig.states <- as.data.frame(contig.states)
+  }
   ## Remove columns that have the same strand state across all contigs ('uninformative cells')
   if (filt.cols) {
     mask <- apply(contig.states, 2, function(x) length(unique(x)) > 1)
