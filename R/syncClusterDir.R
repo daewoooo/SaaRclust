@@ -11,6 +11,9 @@ syncClusterDir <- function(contig.states) {
   ## Remove cell with wc states
   mask <- apply(contig.states, 2, function(x) all(x != 3))
   contig.states.sub <- as.matrix(contig.states[,mask])
+  ## Remove cell with 'pure' ww or cc state (non-informative)
+  mask <- apply(contig.states.sub, 2, function(x) length(unique(x)) > 1)
+  contig.states.sub <- as.matrix(contig.states.sub[,mask])
   if (ncol(contig.states.sub) > 2 & nrow(contig.states.sub) > 2) {
     ## Divide antiparallel set of contigs by hierarchical clustering
     hc.obj <- hclust(dist(contig.states.sub))
