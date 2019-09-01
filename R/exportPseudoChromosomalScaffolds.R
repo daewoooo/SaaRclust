@@ -37,8 +37,9 @@ exportPseudoChromosomalScaffolds <- function(clustered.gr=NULL, assembly.fasta=N
     delim <- paste(rep('N', 100), collapse = '')
     cluster.seq.collapsed <- Biostrings::DNAStringSet(paste(cluster.seq, collapse = delim))
     ## Create unique sequence name
-    seq.name <- paste0(cluster.ID, '_', paste(names(cluster.seq), collapse = "."))
-    names(cluster.seq.collapsed) <- seq.name
+    #seq.name <- paste0(cluster.ID, '_', paste(names(cluster.seq), collapse = "."))
+    #names(cluster.seq.collapsed) <- seq.name
+    names(cluster.seq.collapsed) <- cluster.ID
     ## Write final FASTA
     destination <- file.path(outputfolder, paste0(cluster.ID, '.fasta')) 
     Biostrings::writeXStringSet(x = cluster.seq.collapsed, filepath = destination, format = 'fasta')
