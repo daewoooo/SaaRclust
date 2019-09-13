@@ -14,8 +14,8 @@
 clusters2ranges <- function(saarclust.obj = NULL, best.prob = 1, prob.th = 0.5) {
   ## TODO check if submited object is of class 'saarclust'
   
+  ## Get probability table
   soft.prob <- saarclust.obj$soft.pVal
-  
   ## Remove segments that do not reach reguired prob.th
   row.max.prob <- apply(soft.prob, 1, max)
   mask <- row.max.prob >= prob.th
@@ -32,9 +32,9 @@ clusters2ranges <- function(saarclust.obj = NULL, best.prob = 1, prob.th = 0.5) 
     clust.ID <- apply(soft.prob, 1, which.max)
     regions.gr$clust.ID <- clust.ID
   } else {
+    message("Reporting more than one cluster per contigs is not implemented yet !!!")
     # TODO report more than one cluster per region
   }
-  
   return(regions.gr)
 }
 
@@ -56,8 +56,10 @@ clusters2ranges <- function(saarclust.obj = NULL, best.prob = 1, prob.th = 0.5) 
 counts2ranges <- function(counts.l=NULL, saarclust.obj=NULL, best.prob=1, prob.th=0.5) {
   ## TODO check if submitted object is of class 'saarclust'
   
-  soft.prob <- saarclust.obj$soft.pVal
+  ptm <- startTimedMessage("Assigning contigs to clusters")
   
+  ## Get probability table
+  soft.prob <- saarclust.obj$soft.pVal
   ## Remove segments that do not reach reguired prob.th
   row.max.prob <- apply(soft.prob, 1, max)
   mask <- row.max.prob >= prob.th
@@ -74,6 +76,7 @@ counts2ranges <- function(counts.l=NULL, saarclust.obj=NULL, best.prob=1, prob.t
     clust.ID <- apply(soft.prob, 1, which.max)
     regions.gr$clust.ID <- clust.ID
   } else {
+    message("Reporting more than one cluster per contigs is not implemented yet !!!")
     # TODO report more than one cluster per region
   }
   
@@ -89,5 +92,6 @@ counts2ranges <- function(counts.l=NULL, saarclust.obj=NULL, best.prob=1, prob.t
     counts.cell.gr$W <- counts.cell[,2]
     counts.grl[[cell.ID]] <- counts.cell.gr 
   }
+  stopTimedMessage(ptm)
   return(counts.grl)
 }
