@@ -14,7 +14,7 @@
 #' @export
 #' 
 orderContigsTSP <- function(contig.states=NULL, dist.matrix=NULL, method='nearest_insertion', trials=1000, filt.cols=TRUE) {
-  message("Running TSP using '", method, "' method and ", trials, " trials")
+  ptm <- startTimedMessage("Running TSP using '", method, "' method and ", trials, " trials")
   if (is.data.frame(contig.states) & is.null(dist.matrix)) {
     ## Remove columns that have the same strand state across all contigs ('uninformative cells')
     if (filt.cols) {
@@ -58,7 +58,7 @@ orderContigsTSP <- function(contig.states=NULL, dist.matrix=NULL, method='neares
     ordered.contigs.table = dist.matrix[contigs.order,]
     order.vector = match(contigs.order, rownames(dist.matrix))
   }
-  
+  stopTimedMessage(ptm)
   ## Return ordered contigs
   return(list(ordered.contigs = contigs.order, 
               order.vector = order.vector,
@@ -80,7 +80,7 @@ orderContigsTSP <- function(contig.states=NULL, dist.matrix=NULL, method='neares
 #' @export
 #' 
 orderContigsGreedy <- function(contig.states, randomAttempts=1000) {
-  message("Running ContiBAIT ordering using ", randomAttempts, " random starts")
+  ptm <- startTimedMessage("Running ContiBAIT ordering using ", randomAttempts, " random starts")
   
   best.order <- .Call('orderContigsGreedy', as.matrix(contig.states))
   best.table <- contig.states
@@ -95,6 +95,7 @@ orderContigsGreedy <- function(contig.states, randomAttempts=1000) {
       best.table <- temp.table
     }
   }
+  stopTimedMessage(ptm)
   ## Return ordered contigs
   ordered.contigs <- row.names(best.table)[best.order$order]
   return(list(ordered.contigs=ordered.contigs,

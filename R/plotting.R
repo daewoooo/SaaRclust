@@ -315,7 +315,7 @@ plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, clu
 } 
 
 
-#' Plot genome-wide position of clustered contigs
+#' Plot genome-wide positions of clustered contigs
 #'
 #' @param gr A \code{\link{GRanges-class}} object with contig position and their cluster assignment in 'clust.ID' and 'group.ID' metacolumn.
 #' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
@@ -377,6 +377,47 @@ plotDistanceMatrix <- function(dist.matrix, col.low="chartreuse4", col.high="cad
     xlab("") +
     ylab("") +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
-  ## Return final plot
+  ## Return a final plot
+  return(plt)
+}
+
+
+#' Plot assembly statistics
+#'
+#' @param infile A file that contains assembled contigs in specific format.
+#' @param format Use 'bam' for contigs aligned to the reference or 'fasta' for raw sequences.
+#' @return A \code{ggplot} object.
+#' @importFrom Rsamtools scanBamHeader
+#' @author David Porubsky
+#' @export
+#'
+plotAssemblyStat <- function(infile=NULL, format='bam') {
+  if (format == 'bam') {
+    ## Get contigs/scaffolds names and sizes from BAM
+    file.header <- Rsamtools::scanBamHeader(infile)[[1]]
+    chrom.lengths <- file.header$targets
+    plt.df <- data.frame(ctg.len = sort(chrom.lengths))
+  } else if (format == 'fasta') {
+    message("Not implemented yet !!!")
+  } else {
+    message("Unsupported format, please use 'bam' or 'fasta' !!!")
+  }
+  
+  ## Produce summary plot
+  len.sorted <- rev(sort(as.numeric(plt.df$ctg.len)))
+  N50 <- len.sorted[cumsum(len.sorted) >= sum(len.sorted)*0.5][1]
+  N90 <- len.sorted[cumsum(len.sorted) >= sum(len.sorted)*0.9][1]
+  
+  plt.df$x <- 1:nrow(plt.df)
+  plt <- ggplot2::ggplot() + geom_point(data = plt.df, aes(x=x, y=ctg.len)) +
+    geom_hline(yintercept = 1000000, linetype='dashed', color='red') +
+    geom_hline(yintercept = N50, color='chartreuse4') +
+    geom_hline(yintercept = N90, color='darkgoldenrod3') +
+    geom_text(aes(x=0, y=N50, label=paste0('N50 = ', N50, 'bp')), color='black', vjust=-0.5, hjust=0.1) +
+    geom_text(aes(x=0, y=N90, label=paste0('N90 = ', N90, 'bp')), color='black', vjust=-0.5, hjust=0.1) +
+    scale_y_continuous(trans = 'log10', labels = comma) +
+    xlab("Size ordered contigs") +
+    ylab("Contig length (log10)") +
+    theme_bw()
   return(plt)
 }
