@@ -218,8 +218,8 @@ getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=30000, q
 #' Import aligned reads from a multiple BAM files and counts directional reads in specified genomic locations.
 #' Results are stored in a \code{list} of matrices with each element of a \code{list} representing counts for single BAM file.
 #'
-#' @param bamfolder A folder where BAM files to be processed are stored.
-#' @param bin.length A length of a bin to count reads in.
+#' @param bamfolder A folder containing BAM files with Strand-seq reads aligned to denovo assembly.
+#' @param bin.size A length of a bin to count reads in.
 #' @param mask.collapses If set to \code{TRUE} read pileups of more than 4 reads will be removed (default=TRUE).
 #' @return A \code{list} of matrices (columns: minus (W) and plus (C) counts; rows: genomic regions).
 #' @importFrom data.table data.table
@@ -228,7 +228,7 @@ getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=30000, q
 #' @export
 
 #TODO add option to bin BAMs based on median reads in a bin to avoid bins with zero counts!!!
-importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRUE, min.mapq=10, bin.length=1000000, mask.collapses=TRUE) {
+importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRUE, min.mapq=10, bin.size=1000000, mask.collapses=TRUE) {
   ## List bams present in a directory
   bamfiles <- list.files(bamfolder, pattern = '.bam$', full.names = T)
   
@@ -244,9 +244,9 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
     ## Sort fragments by seqlevels
     fragments <- GenomicRanges::sort(fragments, ignore.strand=TRUE)
     
-    if (bin.length) {
+    if (bin.size) {
       ## Get genome bins
-      bins.gr <- unlist( GenomicRanges::tileGenome(seqlengths = seqlengths(fragments), tilewidth = bin.length) )
+      bins.gr <- unlist( GenomicRanges::tileGenome(seqlengths = seqlengths(fragments), tilewidth = bin.size) )
       hits <- IRanges::findOverlaps(fragments, bins.gr, select = "first") #TODO: make sure the same read can't end up in two neighbouring bins!!!
       
       #runLength(seqnames(fragments))[which(runValue(seqnames(fragments)) == 'Super-Scaffold_365')]
