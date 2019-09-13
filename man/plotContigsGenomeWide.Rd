@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{plotContigsGenomeWide}
 \alias{plotContigsGenomeWide}
-\title{Plot genome-wide position of clustered contigs}
+\title{Plot genome-wide positions of clustered contigs}
 \usage{
 plotContigsGenomeWide(gr = NULL, bsgenome = NULL, blacklist = NULL)
 }
@@ -17,7 +17,7 @@ plotContigsGenomeWide(gr = NULL, bsgenome = NULL, blacklist = NULL)
 A \code{ggplot} object.
 }
 \description{
-Plot genome-wide position of clustered contigs
+Plot genome-wide positions of clustered contigs
 }
 \author{
 David Porubsky

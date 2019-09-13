@@ -5,7 +5,7 @@
 \title{Concatenate FASTA sequences given a set of Genomic Ranges and cluster identity.}
 \usage{
 exportPseudoChromosomalScaffolds(clustered.gr = NULL,
-  assembly.fasta = NULL, outputfolder = NULL)
+  assembly.fasta = NULL, outputfolder = NULL, concat.fasta = TRUE)
 }
 \arguments{
 \item{clustered.gr}{A \code{\link{GRanges-class}} object with given fields: dir - contig directionality
@@ -14,6 +14,8 @@ order - contig order and ID - contig assignment to clusters.}
 \item{assembly.fasta}{An assembly FASTA file to extract DNA sequence determined by clustered.gr.}
 
 \item{outputfolder}{A path to a folder to export concatenated FASTA sequences.}
+
+\item{concat.fasta}{Set to \code{TRUE} if you want to concatenate FASTA sequences within a cluster by 100 N's.}
 }
 \description{
 This function takes a \code{\link{GRanges-class}} object and cluster assignment stored 

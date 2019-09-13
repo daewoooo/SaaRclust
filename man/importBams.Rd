@@ -5,11 +5,11 @@
 \title{Import BAM(s) and count reads}
 \usage{
 importBams(bamfolder = bamfolder, chromosomes = NULL,
-  pairedEndReads = TRUE, min.mapq = 10, bin.length = 1e+06,
+  pairedEndReads = TRUE, min.mapq = 10, bin.size = 1e+06,
   mask.collapses = TRUE)
 }
 \arguments{
-\item{bamfolder}{A folder where BAM files to be processed are stored.}
+\item{bamfolder}{A folder containing BAM files with Strand-seq reads aligned to denovo assembly.}
 
 \item{chromosomes}{If only a subset of the chromosomes should be binned, specify them here.}
 
@@ -17,7 +17,7 @@ importBams(bamfolder = bamfolder, chromosomes = NULL,
 
 \item{min.mapq}{Minimum mapping quality when importing from BAM files.}
 
-\item{bin.length}{A length of a bin to count reads in.}
+\item{bin.size}{A length of a bin to count reads in.}
 
 \item{mask.collapses}{If set to \code{TRUE} read pileups of more than 4 reads will be removed (default=TRUE).}
 }
