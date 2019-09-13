@@ -5,7 +5,7 @@
 \title{Order and orient contigs within each cluster}
 \usage{
 orderAndOrientClusters(clustered.grl, split.pairs, ord.method = "TSP",
-  alpha = 0.1, filename = NULL)
+  alpha = 0.1, bin.size = bin.size, filename = NULL)
 }
 \arguments{
 \item{clustered.grl}{A \code{\link{GRangesList-class}} object with cluster assignments for each contig.}
@@ -15,6 +15,8 @@ orderAndOrientClusters(clustered.grl, split.pairs, ord.method = "TSP",
 \item{ord.method}{A method ('TSP' or 'greedy') used to order contigs within a cluster (default: 'TSP')}
 
 \item{alpha}{Estimated level of background in Strand-seq reads.}
+
+\item{bin.size}{A length of a bin to count reads in.}
 
 \item{filename}{A path to a file where clustered on ordered contigs should be stored.}
 }

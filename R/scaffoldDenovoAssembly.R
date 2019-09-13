@@ -12,19 +12,17 @@
 #' @inheritParams hardClust
 #' @inheritParams countProb
 #' @inheritParams counts2ranges
+#' @inheritParams connectDividedClusters
 #' @inheritParams orderAndOrientClusters
 #' @inheritParams exportPseudoChromosomalScaffolds
 #' @return A \code{\link{GRanges-class}} object ???
 #' @author David Porubsky
 #' @export
 #' 
-#'## For testing
-#'#inputfolder <- "/media/porubsky/19AD2DA754D7CFAF/Projects/Saarclust_project/alignments_canu_HIFI/HG00733/"
-#'#outputfolder <- "/media/porubsky/19AD2DA754D7CFAF/Projects/Saarclust_project/alignments_canu_HIFI/HG00733/SaaRclust_results"
-#'#assembly.fasta <- "/media/porubsky/19AD2DA754D7CFAF/Projects/Saarclust_project/alignments_canu_HIFI/Assembly/HG00733.2x_racon.fasta"
-#'
-scaffoldDenovoAssembly <- function(bamfolder, outputfolder, min.contig.size=100000, bin.size=100000, store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE) {
-
+scaffoldDenovoAssembly <- function(bamfolder, outputfolder, min.contig.size=100000, bin.size=100000, store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit = 3, remove.always.WC = FALSE) {
+  ## Get total processing time
+  ptm <- proc.time()
+  
   ## Set up the directory structure
   datapath <- file.path(outputfolder,'data')
   asmpath <- file.path(outputfolder,'clustered_assembly')
@@ -38,8 +36,10 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, min.contig.size=1000
   if (!file.exists(asmpath)) { dir.create(asmpath) }
   if (!file.exists(pltpath)) { dir.create(pltpath) }
   
+  ## TODO add config file
+  
   ## Get contigs/scaffolds names and sizes
-  bamFile <- list.files(inputfolder, pattern = ".bam$", full.names = TRUE)[1]
+  bamFile <- list.files(bamfolder, pattern = ".bam$", full.names = TRUE)[1]
   file.header <- Rsamtools::scanBamHeader(bamFile)[[1]]
   chrom.lengths <- file.header$targets
   ## Keep only contigs/scaffolds >=100Kb
@@ -50,6 +50,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, min.contig.size=1000
   destination <- file.path(datapath, paste0("rawCounts_", bin.size,"bp_chunks.RData"))
   if (reuse.data.obj) {
     if (file.exists(destination)) {
+      message("Loading previously generated BAM read counts ...\n", destination)
       counts.l <- get(load(destination))
     } else {
       counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, bin.size = bin.size)
@@ -66,6 +67,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, min.contig.size=1000
   destination <- file.path(datapath, paste0("hardClust_", num.clusters, "K_", bin.size,"bp_chunks.RData"))
   if (reuse.data.obj) {
     if (file.exists(destination)) {
+      message("Loading previously generated hard clustering results ...\n", destination)
       hardClust.ord <- get(load(destination))
     } else {
       set.seed(1000) ## to reproduce hard clustering results
@@ -92,6 +94,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, min.contig.size=1000
   destination <- file.path(datapath, paste0("softClust_", bin.size,"bp_chunks.RData"))
   if (reuse.data.obj) {
     if (file.exists(destination)) {
+      message("Loading previously generated soft clustering results ...\n", destination)
       EM.obj <- get(load(destination))
     } else {
       EM.obj <- EMclust(counts.l=counts.l, theta.param=theta.param, pi.param=pi.param, num.iter=20, alpha=alpha, logL.th=1, log.scale=TRUE)
@@ -105,14 +108,19 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, min.contig.size=1000
   }
   
   ## Get cluster IDs that belong to the same chromosome/scaffold ##
-  split.pairs <- connectDividedClusters(theta.param = EM.obj$theta.param, z.limit = 3.29, remove.always.WC = FALSE)
-
+  split.pairs <- connectDividedClusters(theta.param = EM.obj$theta.param, z.limit = z.limit, remove.always.WC = remove.always.WC)
+  ## Store data object
+  destination <- file.path(datapath, paste0("connectedClusters_", bin.size,"bp_chunks.RData"))
+  if (store.data.obj) {
+    save(split.pairs, file = destination)
+  }
+  
   ## Assign contigs to clusters based on soft probabilities ##
   clustered.grl <- counts2ranges(counts.l=counts.l, saarclust.obj = EM.obj, best.prob = best.prob, prob.th = prob.th)
   
   ## Order and orient contigs ##
   destination <- file.path(asmpath, paste0("ordered&oriented_", bin.size,"bp_chunks.tsv"))
-  ordered.contigs.gr <- orderAndOrientClusters(clustered.grl = clustered.grl, split.pairs = split.pairs, ord.method = ord.method, alpha = alpha, filename = destination)
+  ordered.contigs.gr <- orderAndOrientClusters(clustered.grl = clustered.grl, split.pairs = split.pairs, ord.method = ord.method, alpha = alpha, bin.size = bin.size, filename = destination)
   ## Store data object
   destination <- file.path(asmpath, paste0("ordered&oriented_", bin.size,"bp_chunks.RData"))
   if (store.data.obj) {
@@ -120,7 +128,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, min.contig.size=1000
   }
   
   ## Export clustered FASTA ##
-  if (is.null(assembly.fasta) & is.character(assembly.fasta)) {
+  if (!is.null(assembly.fasta) & is.character(assembly.fasta)) {
     if (file.exists(assembly.fasta)) {
       exportPseudoChromosomalScaffolds(clustered.gr = ordered.contigs.gr, assembly.fasta = assembly.fasta, outputfolder = asmpath, concat.fasta = concat.fasta)
     } else {
@@ -131,4 +139,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, min.contig.size=1000
   
   ## TODO make some plots ???
   
+  ## Report total processing time
+  time <- proc.time() - ptm
+  message("\nTotal analysis time: ", round(time[3],2), "s")
 }

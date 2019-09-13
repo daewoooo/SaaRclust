@@ -23,9 +23,9 @@ syncClusterDir <- function(contig.states) {
     contigsToFlip <- misorients[[which.min(lengths(misorients))]]
     contigsToFlip.newID <- paste0(contigsToFlip, "_revcomp")
     idx.toFlip <- which(rownames(contig.states) %in% contigsToFlip)
-    contig.states.recoded <- cluster.m[idx.toFlip,]
-    contig.states.recoded[cluster.m[idx.toFlip,] == 1] <- 2
-    contig.states.recoded[cluster.m[idx.toFlip,] == 2] <- 1
+    contig.states.recoded <- contig.states[idx.toFlip,]
+    contig.states.recoded[contig.states[idx.toFlip,] == 1] <- 2
+    contig.states.recoded[contig.states[idx.toFlip,] == 2] <- 1
     contig.states[idx.toFlip,] <- contig.states.recoded
     ## Rename flipped contigs
     rownames(contig.states)[idx.toFlip] <- contigsToFlip.newID

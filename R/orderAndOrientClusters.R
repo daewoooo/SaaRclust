@@ -8,10 +8,10 @@
 #' @param ord.method A method ('TSP' or 'greedy') used to order contigs within a cluster (default: 'TSP') 
 #' @param filename A path to a file where clustered on ordered contigs should be stored.
 #' @inheritParams countProb
+#' @inheritParams importBams
 #' @author David Porubsky
 #' @export
-#' 
-orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP', alpha=0.1, filename=NULL) {
+orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP', alpha=0.1, bin.size=bin.size, filename=NULL) {
   
   ptm <- startTimedMessage("Preparing contigs for ordering and orienting")
   ## Merge by cluster ID
