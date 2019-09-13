@@ -7,6 +7,7 @@
 #' @param z.limit Connect clusters with z-score equal or above this limit.
 #' @param remove.always.WC Set to \code{TRUE} if the cluster with majority of WC states should be removed.
 #' @return A \code{matrix} of pairs of clusters IDs that belong to the same chromosome.
+#' @importFrom igraph graph groups components
 #' @author David Porubsky
 #' @export
 #' 
@@ -15,6 +16,8 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   ## Helper function ##
   ## Calculate euclidean distance for pair of datapoints
   euc.dist.v <- function(v) sqrt(sum((v[1] - v[2]) ^ 2))
+  
+  ptm <- startTimedMessage("Detecting divided clusters")
   
   ## Remove cluster with the most WC states
   if (remove.always.WC) {
@@ -85,7 +88,8 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   vertices <- c(vertices.ww, vertices.cc, vertices.wc, vertices.het)
   ## Find strongly connected clusters
   G <- igraph::graph(vertices, directed = FALSE)
-  clusters <- groups(components(G, mode = 'strong'))
+  clusters <- igraph::groups(igraph::components(G, mode = 'strong'))
   
+  stopTimedMessage(ptm)
   return(list(clusters=clusters, putative.HETs=putative.HETs))
 }
