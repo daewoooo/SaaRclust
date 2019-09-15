@@ -91,7 +91,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, min.contig.size=1000
   pi.param <- readsPerCluts/sum(readsPerCluts)
 
   ## RUN EM ##
-  destination <- file.path(datapath, paste0("softClust_", bin.size,"bp_chunks.RData"))
+  destination <- file.path(datapath, paste0("softClust_", num.clusters, "K_", bin.size,"bp_chunks.RData"))
   if (reuse.data.obj) {
     if (file.exists(destination)) {
       message("Loading previously generated soft clustering results ...\n", destination)
