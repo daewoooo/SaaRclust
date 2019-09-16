@@ -4,16 +4,20 @@
 \alias{scaffoldDenovoAssembly}
 \title{Main function of the \pkg{\link{SaaRclust}} package to order and orient contigs of denovo genome assembly.}
 \usage{
-scaffoldDenovoAssembly(bamfolder, outputfolder, min.contig.size = 1e+05,
-  bin.size = 1e+05, store.data.obj = TRUE, reuse.data.obj = FALSE,
-  num.clusters = 100, alpha = 0.1, best.prob = 1, prob.th = 0,
-  ord.method = "TSP", assembly.fasta = NULL, concat.fasta = TRUE,
-  z.limit = 3, remove.always.WC = FALSE)
+scaffoldDenovoAssembly(bamfolder, outputfolder, configfile = NULL,
+  min.contig.size = 1e+05, bin.size = 1e+05, store.data.obj = TRUE,
+  reuse.data.obj = FALSE, num.clusters = 100, alpha = 0.1,
+  best.prob = 1, prob.th = 0, ord.method = "TSP",
+  assembly.fasta = NULL, concat.fasta = TRUE, z.limit = 3,
+  remove.always.WC = FALSE)
 }
 \arguments{
 \item{bamfolder}{A folder containing BAM files with Strand-seq reads aligned to denovo assembly.}
 
 \item{outputfolder}{Folder to output the results. If it does not exist it will be created.}
+
+\item{configfile}{A file specifying the parameters of this function (without \code{bamfolder}, \code{outputfolder} and \code{configfile}). 
+If a \code{configfile} is specified, it will take priority over the command line parameters.}
 
 \item{min.contig.size}{A minimal contig size to be processed (default: 100kb).}
 
