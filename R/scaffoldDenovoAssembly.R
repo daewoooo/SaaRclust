@@ -106,14 +106,6 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   if (config[['store.data.obj']]) {
     save(hardClust.ord, file = destination)
   }
-  
-  ## Estimate EM parameters
-  theta.estim <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=config[['alpha']])
-  ## Set theta parameter
-  theta.param <- theta.estim
-  ## Set pi parameter
-  readsPerCluts <- table(hardClust.ord)
-  pi.param <- readsPerCluts / sum(readsPerCluts)
 
   ## RUN EM ##
   destination <- file.path(datapath, paste0("softClust_", config[['num.clusters']], "K_", config[['bin.size']], "bp_chunks.RData"))
@@ -122,9 +114,23 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       message("Loading previously generated soft clustering results ...\n", destination)
       EM.obj <- get(load(destination))
     } else {
+      ## Estimate EM parameters
+      theta.estim <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=config[['alpha']])
+      ## Set theta parameter
+      theta.param <- theta.estim
+      ## Set pi parameter
+      readsPerCluts <- table(hardClust.ord)
+      pi.param <- readsPerCluts / sum(readsPerCluts)
       EM.obj <- EMclust(counts.l, theta.param=theta.param, pi.param=pi.param, num.iter=20, alpha=config[['alpha']], logL.th=1, log.scale=TRUE)
     }
   } else {
+    ## Estimate EM parameters
+    theta.estim <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=config[['alpha']])
+    ## Set theta parameter
+    theta.param <- theta.estim
+    ## Set pi parameter
+    readsPerCluts <- table(hardClust.ord)
+    pi.param <- readsPerCluts / sum(readsPerCluts)
     EM.obj <- EMclust(counts.l, theta.param=theta.param, pi.param=pi.param, num.iter=20, alpha=config[['alpha']], logL.th=1, log.scale=TRUE)
   }
   ## Store data object

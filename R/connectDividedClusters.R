@@ -18,12 +18,12 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   euc.dist.v <- function(v) sqrt(sum((v[1] - v[2]) ^ 2))
   
   ptm <- startTimedMessage("Detecting divided clusters")
-  
+
+  ## Find cluster with WC state in majority of cells
+  theta.sums <- Reduce("+", theta.param)
+  remove.clust <- which.max(theta.sums[,3])
   ## Remove cluster with the most WC states
-  if (remove.always.WC) {
-    #Find cluster with WC state in majority of cells
-    theta.sums <- Reduce("+", theta.param)
-    remove.clust <- which.max(theta.sums[,3])
+  if (remove.always.WC) {  
     message("    Removed cluster ", remove.clust, " to ensure even number of clusters!!!")
     theta.param <- lapply(theta.param, function(x) x[-remove.clust,])
   }
@@ -91,5 +91,5 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   clusters <- igraph::groups(igraph::components(G, mode = 'strong'))
   
   stopTimedMessage(ptm)
-  return(list(clusters=clusters, putative.HETs=putative.HETs))
+  return(list(clusters=clusters, putative.HETs=putative.HETs, always.WC=remove.clust))
 }

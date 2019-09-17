@@ -7,7 +7,7 @@ Author: David Porubsky, Maryam Ghareghani and Tobias Marschall
 Maintainer: David Porubsky <david.porubsky@gmail.com>
 Description: This package implements functions for pre-clustering of long reads prior to genome assembly.
 Depends:
-    R (>= 3.5.2),
+    R (>= 3.5),
     BH (>= 1.51.0-3),
     cowplot,
     RColorBrewer,

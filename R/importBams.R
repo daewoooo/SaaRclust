@@ -21,6 +21,16 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
   ptm <- proc.time()
   message("Preparing BAM count table ...")
   
+  ## Helper functions
+  # extendZeroBins <- function(gr, reads.per.bin=50) {
+  #   read.cs <- cumsum(gr$total.reads)
+  #   min.reads.cs <- seq(from=reads.per.bin, to=max(sum(gr$total.reads), 2*reads.per.bin), by=reads.per.bin)
+  #   intervals <- findInterval(read.cs, min.reads.cs, all.inside = TRUE)
+  #   gr$group <- intervals
+  #   gr.concat <- collapseBins(gr, id.field = 4, measure.field = c(1,2,3))
+  #   return(gr.concat[,-4])
+  # } 
+  
   ## List bams present in a directory
   bamfiles <- list.files(bamfolder, pattern = '.bam$', full.names = T)
   
@@ -97,24 +107,17 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
       mcols(bins.gr[mask.bins]) <- 0
     }
     
-    ## Concatenate bins with zero counts with the preceeding bin
-    if(is.null(reads.per.bin)) {
-      min.reads <- 1
-    } else {
-      min.reads <- reads.per.bin
-    }
+    ## Extend bins with zero read counts
+    # if(!is.null(reads.per.bin)) {
+    #   bins.grl <- split(bins.gr, seqnames(bins.gr))
+    #   bins.grl <- endoapply(bins.grl, function(x) extendZeroBins(gr=x, reads.per.bin=config[['reads.per.bin']]))
+    #   bins.gr <- unlist(bins.grl, use.names = FALSE)
+    # }
+    
     ## Get continous groups of zero counts
     # zero.bins <- which(bins.gr$total.reads < min.reads)
     # groups <- cumsum(c(1, abs(zero.bins[-length(zero.bins)] - zero.bins[-1]) > 1))
-    # zero.bins.l <- split(zero.bins, groups)
-    # zero.bins.l <- lapply(zero.bins.l, function(x) c(min(x) - 1, x))
-    # zero.bins <- unlist(zero.bins.l, use.names = FALSE)
-    # groups <- cumsum(c(1, abs(zero.bins[-length(zero.bins)] - zero.bins[-1]) > 1))
-    # bins.gr.concat <- bins.gr[zero.bins]
-    # bins.gr.concat$group <- groups
-    # bins.gr.concat <- collapseBins(bins.gr.concat, id.field = 4, measure.field = c(1,2,3))
-    # bins.gr.new <- sort(c(bins.gr[-zero.bins], bins.gr.concat[,-4]))
-    
+
     ## Create a count matrix
     bins.gr.new <- bins.gr
     counts.m <- cbind(bins.gr.new$antisense, bins.gr.new$sense)

@@ -38,11 +38,12 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     ID <- names(cluster.states.dfl[i])
     message("Ordering cluster: ", ID)
     cluster.data <- cluster.states.dfl[[i]]
-    ## Remove putative HET inversions 
-    ## TODO Add them back to the contig list!!!
-    cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$putative.HETs,]
-    cluster.m <- cluster.m[,-which(colnames(cluster.m) %in% c('clust.ID', 'group.ID'))]
+    ## Remove always WC cluster
+    cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$always.WC,]
+    ## Remove putative HET inversions???
+    #cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$putative.HETs,]
     
+    cluster.m <- cluster.m[,-which(colnames(cluster.m) %in% c('clust.ID', 'group.ID'))]
     if (nrow(cluster.m) == 0) { next }
     
     ## Reorient misoriented contigs
