@@ -1,0 +1,129 @@
+#' Import BAM(s) and count reads
+#'
+#' Import aligned reads from a multiple BAM files and counts directional reads in specified genomic locations.
+#' Results are stored in a \code{list} of matrices with each element of a \code{list} representing counts for single BAM file.
+#'
+#' @param bamfolder A folder containing BAM files with Strand-seq reads aligned to denovo assembly.
+#' @param bin.size A length of a bin to count reads in.
+#' @param reads.per.bin An approximate number of desired reads per bin. The bin size will be selected accordingly.
+#' @param max.frag A maximum fragment length to import from the BAM file.
+#' @param mask.collapses If set to \code{TRUE} read pileups of more than 4 reads will be removed (default=TRUE).
+#' @return A \code{list} of matrices (columns: minus (W) and plus (C) counts; rows: genomic regions).
+#' @importFrom bamsignals bamCount
+#' @importFrom Rsamtools BamFile
+#' @inheritParams readBamFileAsGRanges
+#' @inheritParams makeBins
+#' @author David Porubsky
+#' @export
+#' 
+importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRUE, min.mapq=10, bin.size=100000, step.size=NULL, reads.per.bin=NULL, max.frag=1000, mask.collapses=TRUE) {
+  ## Get total processing time
+  ptm <- proc.time()
+  message("Preparing BAM count table ...")
+  
+  ## List bams present in a directory
+  bamfiles <- list.files(bamfolder, pattern = '.bam$', full.names = T)
+  
+  ### Get chromosome lengths ###
+  bamfile <- bamfiles[1] ## process a first bamfile in a list
+  if (!is.null(bamfile)) {
+    chrom.lengths <- GenomeInfoDb::seqlengths(Rsamtools::BamFile(bamfile))
+  }
+  chroms.in.data <- names(chrom.lengths)
+  if (is.null(chromosomes)) {
+    chromosomes <- chroms.in.data
+  }
+  chroms2use <- intersect(chromosomes, chroms.in.data)
+  ## Stop if none of the specified chromosomes exist
+  if (length(chroms2use) == 0) {
+    chrstring <- paste0(chromosomes, collapse=', ')
+    stop('Could not find length information for any of the specified chromosomes: ', chrstring, '. Pay attention to the naming convention in your data, e.g. "chr1" or "1".')
+  }
+  ## Issue warning for non-existent chromosomes
+  diff <- setdiff(chromosomes, chroms.in.data)
+  if (length(diff) > 0) {
+    diffs <- paste0(diff, collapse=', ')
+    warning('Could not find length information for the following chromosomes: ', diffs)
+  }
+  chrom.lengths <- chrom.lengths[chroms2use]
+  
+  ## Make chromosome/contig ranges
+  chr.gr <- GenomicRanges::GRanges(seqnames=chroms2use, ranges=IRanges(start=1, end=chrom.lengths))
+  
+  ## Make genome bins
+  if (!is.null(bin.size)) {
+    bins.gr <- makeBins(bamfile = bamfile, bin.size = bin.size, step.size = step.size, chromosomes = chroms2use)
+  }
+  
+  ## Set parameter for bamsignals counts
+  paired.end <- 'ignore'
+  if (pairedEndReads) {
+    paired.end <- 'filter'
+  }
+  
+  counts.l <- list()
+  for (i in 1:length(bamfiles)) {
+    bam <- bamfiles[i]
+    bam.name <- basename(bam)
+    message("    Processing ", bam.name)
+    
+    ## Scale bin size to the required minimum number of reads in a bin
+    if (!is.null(reads.per.bin)) {
+      chr.counts <- bamsignals::bamCount(bam, chr.gr, mapq=min.mapq, filteredFlag=1024, paired.end=paired.end, tlenFilter=c(0, max.frag), verbose=FALSE)
+      n.reads <- as.numeric(sum(chr.counts))
+      num.counts.perbp <- n.reads / sum(as.numeric(chrom.lengths))
+      bin.size <- round(reads.per.bin / num.counts.perbp, -2)
+      ## Make genome bins
+      bins.gr <- makeBins(bamfile = bam, bin.size = bin.size, step.size = step.size, chromosomes = chroms2use)
+    }
+    
+    if (length(bins.gr) > 0) {
+      ## Get read counts per bin
+      counts <- bamsignals::bamCount(bam, bins.gr, mapq=min.mapq, filteredFlag=1024, paired.end=paired.end, tlenFilter=c(0, max.frag), verbose=FALSE, ss=TRUE)
+      mcols(bins.gr) <- t(counts)
+      bins.gr$total.reads <- colSums(counts)
+    } else {
+      ## Get read counts per chromosome/contig
+      counts <- bamsignals::bamCount(bam, chr.gr, mapq=min.mapq, filteredFlag=1024, paired.end=paired.end, tlenFilter=c(0, max.frag), verbose=FALSE, ss=TRUE)
+      mcols(chr.gr) <- t(counts)
+      chr.gr$total.reads <- colSums(counts)
+    }
+    
+    ## Mask regions with and excess of read coverage
+    if (mask.collapses & length(bins.gr) > 0) {
+      ## Set bins with extreme read counts to zero
+      z.score <- (bins.gr$total.reads - mean(bins.gr$total.reads)) / sd(bins.gr$total.reads)
+      mask.bins <- z.score >= 3
+      mcols(bins.gr[mask.bins]) <- 0
+    }
+    
+    ## Concatenate bins with zero counts with the preceeding bin
+    if(is.null(reads.per.bin)) {
+      min.reads <- 1
+    } else {
+      min.reads <- reads.per.bin
+    }
+    ## Get continous groups of zero counts
+    # zero.bins <- which(bins.gr$total.reads < min.reads)
+    # groups <- cumsum(c(1, abs(zero.bins[-length(zero.bins)] - zero.bins[-1]) > 1))
+    # zero.bins.l <- split(zero.bins, groups)
+    # zero.bins.l <- lapply(zero.bins.l, function(x) c(min(x) - 1, x))
+    # zero.bins <- unlist(zero.bins.l, use.names = FALSE)
+    # groups <- cumsum(c(1, abs(zero.bins[-length(zero.bins)] - zero.bins[-1]) > 1))
+    # bins.gr.concat <- bins.gr[zero.bins]
+    # bins.gr.concat$group <- groups
+    # bins.gr.concat <- collapseBins(bins.gr.concat, id.field = 4, measure.field = c(1,2,3))
+    # bins.gr.new <- sort(c(bins.gr[-zero.bins], bins.gr.concat[,-4]))
+    
+    ## Create a count matrix
+    bins.gr.new <- bins.gr
+    counts.m <- cbind(bins.gr.new$antisense, bins.gr.new$sense)
+    rownames(counts.m) <- as.character(bins.gr.new)
+    
+    counts.l[[bam.name]] <- counts.m
+  }
+  time <- proc.time() - ptm
+  message("\nTime spent: ", round(time[3],2), "s")
+  
+  return(counts.l)
+}
