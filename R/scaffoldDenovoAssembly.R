@@ -21,7 +21,7 @@
 #' @author David Porubsky
 #' @export
 #' 
-scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, bin.size=100000, store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3, remove.always.WC=FALSE) {
+scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3, remove.always.WC=FALSE) {
   ## Get total processing time
   ptm <- proc.time()
   
@@ -54,8 +54,8 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   }
   
   ## Put all parameters into list and merge with config ##
-  params <- list(min.contig.size=min.contig.size, bin.size=bin.size, store.data.obj=store.data.obj, 
-                 reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, alpha=alpha, 
+  params <- list(min.contig.size=min.contig.size, pairedEndReads=pairedEndReads, bin.size=bin.size, store.data.obj=store.data.obj, 
+                 step.size=step.size, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, alpha=alpha, 
                  best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, 
                  concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC)
   config <- c(config, params[setdiff(names(params), names(config))])
@@ -78,10 +78,10 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       message("Loading previously generated BAM read counts ...\n", destination)
       counts.l <- get(load(destination))
     } else {
-      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, bin.size = config[['bin.size']])
+      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']])
     }
   } else {
-    counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, bin.size = config[['bin.size']])
+    counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']])
   }
   ## Store data object
   if (config[['store.data.obj']]) {

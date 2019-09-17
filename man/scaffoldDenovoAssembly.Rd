@@ -5,11 +5,11 @@
 \title{Main function of the \pkg{\link{SaaRclust}} package to order and orient contigs of denovo genome assembly.}
 \usage{
 scaffoldDenovoAssembly(bamfolder, outputfolder, configfile = NULL,
-  min.contig.size = 1e+05, bin.size = 1e+05, store.data.obj = TRUE,
-  reuse.data.obj = FALSE, num.clusters = 100, alpha = 0.1,
-  best.prob = 1, prob.th = 0, ord.method = "TSP",
-  assembly.fasta = NULL, concat.fasta = TRUE, z.limit = 3,
-  remove.always.WC = FALSE)
+  min.contig.size = 1e+05, pairedEndReads = TRUE, bin.size = 1e+05,
+  step.size = NULL, store.data.obj = TRUE, reuse.data.obj = FALSE,
+  num.clusters = 100, alpha = 0.1, best.prob = 1, prob.th = 0,
+  ord.method = "TSP", assembly.fasta = NULL, concat.fasta = TRUE,
+  z.limit = 3, remove.always.WC = FALSE)
 }
 \arguments{
 \item{bamfolder}{A folder containing BAM files with Strand-seq reads aligned to denovo assembly.}
@@ -21,7 +21,11 @@ If a \code{configfile} is specified, it will take priority over the command line
 
 \item{min.contig.size}{A minimal contig size to be processed (default: 100kb).}
 
+\item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
+
 \item{bin.size}{A length of a bin to count reads in.}
+
+\item{step.size}{A size of the genomic interval to move each bin.}
 
 \item{store.data.obj}{A logical indicating whether or not intermediate Rdata objects should be stored.}
 

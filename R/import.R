@@ -218,17 +218,16 @@ getRepresentativeAlignments <- function(inputfolder=NULL, numAlignments=30000, q
 #' Import aligned reads from a multiple BAM files and counts directional reads in specified genomic locations.
 #' Results are stored in a \code{list} of matrices with each element of a \code{list} representing counts for single BAM file.
 #'
-#' @param bamfolder A folder containing BAM files with Strand-seq reads aligned to denovo assembly.
-#' @param bin.size A length of a bin to count reads in.
-#' @param mask.collapses If set to \code{TRUE} read pileups of more than 4 reads will be removed (default=TRUE).
+#' @param bamfolder A folder where BAM files to be processed are stored.
+#' @param chromosomes If only a subset of the chromosomes should be binned, specify them here.
+#' @param pairedEndReads Set to \code{TRUE} if you have paired-end reads in your file.
+#' @param bin.length A length of a bin to count reads in.
 #' @return A \code{list} of matrices (columns: minus (W) and plus (C) counts; rows: genomic regions).
 #' @importFrom data.table data.table
-#' @inheritParams readBamFileAsGRanges
 #' @author David Porubsky
 #' @export
-
-#TODO add option to bin BAMs based on median reads in a bin to avoid bins with zero counts!!!
-importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRUE, min.mapq=10, bin.size=1000000, mask.collapses=TRUE) {
+#' 
+importBamsOld <- function(bamfolder=bamfolder, chromosomes=NULL, bin.length=1000000) {
   ## List bams present in a directory
   bamfiles <- list.files(bamfolder, pattern = '.bam$', full.names = T)
   
@@ -244,9 +243,9 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
     ## Sort fragments by seqlevels
     fragments <- GenomicRanges::sort(fragments, ignore.strand=TRUE)
     
-    if (bin.size) {
+    if (bin.length) {
       ## Get genome bins
-      bins.gr <- unlist( GenomicRanges::tileGenome(seqlengths = seqlengths(fragments), tilewidth = bin.size) )
+      bins.gr <- unlist( GenomicRanges::tileGenome(seqlengths = seqlengths(fragments), tilewidth = bin.length) )
       hits <- IRanges::findOverlaps(fragments, bins.gr, select = "first") #TODO: make sure the same read can't end up in two neighbouring bins!!!
       
       #runLength(seqnames(fragments))[which(runValue(seqnames(fragments)) == 'Super-Scaffold_365')]
@@ -266,22 +265,13 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
       fragments$ID <- seqnames(fragments)
     }
     
-    ## Mask regions with and excess of read coverage
-    if (mask.collapses) {
-      ## Get piled level of each read
-      read.piles <- GenomicRanges::disjointBins(fragments)
-      ## Get reads piled more than 4 times
-      mask <- which(read.piles > 4)
-      fragments.mask <- fragments[mask]
-      ## Mask regions with large read pileups
-      regions.mask <- GenomicRanges::reduce(fragments.mask)
-      fragments.new <- IRanges::subsetByOverlaps(fragments, regions.mask, invert = TRUE)
-    }
-    
     ## Transform GRanges object into a data.frame
     fragments.df <- as(fragments[,'ID'], 'data.frame')
     fragments.df$ID <- factor(fragments.df$ID, levels=as.character(bins.gr))
     fragments.df$strand <- factor(as.character(fragments.df$strand))
+    
+    #table(fragments.df[fragments.df$seqnames == 'Super-Scaffold_365',]$strand)
+    #tmp <- fragments.df[fragments.df$seqnames == 'Super-Scaffold_365',]
     
     ## Count reads
     counts <- data.table::data.table(fragments.df)[,table(strand),by=ID]

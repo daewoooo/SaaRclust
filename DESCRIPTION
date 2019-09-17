@@ -26,7 +26,8 @@ Imports:
     matrixStats,
     IRanges,
     Rsamtools,
-    GenomicAlignments,
+    bamsignals,
+    GenomicAlignments
 Suggests:
     knitr,
     testthat,
