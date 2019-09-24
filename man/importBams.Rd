@@ -7,7 +7,7 @@
 importBams(bamfolder = bamfolder, chromosomes = NULL,
   pairedEndReads = TRUE, min.mapq = 10, bin.size = 1e+05,
   step.size = NULL, reads.per.bin = NULL, max.frag = 1000,
-  mask.collapses = TRUE)
+  bin.method = "fixed", mask.collapses = TRUE)
 }
 \arguments{
 \item{bamfolder}{A folder containing BAM files with Strand-seq reads aligned to denovo assembly.}
@@ -20,11 +20,11 @@ importBams(bamfolder = bamfolder, chromosomes = NULL,
 
 \item{bin.size}{A length of a bin to count reads in.}
 
-\item{step.size}{A size of the genomic interval to move each bin.}
-
-\item{reads.per.bin}{An approximate number of desired reads per bin. The bin size will be selected accordingly.}
+\item{reads.per.bin}{An approximate number of desired reads per bin. The bin size will be selected accordingly. Forces 'bin.method' to be 'fixed'.}
 
 \item{max.frag}{A maximum fragment length to import from the BAM file.}
+
+\item{bin.method}{One of the 'fixed' or 'dynamic' binning method.}
 
 \item{mask.collapses}{If set to \code{TRUE} read pileups of more than 4 reads will be removed (default=TRUE).}
 }

@@ -21,7 +21,7 @@
 #' @author David Porubsky
 #' @export
 #' 
-scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3, remove.always.WC=FALSE) {
+scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3, remove.always.WC=FALSE) {
   ## Get total processing time
   ptm <- proc.time()
   
@@ -55,7 +55,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   
   ## Put all parameters into list and merge with config ##
   params <- list(min.contig.size=min.contig.size, pairedEndReads=pairedEndReads, bin.size=bin.size, store.data.obj=store.data.obj, 
-                 step.size=step.size, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, alpha=alpha, 
+                 step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, alpha=alpha, 
                  best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, 
                  concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC)
   config <- c(config, params[setdiff(names(params), names(config))])
@@ -72,16 +72,16 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   chroms.in.data <- names(chrom.lengths)
 
   ## Get counts per genomic regions ##
-  destination <- file.path(datapath, paste0("rawCounts_", config[['bin.size']],"bp_chunks.RData"))
+  destination <- file.path(datapath, paste0("rawCounts_", config[['bin.size']],"bp_", config[['bin.method']], ".RData"))
   if (config[['reuse.data.obj']]) {
     if (file.exists(destination)) {
       message("Loading previously generated BAM read counts ...\n", destination)
       counts.l <- get(load(destination))
     } else {
-      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']])
+      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
     }
   } else {
-    counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']])
+    counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
   }
   ## Store data object
   if (config[['store.data.obj']]) {
@@ -89,7 +89,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   }
 
   ## Perform hard clustering ##
-  destination <- file.path(datapath, paste0("hardClust_", config[['num.clusters']], "K_", config[['bin.size']], "bp_chunks.RData"))
+  destination <- file.path(datapath, paste0("hardClust_", config[['num.clusters']], "K_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
   if (config[['reuse.data.obj']]) {
     if (file.exists(destination)) {
       message("Loading previously generated hard clustering results ...\n", destination)
@@ -108,7 +108,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   }
 
   ## RUN EM ##
-  destination <- file.path(datapath, paste0("softClust_", config[['num.clusters']], "K_", config[['bin.size']], "bp_chunks.RData"))
+  destination <- file.path(datapath, paste0("softClust_", config[['num.clusters']], "K_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
   if (config[['reuse.data.obj']]) {
     if (file.exists(destination)) {
       message("Loading previously generated soft clustering results ...\n", destination)
@@ -141,7 +141,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Get cluster IDs that belong to the same chromosome/scaffold ##
   split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], remove.always.WC=config[['remove.always.WC']])
   ## Store data object
-  destination <- file.path(datapath, paste0("connectedClusters_", config[['bin.size']], "bp_chunks.RData"))
+  destination <- file.path(datapath, paste0("connectedClusters_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
   if (config[['store.data.obj']]) {
     save(split.pairs, file = destination)
   }
@@ -150,7 +150,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   clustered.grl <- counts2ranges(counts.l, saarclust.obj=EM.obj, best.prob=config[['best.prob']], prob.th=config[['prob.th']])
   
   ## Order and orient contigs ##
-  destination <- file.path(asmpath, paste0("ordered&oriented_", config[['bin.size']], "bp_chunks.tsv"))
+  destination <- file.path(asmpath, paste0("ordered&oriented_", config[['bin.size']], "bp_", config[['bin.method']], ".tsv"))
   ordered.contigs.gr <- orderAndOrientClusters(clustered.grl=clustered.grl, split.pairs=split.pairs, ord.method=config[['ord.method']], alpha=config[['alpha']], bin.size=config[['bin.size']], filename=destination)
   ## Store data object
   destination <- file.path(asmpath, paste0("ordered&oriented_", config[['bin.size']], "bp_chunks.RData"))

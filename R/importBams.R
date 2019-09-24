@@ -5,8 +5,9 @@
 #'
 #' @param bamfolder A folder containing BAM files with Strand-seq reads aligned to denovo assembly.
 #' @param bin.size A length of a bin to count reads in.
-#' @param reads.per.bin An approximate number of desired reads per bin. The bin size will be selected accordingly.
+#' @param reads.per.bin An approximate number of desired reads per bin. The bin size will be selected accordingly. Forces 'bin.method' to be 'fixed'.
 #' @param max.frag A maximum fragment length to import from the BAM file.
+#' @param bin.method One of the 'fixed' or 'dynamic' binning method.
 #' @param mask.collapses If set to \code{TRUE} read pileups of more than 4 reads will be removed (default=TRUE).
 #' @return A \code{list} of matrices (columns: minus (W) and plus (C) counts; rows: genomic regions).
 #' @importFrom bamsignals bamCount
@@ -16,7 +17,7 @@
 #' @author David Porubsky
 #' @export
 #' 
-importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRUE, min.mapq=10, bin.size=100000, step.size=NULL, reads.per.bin=NULL, max.frag=1000, mask.collapses=TRUE) {
+importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRUE, min.mapq=10, bin.size=100000, step.size=NULL, reads.per.bin=NULL, max.frag=1000, bin.method='fixed', mask.collapses=TRUE) {
   ## Get total processing time
   ptm <- proc.time()
   message("Preparing BAM count table ...")
@@ -61,8 +62,12 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
   chr.gr <- GenomicRanges::GRanges(seqnames=chroms2use, ranges=IRanges(start=1, end=chrom.lengths))
   
   ## Make genome bins
-  if (!is.null(bin.size)) {
-    bins.gr <- makeBins(bamfile = bamfile, bin.size = bin.size, step.size = step.size, chromosomes = chroms2use)
+  if (!is.null(bin.size) & bin.method == 'fixed') {
+    bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = bin.size, step.size = step.size, chromosomes = chroms2use)
+  } else if (!is.null(bin.size) & bin.method == 'dynamic') {
+    bins.gr <- makeDynamicBins(bamfiles = bamfiles, bin.size = bin.size, step.size = step.size, chromosomes = chroms2use)
+  } else {
+    warning("Unsupported binning method!!!, Set 'bin.method' to 'fixed' or 'dynamic'")
   }
   
   ## Set parameter for bamsignals counts
@@ -79,12 +84,13 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
     
     ## Scale bin size to the required minimum number of reads in a bin
     if (!is.null(reads.per.bin)) {
+      bin.method <- 'fixed'
       chr.counts <- bamsignals::bamCount(bam, chr.gr, mapq=min.mapq, filteredFlag=1024, paired.end=paired.end, tlenFilter=c(0, max.frag), verbose=FALSE)
       n.reads <- as.numeric(sum(chr.counts))
       num.counts.perbp <- n.reads / sum(as.numeric(chrom.lengths))
       bin.size <- round(reads.per.bin / num.counts.perbp, -2)
       ## Make genome bins
-      bins.gr <- makeBins(bamfile = bam, bin.size = bin.size, step.size = step.size, chromosomes = chroms2use)
+      bins.gr <- makeFixedBins(bamfile = bam, bin.size = bin.size, step.size = step.size, chromosomes = chroms2use)
     }
     
     if (length(bins.gr) > 0) {
@@ -100,11 +106,13 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
     }
     
     ## Mask regions with and excess of read coverage
+    ## And remove them from the export count object
     if (mask.collapses & length(bins.gr) > 0) {
       ## Set bins with extreme read counts to zero
       z.score <- (bins.gr$total.reads - mean(bins.gr$total.reads)) / sd(bins.gr$total.reads)
       mask.bins <- z.score >= 3
       mcols(bins.gr[mask.bins]) <- 0
+      bins.gr <- bins.gr[bins.gr$total.reads > 0]
     }
     
     ## Extend bins with zero read counts

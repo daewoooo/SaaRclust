@@ -131,7 +131,8 @@ addClusterGroup <- function(cluster.gr=NULL, cluster.groups=NULL) {
 #' 
 string2GRanges <- function(region.string=NULL) {
   regions.df <- data.frame(regions=region.string)
-  regions.df <- tidyr::separate(data = regions.df, col = regions, into = c('chr','start','end','dir'), sep = ":|-|_")
+  regions.df <- tidyr::separate(data = regions.df, col = regions, into = c('chr','posANDdir'), sep = ":")
+  regions.df <- tidyr::separate(data = regions.df, col = posANDdir, into = c('start','end','dir'), sep = "-|_")
   regions.gr <- GenomicRanges::GRanges(seqnames=regions.df$chr, 
                                        ranges=IRanges(start=as.numeric(regions.df$start), 
                                                       end=as.numeric(regions.df$end)), 

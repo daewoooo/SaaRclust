@@ -42,7 +42,7 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$always.WC,]
     ## Remove putative HET inversions???
     #cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$putative.HETs,]
-    
+    ## Remove 'clust.ID' and 'group.ID' columns
     cluster.m <- cluster.m[,-which(colnames(cluster.m) %in% c('clust.ID', 'group.ID'))]
     if (nrow(cluster.m) == 0) { next }
     

@@ -9,7 +9,7 @@
 #' @param assembly.fasta An assembly FASTA file to extract DNA sequence determined by clustered.gr.
 #' @param outputfolder A path to a folder to export concatenated FASTA sequences.
 #' @param concat.fasta Set to \code{TRUE} if you want to concatenate FASTA sequences within a cluster by 100 N's.
-#' @importFrom Rsamtools indexFa FaFile scanFa
+#' @importFrom Rsamtools indexFa FaFile scanFa scanFaIndex
 #' @importFrom Biostrings reverseComplement DNAStringSet writeXStringSet
 #' @author David Porubsky
 #' @export
@@ -29,6 +29,10 @@ exportPseudoChromosomalScaffolds <- function(clustered.gr=NULL, assembly.fasta=N
     cluster.regions <- clustered.grl[[i]]
     cluster.ID <- unique(cluster.regions$ID)
     message("Exporting FASTA for: ", cluster.ID)
+    ## Remove sequences not present in the FASTA index
+    fa.idx <- Rsamtools::scanFaIndex(fa.file)
+    cluster.regions <- suppressWarnings( subsetByOverlaps(cluster.regions, fa.idx) )
+    #cluster.regions <- cluster.regions[which(seqnames(cluster.regions) %in% seqnames(fa.idx))]
     ## Read in contigs for a given cluster
     cluster.seq <- Rsamtools::scanFa(file = fa.file, param = cluster.regions, as = "DNAStringSet")
     ## Reverse complement based on 'dir' field
