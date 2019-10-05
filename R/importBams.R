@@ -8,7 +8,7 @@
 #' @param reads.per.bin An approximate number of desired reads per bin. The bin size will be selected accordingly. Forces 'bin.method' to be 'fixed'.
 #' @param max.frag A maximum fragment length to import from the BAM file.
 #' @param bin.method One of the 'fixed' or 'dynamic' binning method.
-#' @param mask.collapses If set to \code{TRUE} read pileups of more than 4 reads will be removed (default=TRUE).
+#' @param blacklist A \code{\link[GenomicRanges]{GRanges}} object containing genonic regions that should be excluded from the analysis.
 #' @return A \code{list} of matrices (columns: minus (W) and plus (C) counts; rows: genomic regions).
 #' @importFrom bamsignals bamCount
 #' @importFrom Rsamtools BamFile
@@ -17,7 +17,7 @@
 #' @author David Porubsky
 #' @export
 #' 
-importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRUE, min.mapq=10, bin.size=100000, step.size=NULL, reads.per.bin=NULL, max.frag=1000, bin.method='fixed', mask.collapses=TRUE) {
+importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRUE, min.mapq=10, bin.size=100000, step.size=NULL, reads.per.bin=NULL, max.frag=1000, bin.method='fixed', blacklist=NULL) {
   ## Get total processing time
   ptm <- proc.time()
   message("Preparing BAM count table ...")
@@ -76,6 +76,13 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
     paired.end <- 'filter'
   }
   
+  ## Mask regions with and excess of read coverage that appears always WC
+  ## and bins that have very low read counts
+  if (!is.null(blacklist)) {
+    #removed.gr <- subsetByOverlaps(bins.gr, blacklist)
+    bins.gr <- subsetByOverlaps(bins.gr, blacklist, invert = TRUE)
+  }  
+  
   counts.l <- list()
   for (i in 1:length(bamfiles)) {
     bam <- bamfiles[i]
@@ -103,16 +110,6 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
       counts <- bamsignals::bamCount(bam, chr.gr, mapq=min.mapq, filteredFlag=1024, paired.end=paired.end, tlenFilter=c(0, max.frag), verbose=FALSE, ss=TRUE)
       mcols(chr.gr) <- t(counts)
       chr.gr$total.reads <- colSums(counts)
-    }
-    
-    ## Mask regions with and excess of read coverage
-    ## And remove them from the export count object
-    if (mask.collapses & length(bins.gr) > 0) {
-      ## Set bins with extreme read counts to zero
-      z.score <- (bins.gr$total.reads - mean(bins.gr$total.reads)) / sd(bins.gr$total.reads)
-      mask.bins <- z.score >= 3
-      mcols(bins.gr[mask.bins]) <- 0
-      bins.gr <- bins.gr[bins.gr$total.reads > 0]
     }
     
     ## Extend bins with zero read counts

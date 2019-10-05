@@ -7,7 +7,7 @@
 importBams(bamfolder = bamfolder, chromosomes = NULL,
   pairedEndReads = TRUE, min.mapq = 10, bin.size = 1e+05,
   step.size = NULL, reads.per.bin = NULL, max.frag = 1000,
-  bin.method = "fixed", mask.collapses = TRUE)
+  bin.method = "fixed", blacklist = NULL)
 }
 \arguments{
 \item{bamfolder}{A folder containing BAM files with Strand-seq reads aligned to denovo assembly.}
@@ -26,7 +26,7 @@ importBams(bamfolder = bamfolder, chromosomes = NULL,
 
 \item{bin.method}{One of the 'fixed' or 'dynamic' binning method.}
 
-\item{mask.collapses}{If set to \code{TRUE} read pileups of more than 4 reads will be removed (default=TRUE).}
+\item{blacklist}{A \code{\link[GenomicRanges]{GRanges}} object containing genonic regions that should be excluded from the analysis.}
 }
 \value{
 A \code{list} of matrices (columns: minus (W) and plus (C) counts; rows: genomic regions).

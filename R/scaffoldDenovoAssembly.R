@@ -21,7 +21,7 @@
 #' @author David Porubsky
 #' @export
 #' 
-scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3, remove.always.WC=FALSE) {
+scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.collapses=FALSE) {
   ## Get total processing time
   ptm <- proc.time()
   
@@ -57,7 +57,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   params <- list(min.contig.size=min.contig.size, pairedEndReads=pairedEndReads, bin.size=bin.size, store.data.obj=store.data.obj, 
                  step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, alpha=alpha, 
                  best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, 
-                 concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC)
+                 concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC, mask.collapses=mask.collapses)
   config <- c(config, params[setdiff(names(params), names(config))])
   
   ## Make a copy of the config file ##
@@ -71,6 +71,27 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   chrom.lengths <- chrom.lengths[chrom.lengths >= config[['min.contig.size']]]
   chroms.in.data <- names(chrom.lengths)
 
+  ## Create a mask of regions with and excess of read coverage that appears always WC
+  ## and bins that have very low read counts
+  destination <- file.path(datapath, paste0("maskRegions_", config[['bin.size']],"bp_", config[['bin.method']], ".RData"))
+  if (mask.collapses) {
+    if (file.exists(destination)) {
+      message("Loading previously generated region MASK ...\n", destination)
+      blacklist <- get(load(destination))
+      blacklist.gr <- c(blacklist$alwaysWC, blacklist$alwaysZero)
+    } else {
+      bins.gr <- makeFixedBins(bamfile = bamFile, bin.size = 100000, step.size = 100000, chroms.in.data)
+      blacklist <- suppressWarnings( 
+        maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, pairedEndReads = config[['pairedEndReads']])
+      )
+      blacklist.gr <- c(blacklist$alwaysWC, blacklist$alwaysZero)
+    } 
+  }
+  ## Store data object
+  if (config[['store.data.obj']]) {
+    save(blacklist, file = destination)
+  }
+
   ## Get counts per genomic regions ##
   destination <- file.path(datapath, paste0("rawCounts_", config[['bin.size']],"bp_", config[['bin.method']], ".RData"))
   if (config[['reuse.data.obj']]) {
@@ -78,10 +99,18 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       message("Loading previously generated BAM read counts ...\n", destination)
       counts.l <- get(load(destination))
     } else {
-      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
+      if (mask.collapses) {
+        counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
+      } else {
+        counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
+      }
     }
   } else {
-    counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
+    if (mask.collapses) {
+      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
+    } else {
+      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
+    }
   }
   ## Store data object
   if (config[['store.data.obj']]) {

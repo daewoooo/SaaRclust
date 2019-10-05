@@ -9,8 +9,8 @@ scaffoldDenovoAssembly(bamfolder, outputfolder, configfile = NULL,
   step.size = NULL, bin.method = "fixed", store.data.obj = TRUE,
   reuse.data.obj = FALSE, num.clusters = 100, alpha = 0.1,
   best.prob = 1, prob.th = 0, ord.method = "TSP",
-  assembly.fasta = NULL, concat.fasta = TRUE, z.limit = 3,
-  remove.always.WC = FALSE)
+  assembly.fasta = NULL, concat.fasta = TRUE, z.limit = 3.29,
+  remove.always.WC = FALSE, mask.collapses = FALSE)
 }
 \arguments{
 \item{bamfolder}{A folder containing BAM files with Strand-seq reads aligned to denovo assembly.}
