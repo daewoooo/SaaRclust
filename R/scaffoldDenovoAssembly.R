@@ -84,12 +84,12 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       blacklist <- suppressWarnings( 
         maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, pairedEndReads = config[['pairedEndReads']])
       )
+      ## Store data object
+      if (config[['store.data.obj']]) {
+        save(blacklist, file = destination)
+      }
       blacklist.gr <- c(blacklist$alwaysWC, blacklist$alwaysZero)
     } 
-  }
-  ## Store data object
-  if (config[['store.data.obj']]) {
-    save(blacklist, file = destination)
   }
 
   ## Get counts per genomic regions ##
