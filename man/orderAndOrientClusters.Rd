@@ -5,7 +5,8 @@
 \title{Order and orient contigs within each cluster}
 \usage{
 orderAndOrientClusters(clustered.grl, split.pairs, ord.method = "TSP",
-  alpha = 0.1, bin.size = bin.size, filename = NULL)
+  alpha = 0.1, bin.size = bin.size, filename = NULL,
+  remove.always.WC = FALSE)
 }
 \arguments{
 \item{clustered.grl}{A \code{\link{GRangesList-class}} object with cluster assignments for each contig.}
@@ -19,6 +20,8 @@ orderAndOrientClusters(clustered.grl, split.pairs, ord.method = "TSP",
 \item{bin.size}{A length of a bin to count reads in.}
 
 \item{filename}{A path to a file where clustered on ordered contigs should be stored.}
+
+\item{remove.always.WC}{Set to \code{TRUE} if the cluster with majority of WC states should be removed.}
 }
 \description{
 This function takes a \code{\link{GRangesList-class}} object and order and orient each contigs

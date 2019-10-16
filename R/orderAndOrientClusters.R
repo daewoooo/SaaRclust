@@ -9,17 +9,18 @@
 #' @param filename A path to a file where clustered on ordered contigs should be stored.
 #' @inheritParams countProb
 #' @inheritParams importBams
+#' @inheritParams connectDividedClusters
 #' @author David Porubsky
 #' @export
-orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP', alpha=0.1, bin.size=bin.size, filename=NULL) {
+orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP', alpha=0.1, bin.size=bin.size, filename=NULL, remove.always.WC=FALSE) {
   
   ptm <- startTimedMessage("Preparing contigs for ordering and orienting")
   ## Merge by cluster ID
   grl.collapsed <- endoapply(clustered.grl, function(x) collapseBins(x, id.field = 1, measure.field = c(2,3)))
   ## Add cluster ID
   grl.collapsed <- endoapply(grl.collapsed, function(x) addClusterGroup(cluster.gr = x, cluster.groups = split.pairs$clusters))
-  ## Merge by group ID [!!! this might disrupt ordering !!!]
-  grl.collapsed <- endoapply(grl.collapsed, function(x) collapseBins(x, id.field = 4, measure.field = c(2,3)))
+  ## Merge by group ID [!!! this might disrupt ordering and confuse primary cluster IDs !!!]
+  #grl.collapsed <- endoapply(grl.collapsed, function(x) collapseBins(x, id.field = 4, measure.field = c(2,3)))
   ## Remove ranges smaller than the bin.size
   grl.collapsed <- endoapply(grl.collapsed, function(x) x[width(x) >= bin.size])
   ## Get strand state for each region
@@ -39,7 +40,9 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     message("Ordering cluster: ", ID)
     cluster.data <- cluster.states.dfl[[i]]
     ## Remove always WC cluster
-    cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$always.WC,]
+    if (remove.always.WC) {
+      cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$always.WC,]
+    }  
     ## Remove putative HET inversions???
     #cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$putative.HETs,]
     ## Remove 'clust.ID' and 'group.ID' columns
