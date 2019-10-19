@@ -9,7 +9,7 @@ plotAssemblyStat(infile = NULL, format = "bam")
 \arguments{
 \item{infile}{A file that contains assembled contigs in specific format.}
 
-\item{format}{Use 'bam' for contigs aligned to the reference or 'fasta' for raw sequences.}
+\item{format}{Use 'bam' for contigs aligned to the reference or 'fai' for fasta index file.}
 }
 \value{
 A \code{ggplot} object.

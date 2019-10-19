@@ -385,7 +385,7 @@ plotDistanceMatrix <- function(dist.matrix, col.low="chartreuse4", col.high="cad
 #' Plot assembly statistics
 #'
 #' @param infile A file that contains assembled contigs in specific format.
-#' @param format Use 'bam' for contigs aligned to the reference or 'fasta' for raw sequences.
+#' @param format Use 'bam' for contigs aligned to the reference or 'fai' for fasta index file.
 #' @return A \code{ggplot} object.
 #' @importFrom Rsamtools scanBamHeader
 #' @author David Porubsky
@@ -397,10 +397,12 @@ plotAssemblyStat <- function(infile=NULL, format='bam') {
     file.header <- Rsamtools::scanBamHeader(infile)[[1]]
     chrom.lengths <- file.header$targets
     plt.df <- data.frame(ctg.len = sort(chrom.lengths))
-  } else if (format == 'fasta') {
-    message("Not implemented yet !!!")
+  } else if (format == 'fai') {
+    ## Get contigs/scaffolds names and sizes from fasta index
+    fai.tab <- read.table(infile)
+    plt.df <- data.frame(ctg.len = sort(fai.tab$V2))
   } else {
-    message("Unsupported format, please use 'bam' or 'fasta' !!!")
+    message("Unsupported format, please use 'bam' or 'fai' !!!")
   }
   
   ## Produce summary plot
