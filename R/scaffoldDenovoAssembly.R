@@ -17,7 +17,7 @@
 #' @inheritParams connectDividedClusters
 #' @inheritParams orderAndOrientClusters
 #' @inheritParams exportPseudoChromosomalScaffolds
-#' @return A \code{\link{GRanges-class}} object ???
+#' @return NULL
 #' @author David Porubsky
 #' @export
 #' 
@@ -74,22 +74,29 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Create a mask of regions with and excess of read coverage that appears always WC
   ## and bins that have very low read counts
   destination <- file.path(datapath, paste0("maskRegions_", config[['bin.size']],"bp_", config[['bin.method']], ".RData"))
-  if (mask.collapses) {
-    if (file.exists(destination)) {
-      message("Loading previously generated region MASK ...\n", destination)
-      blacklist <- get(load(destination))
-      blacklist.gr <- c(blacklist$alwaysWC, blacklist$alwaysZero)
+  if (config[['mask.collapses']]) {
+    if (config[['reuse.data.obj']]) {
+      if (file.exists(destination)) {
+        message("Loading previously generated region MASK ...\n", destination)
+        blacklist <- get(load(destination))
+        #blacklist.gr <- c(blacklist$alwaysWC, blacklist$alwaysZero)
+      } else {
+        bins.gr <- makeFixedBins(bamfile = bamFile, bin.size = 50000, step.size = 50000, chroms.in.data)
+        blacklist <- suppressWarnings( 
+          maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, pairedEndReads = config[['pairedEndReads']])
+        )
+      }  
     } else {
-      bins.gr <- makeFixedBins(bamfile = bamFile, bin.size = 100000, step.size = 100000, chroms.in.data)
+      bins.gr <- makeFixedBins(bamfile = bamFile, bin.size = 50000, step.size = 50000, chroms.in.data)
       blacklist <- suppressWarnings( 
         maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, pairedEndReads = config[['pairedEndReads']])
       )
-      ## Store data object
-      if (config[['store.data.obj']]) {
-        save(blacklist, file = destination)
-      }
-      blacklist.gr <- c(blacklist$alwaysWC, blacklist$alwaysZero)
     } 
+    blacklist.gr <- c(blacklist$alwaysWC, blacklist$alwaysZero)
+    ## Store data object
+    if (config[['store.data.obj']]) {
+      save(blacklist, file = destination)
+    }
   }
 
   ## Get counts per genomic regions ##
@@ -99,14 +106,14 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       message("Loading previously generated BAM read counts ...\n", destination)
       counts.l <- get(load(destination))
     } else {
-      if (mask.collapses) {
+      if (config[['mask.collapses']]) {
         counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
       } else {
         counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
       }
     }
   } else {
-    if (mask.collapses) {
+    if (config[['mask.collapses']]) {
       counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
     } else {
       counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
@@ -143,21 +150,17 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       message("Loading previously generated soft clustering results ...\n", destination)
       EM.obj <- get(load(destination))
     } else {
-      ## Estimate EM parameters
-      theta.estim <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=config[['alpha']])
-      ## Set theta parameter
-      theta.param <- theta.estim
-      ## Set pi parameter
+      ## Estimate theta parameter
+      theta.param <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=config[['alpha']])
+      ## Estimate pi parameter
       readsPerCluts <- table(hardClust.ord)
       pi.param <- readsPerCluts / sum(readsPerCluts)
       EM.obj <- EMclust(counts.l, theta.param=theta.param, pi.param=pi.param, num.iter=20, alpha=config[['alpha']], logL.th=1, log.scale=TRUE)
     }
   } else {
-    ## Estimate EM parameters
-    theta.estim <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=config[['alpha']])
-    ## Set theta parameter
-    theta.param <- theta.estim
-    ## Set pi parameter
+    ## Estimate theta parameter
+    theta.param <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=config[['alpha']])
+    ## Estimate pi parameter
     readsPerCluts <- table(hardClust.ord)
     pi.param <- readsPerCluts / sum(readsPerCluts)
     EM.obj <- EMclust(counts.l, theta.param=theta.param, pi.param=pi.param, num.iter=20, alpha=config[['alpha']], logL.th=1, log.scale=TRUE)
@@ -165,6 +168,18 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Store data object
   if (config[['store.data.obj']]) {
     save(EM.obj, file = destination)
+  }
+  
+  ## Remove always WC cluster
+  if (config[['remove.always.WC']]) {
+    ## Find cluster with WC state in majority of cells
+    theta.sums <- Reduce("+", EM.obj$theta.param)
+    remove.clust <- which.max(theta.sums[,3])
+    ## Remove cluster with the most WC states
+    message("\nRemoving cluster ", remove.clust, " with the most WC states!!!")
+    EM.obj$theta.param <- lapply(EM.obj$theta.param, function(x) x[-remove.clust,])
+    EM.obj$soft.pVal <- EM.obj$soft.pVal[,-remove.clust]
+    EM.obj$pi.param <- EM.obj$pi.param[-remove.clust]
   }
   
   ## Get cluster IDs that belong to the same chromosome/scaffold ##
@@ -180,7 +195,12 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   
   ## Order and orient contigs ##
   destination <- file.path(asmpath, paste0("ordered&oriented_", config[['bin.size']], "bp_", config[['bin.method']], ".tsv"))
-  ordered.contigs.gr <- orderAndOrientClusters(clustered.grl=clustered.grl, split.pairs=split.pairs, ord.method=config[['ord.method']], alpha=config[['alpha']], bin.size=config[['bin.size']], filename=destination, remove.always.WC=config[['remove.always.WC']])
+  ordered.contigs.gr <- orderAndOrientClusters(clustered.grl=clustered.grl, split.pairs=split.pairs, ord.method=config[['ord.method']], alpha=config[['alpha']], bin.size=config[['bin.size']], filename=destination)
+  seqlengths(ordered.contigs.gr) <- chrom.lengths[seqlevels(ordered.contigs.gr)]
+  
+  ## Extend gaps between ranges
+  ordered.contigs.gr <- expandGaps(ordered.contigs.gr)
+
   ## Store data object
   destination <- file.path(asmpath, paste0("ordered&oriented_", config[['bin.size']], "bp_chunks.RData"))
   if (store.data.obj) {
@@ -197,7 +217,13 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   }
   ## TODO return final clustered object??? 
   
-  ## TODO make some plots ???
+  ## Plot theta parameter
+  theta.plt <- plotThetaEstimates(EM.obj$theta.param)
+  ggsave(filename = file.path(pltpath, 'theta_param.pdf'), 
+         plot = theta.plt, 
+         width = config[['num.clusters']] / 10, 
+         height = length(EM.obj$theta.param) / 10, 
+         limitsize = FALSE)
   
   ## Report total processing time
   time <- proc.time() - ptm

@@ -21,11 +21,11 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
 
   ## Find cluster with WC state in majority of cells
   theta.sums <- Reduce("+", theta.param)
-  remove.clust <- which.max(theta.sums[,3])
+  max.WC <- which.max(theta.sums[,3])
   ## Remove cluster with the most WC states
   if (remove.always.WC) {  
-    message("    Removed cluster ", remove.clust, " to ensure even number of clusters!!!")
-    theta.param <- lapply(theta.param, function(x) x[-remove.clust,])
+    message("\n    Removed cluster ", max.WC, " with the most WC states!!!")
+    theta.param <- lapply(theta.param, function(x) x[-max.WC,])
   }
   
   dist.wc <- list()
@@ -91,5 +91,5 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   clusters <- igraph::groups(igraph::components(G, mode = 'strong'))
   
   stopTimedMessage(ptm)
-  return(list(clusters=clusters, putative.HETs=putative.HETs, always.WC=remove.clust))
+  return(list(clusters=clusters, putative.HETs=putative.HETs, max.WC=max.WC))
 }

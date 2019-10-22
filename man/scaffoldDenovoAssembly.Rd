@@ -26,6 +26,8 @@ If a \code{configfile} is specified, it will take priority over the command line
 
 \item{bin.size}{A length of a bin to count reads in.}
 
+\item{step.size}{A size of the genomic interval to move each bin.}
+
 \item{bin.method}{One of the 'fixed' or 'dynamic' binning method.}
 
 \item{store.data.obj}{A logical indicating whether or not intermediate Rdata objects should be stored.}
@@ -49,9 +51,6 @@ If a \code{configfile} is specified, it will take priority over the command line
 \item{z.limit}{Connect clusters with z-score equal or above this limit.}
 
 \item{remove.always.WC}{Set to \code{TRUE} if the cluster with majority of WC states should be removed.}
-}
-\value{
-A \code{\link{GRanges-class}} object ???
 }
 \description{
 This function is an easy-to-use wrapper to take Strand-seq reads aligned to the denovo genome assembly

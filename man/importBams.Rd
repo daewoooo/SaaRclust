@@ -20,6 +20,8 @@ importBams(bamfolder = bamfolder, chromosomes = NULL,
 
 \item{bin.size}{A length of a bin to count reads in.}
 
+\item{step.size}{A size of the genomic interval to move each bin.}
+
 \item{reads.per.bin}{An approximate number of desired reads per bin. The bin size will be selected accordingly. Forces 'bin.method' to be 'fixed'.}
 
 \item{max.frag}{A maximum fragment length to import from the BAM file.}

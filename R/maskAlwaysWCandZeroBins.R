@@ -47,14 +47,13 @@ maskAlwaysWCandZeroBins <- function(bamfolder=bamfolder, genomic.bins=NULL, min.
   total.read.sums <- rowSums(total.read.counts.m)
   
   ## Find bins that are always WC in a majority of cells
-  ## Remove bins that are WC in more than 95% of all cells (bamfiles)
-  #z.score <- (wc.counts.sums - median(wc.counts.sums)) / sd(wc.counts.sums)
-  thresh <- length(bamfiles) * 0.95
-  mask.bins <- which(wc.counts.sums >= thresh)
+  ## Remove bins that are WC in more than 90% of all cells (bamfiles)
+  z.score <- (wc.counts.sums - median(wc.counts.sums)) / sd(wc.counts.sums)
+  mask.bins <- which(z.score >= 3)
+  #thresh <- length(bamfiles) * 0.90
+  #mask.bins <- which(wc.counts.sums >= thresh)
   if (length(mask.bins) > 0) {
     alwaysWC <- genomic.bins[mask.bins]
-    alwaysWC$names <- seqnames(alwaysWC)
-    alwaysWC <- collapseBins(alwaysWC , id.field = 1)
   } else {
     alwaysWC <- NULL
   } 
@@ -64,8 +63,6 @@ maskAlwaysWCandZeroBins <- function(bamfolder=bamfolder, genomic.bins=NULL, min.
   zero.bins <- which(z.score <= -3)
   if (length(zero.bins) > 0) {
     alwaysZero <- genomic.bins[zero.bins]
-    alwaysZero$names <- seqnames(alwaysZero)
-    alwaysZero <- collapseBins(alwaysZero, id.field = 1)
   } else {
     alwaysZero <- NULL
   } 

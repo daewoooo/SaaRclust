@@ -13,7 +13,7 @@
 #' @importFrom bamsignals bamCount
 #' @importFrom Rsamtools BamFile
 #' @inheritParams readBamFileAsGRanges
-#' @inheritParams makeBins
+#' @inheritParams makeFixedBins
 #' @author David Porubsky
 #' @export
 #' 
@@ -81,7 +81,8 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
   if (!is.null(blacklist)) {
     #removed.gr <- subsetByOverlaps(bins.gr, blacklist)
     bins.gr <- subsetByOverlaps(bins.gr, blacklist, invert = TRUE)
-  }  
+    bins.gr <- keepSeqlevels(bins.gr, value = as.character(unique(seqnames(bins.gr))), pruning.mode = 'coarse')
+  }
   
   counts.l <- list()
   for (i in 1:length(bamfiles)) {
@@ -126,7 +127,9 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
     ## Create a count matrix
     bins.gr.new <- bins.gr
     counts.m <- cbind(bins.gr.new$antisense, bins.gr.new$sense)
-    rownames(counts.m) <- as.character(bins.gr.new)
+    ## Extend gaps between ranges
+    bins.gr.ext <- expandGaps(bins.gr)
+    rownames(counts.m) <- as.character(bins.gr.ext)
     
     counts.l[[bam.name]] <- counts.m
   }
