@@ -121,7 +121,7 @@ addClusterGroup <- function(cluster.gr=NULL, cluster.groups=NULL) {
   return(cluster.gr)
 } 
 
-#' Convert strings in
+#' Convert strings in a data.frame object into a \code{\link{GRanges-class}} object.
 #'
 #' @param region.string A \code{vector} object 
 #' @return A \code{\link{GRanges-class}} object with an extra metacolumn group.ID.
@@ -138,4 +138,42 @@ string2GRanges <- function(region.string=NULL) {
                                                       end=as.numeric(regions.df$end)), 
                                        dir=regions.df$dir)
   return(regions.gr)
+}
+
+
+#' Fill in gaps in between a set of genomic ranges.
+#' 
+#' This function takes a \code{\link{GRanges-class}} object and extend gaps between
+#' subsequent ranges by merging with the preceeding or following genomic range.
+#' 
+#' @param gr A \code{\link{GRanges-class}} object.
+#' @return A \code{\link{GRanges-class}} object.
+#' @author David Porubsky
+#' @export
+
+expandGaps <- function(gr) {
+  ## Check if seqlengths are defined
+  if (any(is.na(seqlengths(gr)))) {
+    stop("Undefined seqlengths for parameter gr ...")
+  }
+  
+  ## Extend gaps between ranges
+  new.gr <- gr
+  gaps.gr <- GenomicRanges::gaps(GenomicRanges::sort(gr))
+  gaps.gr <- gaps.gr[strand(gaps.gr) == '*']
+  if (length(gaps.gr) > 0) {
+    ## Merge with preceeding range
+    preceed.idx <- GenomicRanges::start(gaps.gr) > 1
+    GenomicRanges::start(gaps.gr)[preceed.idx] <- GenomicRanges::start(gaps.gr)[preceed.idx] - 1
+    preceed.hits <- GenomicRanges::findOverlaps(gaps.gr[preceed.idx], new.gr)
+    GenomicRanges::end(new.gr[subjectHits(preceed.hits)]) <- GenomicRanges::end(gaps.gr[preceed.idx])
+    ## Merge with following range
+    follow.idx <- GenomicRanges::start(gaps.gr) == 1
+    GenomicRanges::end(gaps.gr)[follow.idx] <- GenomicRanges::end(gaps.gr)[follow.idx] + 1
+    follow.hits <- GenomicRanges::findOverlaps(gaps.gr[follow.idx], new.gr)
+    GenomicRanges::start(new.gr[subjectHits(follow.hits)]) <- GenomicRanges::start(gaps.gr[follow.idx])
+    return(new.gr)
+  } else {
+    return(gr)
+  }
 }
