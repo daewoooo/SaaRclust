@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{string2GRanges}
 \alias{string2GRanges}
-\title{Convert strings in}
+\title{Convert strings in a data.frame object into a \code{\link{GRanges-class}} object.}
 \usage{
 string2GRanges(region.string = NULL)
 }
@@ -13,7 +13,7 @@ string2GRanges(region.string = NULL)
 A \code{\link{GRanges-class}} object with an extra metacolumn group.ID.
 }
 \description{
-Convert strings in
+Convert strings in a data.frame object into a \code{\link{GRanges-class}} object.
 }
 \author{
 David Porubsky

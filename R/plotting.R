@@ -144,6 +144,7 @@ plotClustAccuracy <- function(pVal.df=NULL, num.clusters=NULL, thresh=c(0.5,0.6,
 
 plotThetaEstimates <- function(theta.param=NULL, title=NULL) {
   
+  ptm <- startTimedMessage("Plotting theta estimates")
   plt.data <- list()
   for (j in 1:length(theta.param)) {
     df <- as.data.frame(theta.param[[j]])
@@ -164,6 +165,7 @@ plotThetaEstimates <- function(theta.param=NULL, title=NULL) {
   } else {
     plt <- ggplot(plt.data.df , aes(x=clustID, y=value, fill=variable)) + geom_bar(stat='identity', width=1) + facet_grid(cell ~ .) + scale_fill_manual(values = c('prob.cc'="paleturquoise4", 'prob.mix'="olivedrab",'prob.ww'="sandybrown")) + ggtitle(title) + my_theme
   }
+  stopTimedMessage(ptm)
   return(plt)
 }
 

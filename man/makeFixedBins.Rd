@@ -5,7 +5,7 @@
 \title{Make fixed-width bins}
 \usage{
 makeFixedBins(bamfile = NULL, bin.size = 1e+05, step.size = NULL,
-  chromosomes = NULL)
+  chromosomes = NULL, keep.small.chr = FALSE)
 }
 \arguments{
 \item{bamfile}{A BAM file from which the header is read to determine the chromosome lengths. If a \code{bamfile} is specified, option \code{assembly} is ignored.}
@@ -15,6 +15,8 @@ makeFixedBins(bamfile = NULL, bin.size = 1e+05, step.size = NULL,
 \item{step.size}{A size of the genomic interval to move each bin.}
 
 \item{chromosomes}{A user defined set of chromosomes for binning (eg. 'chr1')}
+
+\item{keep.small.chr}{Set to \code{TRUE} if chromosome/contigs smaller than the 'bin.size' should be kept.}
 }
 \value{
 A \code{\link{GRanges-class}} object with fixed-width bins.

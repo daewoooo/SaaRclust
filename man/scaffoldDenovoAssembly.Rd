@@ -10,7 +10,7 @@ scaffoldDenovoAssembly(bamfolder, outputfolder, configfile = NULL,
   reuse.data.obj = FALSE, num.clusters = 100, alpha = 0.1,
   best.prob = 1, prob.th = 0, ord.method = "TSP",
   assembly.fasta = NULL, concat.fasta = TRUE, z.limit = 3.29,
-  remove.always.WC = FALSE, mask.collapses = FALSE)
+  remove.always.WC = FALSE, mask.regions = FALSE)
 }
 \arguments{
 \item{bamfolder}{A folder containing BAM files with Strand-seq reads aligned to denovo assembly.}
@@ -51,6 +51,8 @@ If a \code{configfile} is specified, it will take priority over the command line
 \item{z.limit}{Connect clusters with z-score equal or above this limit.}
 
 \item{remove.always.WC}{Set to \code{TRUE} if the cluster with majority of WC states should be removed.}
+
+\item{mask.regions}{Set to \code{TRUE} if regions that appear as WC in majority of cells and low coverage regions should be masked.}
 }
 \description{
 This function is an easy-to-use wrapper to take Strand-seq reads aligned to the denovo genome assembly

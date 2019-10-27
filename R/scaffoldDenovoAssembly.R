@@ -10,6 +10,7 @@
 #' @param min.contig.size A minimal contig size to be processed (default: 100kb).
 #' @param store.data.obj A logical indicating whether or not intermediate Rdata objects should be stored.
 #' @param reuse.data.obj A logical indicating whether or not existing files in \code{outputfolder} should be reused.
+#' @param mask.regions Set to \code{TRUE} if regions that appear as WC in majority of cells and low coverage regions should be masked.
 #' @inheritParams importBams
 #' @inheritParams hardClust
 #' @inheritParams countProb
@@ -21,7 +22,7 @@
 #' @author David Porubsky
 #' @export
 #' 
-scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.collapses=FALSE) {
+scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE) {
   ## Get total processing time
   ptm <- proc.time()
   
@@ -57,15 +58,15 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   params <- list(min.contig.size=min.contig.size, pairedEndReads=pairedEndReads, bin.size=bin.size, store.data.obj=store.data.obj, 
                  step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, alpha=alpha, 
                  best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, 
-                 concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC, mask.collapses=mask.collapses)
+                 concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC, mask.regions=mask.regions)
   config <- c(config, params[setdiff(names(params), names(config))])
   
   ## Make a copy of the config file ##
   writeConfig(config = config, configfile=file.path(outputfolder, 'SaaRclust.config'))
   
   ## Get contigs/scaffolds names and sizes
-  bamFile <- list.files(bamfolder, pattern = ".bam$", full.names = TRUE)[1]
-  file.header <- Rsamtools::scanBamHeader(bamFile)[[1]]
+  bamfile <- list.files(bamfolder, pattern = ".bam$", full.names = TRUE)[1]
+  file.header <- Rsamtools::scanBamHeader(bamfile)[[1]]
   chrom.lengths <- file.header$targets
   ## Keep only contigs/scaffolds >=100Kb
   chrom.lengths <- chrom.lengths[chrom.lengths >= config[['min.contig.size']]]
@@ -74,14 +75,14 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Create a mask of regions with and excess of read coverage that appears always WC
   ## and bins that have very low read counts
   destination <- file.path(datapath, paste0("maskRegions_", config[['bin.size']],"bp_", config[['bin.method']], ".RData"))
-  if (config[['mask.collapses']]) {
+  if (config[['mask.regions']]) {
     if (config[['reuse.data.obj']]) {
       if (file.exists(destination)) {
         message("Loading previously generated region MASK ...\n", destination)
         blacklist <- get(load(destination))
         #blacklist.gr <- c(blacklist$alwaysWC, blacklist$alwaysZero)
       } else {
-        bins.gr <- makeFixedBins(bamfile = bamFile, bin.size = 50000, step.size = 50000, chroms.in.data)
+        bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = 50000, step.size = 50000, chromosomes = chroms.in.data)
         blacklist <- suppressWarnings( 
           maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, pairedEndReads = config[['pairedEndReads']])
         )
@@ -106,14 +107,14 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       message("Loading previously generated BAM read counts ...\n", destination)
       counts.l <- get(load(destination))
     } else {
-      if (config[['mask.collapses']]) {
+      if (config[['mask.regions']]) {
         counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
       } else {
         counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
       }
     }
   } else {
-    if (config[['mask.collapses']]) {
+    if (config[['mask.regions']]) {
       counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
     } else {
       counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
@@ -206,6 +207,22 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   if (store.data.obj) {
     save(ordered.contigs.gr, file = destination)
   }
+  
+  ## Report contigs assigned to more than one cluster or with putative misorient
+  putative.errors <- ordered.contigs.gr[width(ordered.contigs.gr) >= 1000000]
+  putative.errors <- keepSeqlevels(putative.errors, value = unique(seqnames(putative.errors)), pruning.mode = 'coarse')
+  putative.errors.grl <- split(putative.errors, seqnames(putative.errors))
+  putative.errors.grl <- putative.errors.grl[lengths(putative.errors.grl) > 1]
+  mask <- lapply(putative.errors.grl, function(gr) length(unique(gr$ID)) > 1 | length(unique(gr$dir)) > 1)
+  idx <- which(mask == TRUE)
+  if (length(idx) > 0) {
+    putative.errors.gr <- unlist(putative.errors.grl[idx], use.names = FALSE)
+    ## Store data object
+    destination <- file.path(datapath, paste0("putativeAsmErrors_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
+    if (store.data.obj) {
+      save(putative.errors.gr, file = destination)
+    }
+  }  
   
   ## Export clustered FASTA ##
   if (!is.null(config[['assembly.fasta']]) & is.character(config[['assembly.fasta']])) {

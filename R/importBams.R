@@ -63,9 +63,9 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
   
   ## Make genome bins
   if (!is.null(bin.size) & bin.method == 'fixed') {
-    bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = bin.size, step.size = step.size, chromosomes = chroms2use)
+    bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = bin.size, step.size = step.size, chromosomes = chroms2use, keep.small.chr = TRUE)
   } else if (!is.null(bin.size) & bin.method == 'dynamic') {
-    bins.gr <- makeDynamicBins(bamfiles = bamfiles, bin.size = bin.size, step.size = step.size, chromosomes = chroms2use)
+    bins.gr <- makeDynamicBins(bamfiles = bamfiles, bin.size = bin.size, step.size = step.size, chromosomes = chroms2use, keep.small.chr = TRUE)
   } else {
     warning("Unsupported binning method!!!, Set 'bin.method' to 'fixed' or 'dynamic'")
   }

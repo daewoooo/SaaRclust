@@ -17,8 +17,9 @@ exportPseudoChromosomalScaffolds <- function(clustered.gr=NULL, assembly.fasta=N
   ## Check if submitted fasta file is indexed
   assembly.fasta.idx <- paste0(assembly.fasta, ".fai")
   if (!file.exists(assembly.fasta.idx)) {
-    message("Fasta file is not indexed, indexing ...")
+    ptm <- startTimedMessage("Fasta file is not indexed, indexing")
     fa.idx <- Rsamtools::indexFa(file = assembly.fasta)
+    stopTimedMessage(ptm)
   }
   ## Open FASTA file instance
   fa.file <- open(Rsamtools::FaFile(assembly.fasta))
@@ -28,7 +29,7 @@ exportPseudoChromosomalScaffolds <- function(clustered.gr=NULL, assembly.fasta=N
   for (i in seq_along(clustered.grl)) {
     cluster.regions <- clustered.grl[[i]]
     cluster.ID <- unique(cluster.regions$ID)
-    message("Exporting FASTA for: ", cluster.ID)
+    ptm <- startTimedMessage(paste0("Exporting FASTA for: ", cluster.ID))
     ## Remove sequences not present in the FASTA index
     fa.idx <- Rsamtools::scanFaIndex(fa.file)
     cluster.regions <- suppressWarnings( subsetByOverlaps(cluster.regions, fa.idx) )
@@ -52,6 +53,7 @@ exportPseudoChromosomalScaffolds <- function(clustered.gr=NULL, assembly.fasta=N
       ## Write final FASTA
       destination <- file.path(outputfolder, paste0(cluster.ID, '.fasta')) 
       Biostrings::writeXStringSet(x = cluster.seq, filepath = destination, format = 'fasta')
-    } 
+    }
+    stopTimedMessage(ptm)
   }
 }
