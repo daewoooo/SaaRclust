@@ -6,14 +6,15 @@
 #' @param bin.size A size of the genomic bin to split genome into.
 #' @param step.size A size of the genomic interval to move each bin.
 #' @param chromosomes A user defined set of chromosomes for binning (eg. 'chr1')
+#' @param keep.small.chr Set to \code{TRUE} if chromosome/contigs smaller than the 'bin.size' should be kept.
 #' @return A \code{\link{GRanges-class}} object with fixed-width bins.
 #' @author David Porubsky
 #' @importFrom Rsamtools BamFile
 #' @export
 #'
-makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromosomes=NULL) {
+makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromosomes=NULL, keep.small.chr=FALSE) {
   
-  ptm <- startTimedMessage("Preparing fixed-width bins for bin size ", bin.size, " ...")
+  ptm <- startTimedMessage("Preparing fixed-width bins for bin size ", bin.size)
   
   ### Check user input ###
   if (length(bin.size) == 0) {
@@ -46,12 +47,16 @@ makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromos
   
   chrom.lengths.floor <- floor(chrom.lengths / bin.size) * bin.size
   bins <- unlist(GenomicRanges::tileGenome(chrom.lengths.floor[chroms2use], tilewidth=bin.size), use.names=FALSE)
-  bins <- bins[end(bins) > 0] # remove chromosomes that are smaller than bin.size
+  ## remove chromosomes that are smaller than bin.size?
+  bins <- bins[end(bins) > 0]
+  
   if (any(width(bins) != bin.size)) {
     stop("tileGenome failed")
   }
+  
   ## Add sequence lengths
   seqlengths(bins) <- chrom.lengths[chroms2use]
+  
   ## Add step size if defined
   if (!is.null(step.size)) {
     shift.bp <- 0
@@ -62,6 +67,14 @@ makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromos
     }
     bins <- sort(unlist(bins.list.step, use.names = FALSE))  
   }
+  
+  ## Keep chromosomes/contigs smaller than the bin.size if desired
+  if (keep.small.chr) {
+    chroms2keep <- chroms2use[!chroms2use %in% unique(seqnames(bins))]
+    chroms2keep.gr <- GRanges(seqnames = chroms2keep, ranges=IRanges(start = 1, end = chrom.lengths[chroms2keep]))
+    bins <- sort(c(bins, chroms2keep.gr))
+  }
+  
   ## Report chromosome/contigs smaller than the bin.size
   skipped.chroms <- setdiff(seqlevels(bins), as.character(unique(seqnames(bins))))
   if (length(skipped.chroms) > 0) {
@@ -78,17 +91,14 @@ makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromos
 #' Make dynamic-width bins based on given bin and step size.
 #' NOTE: Here 'bin.size' represents number of mappable positions in each bin !!!
 #'
-#' @param bamfiles A BAM file from which the header is read to determine the chromosome lengths. If a \code{bamfile} is specified, option \code{assembly} is ignored.
-#' @param bin.size A size of the genomic bin to split genome into.
-#' @param step.size A size of the genomic interval to move each bin.
-#' @param chromosomes A user defined set of chromosomes for binning (eg. 'chr1')
+#' @inheritParams makeFixedBins
 #' @return A \code{\link{GRanges-class}} object with fixed-width bins.
 #' @author David Porubsky
 #' @importFrom Rsamtools BamFile
 #' @importFrom bamsignals bamCoverage
 #' @export
 #'
-makeDynamicBins <- function(bamfiles=NULL, bin.size=100000, step.size=NULL, chromosomes=NULL) {
+makeDynamicBins <- function(bamfiles=NULL, bin.size=100000, step.size=NULL, chromosomes=NULL, keep.small.chr=FALSE) {
   
   ## Helper function
   reformat <- function(x) {
@@ -102,7 +112,7 @@ makeDynamicBins <- function(bamfiles=NULL, bin.size=100000, step.size=NULL, chro
     return(df)
   } 
   
-  ptm <- startTimedMessage("Preparing dynamic-width bins for bin size ", bin.size, " ...")
+  ptm <- startTimedMessage("Preparing dynamic-width bins for bin size ", bin.size)
   
   ### Check user input ###
   if (length(bin.size) == 0) {
@@ -170,8 +180,16 @@ makeDynamicBins <- function(bamfiles=NULL, bin.size=100000, step.size=NULL, chro
     bins.l[[i]] <- gen.bins.gr
   }  
   bins <- unlist(bins.l, use.names = FALSE)
+  
   ## Add sequence lengths
   seqlengths(bins) <- chrom.lengths[chroms2use]
+  
+  ## Keep chromosomes/contigs smaller than the bin.size if desired
+  if (keep.small.chr) {
+    chroms2keep <- chroms2use[!chroms2use %in% unique(seqnames(bins))]
+    chroms2keep.gr <- GRanges(seqnames = chroms2keep, ranges=IRanges(start = 1, end = chrom.lengths[chroms2keep]))
+    bins <- sort(c(bins, chroms2keep.gr))
+  }
   
   ## Report chromosome/contigs smaller than the bin.size
   skipped.chroms <- setdiff(seqlevels(bins), as.character(unique(seqnames(bins))))
