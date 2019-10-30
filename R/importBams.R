@@ -20,7 +20,7 @@
 importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRUE, min.mapq=10, bin.size=100000, step.size=NULL, reads.per.bin=NULL, max.frag=1000, bin.method='fixed', blacklist=NULL) {
   ## Get total processing time
   ptm <- proc.time()
-  message("Preparing BAM count table ...")
+  message("Preparing BAM count table")
   
   ## Helper functions
   # extendZeroBins <- function(gr, reads.per.bin=50) {

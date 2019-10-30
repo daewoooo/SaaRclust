@@ -71,8 +71,10 @@ makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromos
   ## Keep chromosomes/contigs smaller than the bin.size if desired
   if (keep.small.chr) {
     chroms2keep <- chroms2use[!chroms2use %in% unique(seqnames(bins))]
-    chroms2keep.gr <- GRanges(seqnames = chroms2keep, ranges=IRanges(start = 1, end = chrom.lengths[chroms2keep]))
-    bins <- sort(c(bins, chroms2keep.gr))
+    if (length(chroms2keep) > 0) {
+      chroms2keep.gr <- GRanges(seqnames = chroms2keep, ranges=IRanges(start = 1, end = chrom.lengths[chroms2keep]))
+      bins <- sort(c(bins, chroms2keep.gr))
+    }  
   }
   
   ## Report chromosome/contigs smaller than the bin.size
@@ -187,8 +189,10 @@ makeDynamicBins <- function(bamfiles=NULL, bin.size=100000, step.size=NULL, chro
   ## Keep chromosomes/contigs smaller than the bin.size if desired
   if (keep.small.chr) {
     chroms2keep <- chroms2use[!chroms2use %in% unique(seqnames(bins))]
-    chroms2keep.gr <- GRanges(seqnames = chroms2keep, ranges=IRanges(start = 1, end = chrom.lengths[chroms2keep]))
-    bins <- sort(c(bins, chroms2keep.gr))
+    if (length(chroms2keep) > 0) {
+      chroms2keep.gr <- GRanges(seqnames = chroms2keep, ranges=IRanges(start = 1, end = chrom.lengths[chroms2keep]))
+      bins <- sort(c(bins, chroms2keep.gr))
+    }  
   }
   
   ## Report chromosome/contigs smaller than the bin.size
