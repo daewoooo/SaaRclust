@@ -20,7 +20,7 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
   ## Add cluster ID
   grl.collapsed <- endoapply(grl.collapsed, function(x) addClusterGroup(cluster.gr = x, cluster.groups = split.pairs$clusters))
   ## Merge by group ID [!!! this might disrupt ordering and confuse primary cluster IDs !!!]
-  grl.collapsed <- endoapply(grl.collapsed, function(x) collapseBins(x, id.field = 4, measure.field = c(2,3)))
+  #grl.collapsed <- endoapply(grl.collapsed, function(x) collapseBins(x, id.field = 4, measure.field = c(2,3)))
   ## Remove ranges smaller than the bin.size
   grl.collapsed <- endoapply(grl.collapsed, function(x) x[width(x) >= bin.size])
   ## Get strand state for each region
@@ -43,9 +43,12 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     cluster.m <- cluster.data
     cluster.m <- cluster.m[,-which(colnames(cluster.m) %in% c('clust.ID', 'group.ID'))]
     
-    ## Remove always WC cluster
+    ## Remove majority of WC cluster
     if (remove.always.WC) {
-      mask <- apply(cluster.m, 1, function(x) all(x == 3))
+      #mask <- apply(cluster.m, 1, function(x) all(x == 3))
+      wc.counts <- apply(cluster.m, 1, function(x) length(x[x == 3]))
+      zscore <- (wc.counts - mean(wc.counts)) / sd(wc.counts)
+      mask <- zscore >= 1.960 ## 95% CI
       cluster.m <- cluster.m[!mask,]
     }
       
