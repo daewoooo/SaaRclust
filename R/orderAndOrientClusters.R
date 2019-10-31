@@ -12,7 +12,7 @@
 #' @inheritParams connectDividedClusters
 #' @author David Porubsky
 #' @export
-orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP', alpha=0.1, bin.size=bin.size, filename=NULL, remove.always.WC=FALSE) {
+orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP', alpha=0.1, bin.size=bin.size, filename=NULL, remove.always.WC=TRUE) {
   
   ptm <- startTimedMessage("Preparing contigs for ordering and orienting")
   ## Merge by cluster ID
@@ -39,17 +39,18 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     ID <- names(cluster.states.dfl[i])
     message("Ordering cluster: ", ID)
     cluster.data <- cluster.states.dfl[[i]]
+    ## Remove 'clust.ID' and 'group.ID' columns
+    cluster.m <- cluster.data
+    cluster.m <- cluster.m[,-which(colnames(cluster.m) %in% c('clust.ID', 'group.ID'))]
+    
     ## Remove always WC cluster
     if (remove.always.WC) {
-      #cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$always.WC,]
-      cluster.m <- cluster.data
-    } else {
-      cluster.m <- cluster.data
-    } 
+      mask <- apply(cluster.m, 1, function(x) all(x == 3))
+      cluster.m <- cluster.m[!mask,]
+    }
+      
     ## Remove putative HET inversions???
     #cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$putative.HETs,]
-    ## Remove 'clust.ID' and 'group.ID' columns
-    cluster.m <- cluster.m[,-which(colnames(cluster.m) %in% c('clust.ID', 'group.ID'))]
     if (nrow(cluster.m) == 0) { next }
     
     ## Reorient misoriented contigs

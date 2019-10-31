@@ -6,7 +6,7 @@
 \usage{
 orderAndOrientClusters(clustered.grl, split.pairs, ord.method = "TSP",
   alpha = 0.1, bin.size = bin.size, filename = NULL,
-  remove.always.WC = FALSE)
+  remove.always.WC = TRUE)
 }
 \arguments{
 \item{clustered.grl}{A \code{\link{GRangesList-class}} object with cluster assignments for each contig.}

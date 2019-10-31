@@ -33,27 +33,30 @@ exportPseudoChromosomalScaffolds <- function(clustered.gr=NULL, assembly.fasta=N
     ## Remove sequences not present in the FASTA index
     fa.idx <- Rsamtools::scanFaIndex(fa.file)
     cluster.regions <- suppressWarnings( subsetByOverlaps(cluster.regions, fa.idx) )
-    #cluster.regions <- cluster.regions[which(seqnames(cluster.regions) %in% seqnames(fa.idx))]
-    ## Read in contigs for a given cluster
-    cluster.seq <- Rsamtools::scanFa(file = fa.file, param = cluster.regions, as = "DNAStringSet")
-    ## Reverse complement based on 'dir' field
-    revcomp <- which(cluster.regions$dir == 'revcomp')
-    cluster.seq[revcomp] <- Biostrings::reverseComplement(cluster.seq[revcomp])
-    if (concat.fasta) {
-      ## Concatenate all sequences into a single FASTA separated by 100 N's.
-      delim <- paste(rep('N', 100), collapse = '')
-      cluster.seq.collapsed <- Biostrings::DNAStringSet(paste(cluster.seq, collapse = delim))
-      names(cluster.seq.collapsed) <- cluster.ID
-      ## Write final FASTA
-      destination <- file.path(outputfolder, paste0(cluster.ID, '.fasta')) 
-      Biostrings::writeXStringSet(x = cluster.seq.collapsed, filepath = destination, format = 'fasta')
+    if (length(cluster.regions) > 0) {
+      ## Read in contigs for a given cluster
+      cluster.seq <- Rsamtools::scanFa(file = fa.file, param = cluster.regions, as = "DNAStringSet")
+      ## Reverse complement based on 'dir' field
+      revcomp <- which(cluster.regions$dir == 'revcomp')
+      cluster.seq[revcomp] <- Biostrings::reverseComplement(cluster.seq[revcomp])
+      if (concat.fasta) {
+        ## Concatenate all sequences into a single FASTA separated by 100 N's.
+        delim <- paste(rep('N', 100), collapse = '')
+        cluster.seq.collapsed <- Biostrings::DNAStringSet(paste(cluster.seq, collapse = delim))
+        names(cluster.seq.collapsed) <- cluster.ID
+        ## Write final FASTA
+        destination <- file.path(outputfolder, paste0(cluster.ID, '.fasta')) 
+        Biostrings::writeXStringSet(x = cluster.seq.collapsed, filepath = destination, format = 'fasta')
+      } else {
+        new.names <- paste0(names(cluster.seq), '_', cluster.regions$order, '_', cluster.regions$ID)
+        names(cluster.seq) <- new.names
+        ## Write final FASTA
+        destination <- file.path(outputfolder, paste0(cluster.ID, '.fasta')) 
+        Biostrings::writeXStringSet(x = cluster.seq, filepath = destination, format = 'fasta')
+      }
     } else {
-      new.names <- paste0(names(cluster.seq), '_', cluster.regions$order, '_', cluster.regions$ID)
-      names(cluster.seq) <- new.names
-      ## Write final FASTA
-      destination <- file.path(outputfolder, paste0(cluster.ID, '.fasta')) 
-      Biostrings::writeXStringSet(x = cluster.seq, filepath = destination, format = 'fasta')
-    }
+      message("    \nNo regions to export to FASTA file, skipping!!!", appendLF=FALSE)
+    }  
     stopTimedMessage(ptm)
   }
 }
