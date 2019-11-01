@@ -112,6 +112,13 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       } else {
         counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
       }
+      ## Remove bins with zero counts across all cells
+      counts.sums <- Reduce('+', counts.l)
+      counts.sums <- rowSums(counts.sums)
+      zero.bins <- which(counts.sums == 0)
+      if (length(zero.bins) > 0) {
+        counts.l <- lapply(counts.l, function(x) x[-zero.bins,])
+      }  
     }
   } else {
     if (config[['mask.regions']]) {
@@ -119,12 +126,19 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     } else {
       counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
     }
+    ## Remove bins with zero counts across all cells
+    counts.sums <- Reduce('+', counts.l)
+    counts.sums <- rowSums(counts.sums)
+    zero.bins <- which(counts.sums == 0)
+    if (length(zero.bins) > 0) {
+      counts.l <- lapply(counts.l, function(x) x[-zero.bins,])
+    }
   }
   ## Store data object
   if (config[['store.data.obj']]) {
     save(counts.l, file = destination)
   }
-
+  
   ## Perform hard clustering ##
   destination <- file.path(datapath, paste0("hardClust_", config[['num.clusters']], "K_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
   if (config[['reuse.data.obj']]) {
@@ -235,12 +249,34 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## TODO return final clustered object??? 
   
   ## Plot theta parameter
-  theta.plt <- plotThetaEstimates(EM.obj$theta.param)
+  theta.plt <- plotThetaEstimates(theta.param = EM.obj$theta.param)
+  suppressWarnings(
   ggsave(filename = file.path(pltpath, 'theta_param.pdf'), 
          plot = theta.plt, 
          width = config[['num.clusters']] / 10, 
          height = length(EM.obj$theta.param) / 10, 
          limitsize = FALSE)
+  )
+  
+  ## Plot probability distribution
+  prob.plt <- plotEMprobs(em.prob = EM.obj$soft.pVal, prob.th = config[['prob.th']])
+  suppressWarnings(
+  ggsave(filename = file.path(pltpath, 'prob_dist.pdf'), 
+         plot = prob.plt, 
+         width = 6, 
+         height = 4, 
+         limitsize = FALSE)
+  )
+  
+  ## Plot cluster size distribution
+  clust.plt <- plotClusteredContigSizes(clustered.gr = ordered.contigs.gr)
+  suppressWarnings(
+  ggsave(filename = file.path(pltpath, 'cluster_sizes.pdf'), 
+         plot = clust.plt, 
+         width = 8, 
+         height = 4, 
+         limitsize = FALSE)
+  )
   
   ## Report total processing time
   time <- proc.time() - ptm

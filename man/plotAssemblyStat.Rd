@@ -4,12 +4,14 @@
 \alias{plotAssemblyStat}
 \title{Plot assembly statistics}
 \usage{
-plotAssemblyStat(infile = NULL, format = "bam")
+plotAssemblyStat(infile = NULL, format = "bam", title = NULL)
 }
 \arguments{
 \item{infile}{A file that contains assembled contigs in specific format.}
 
 \item{format}{Use 'bam' for contigs aligned to the reference or 'fai' for fasta index file or 'GRanges' for \code{\link{GRanges-class}} object.}
+
+\item{title}{Add title to the plot.}
 }
 \value{
 A \code{ggplot} object.

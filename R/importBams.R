@@ -134,7 +134,7 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
     counts.l[[bam.name]] <- counts.m
   }
   time <- proc.time() - ptm
-  message("\nTime spent: ", round(time[3],2), "s")
+  message("Time spent: ", round(time[3],2), "s\n")
   
   return(counts.l)
 }
