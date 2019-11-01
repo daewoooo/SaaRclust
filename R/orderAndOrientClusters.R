@@ -12,7 +12,7 @@
 #' @inheritParams connectDividedClusters
 #' @author David Porubsky
 #' @export
-orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP', alpha=0.1, bin.size=bin.size, filename=NULL, remove.always.WC=TRUE) {
+orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP', alpha=0.1, bin.size=bin.size, filename=NULL, remove.always.WC=FALSE) {
   
   ptm <- startTimedMessage("Preparing contigs for ordering and orienting")
   ## Merge by cluster ID
@@ -39,21 +39,23 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     ID <- names(cluster.states.dfl[i])
     message("Ordering cluster: ", ID)
     cluster.data <- cluster.states.dfl[[i]]
-    ## Remove 'clust.ID' and 'group.ID' columns
     cluster.m <- cluster.data
+    
+    ## Remove putative HET inversions
+    #cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$putative.HETs,]
+    
+    ## Remove 'clust.ID' and 'group.ID' columns
     cluster.m <- cluster.m[,-which(colnames(cluster.m) %in% c('clust.ID', 'group.ID'))]
     
     ## Remove majority of WC cluster
-    if (remove.always.WC) {
-      #mask <- apply(cluster.m, 1, function(x) all(x == 3))
-      wc.counts <- apply(cluster.m, 1, function(x) length(x[x == 3]))
-      zscore <- (wc.counts - mean(wc.counts)) / sd(wc.counts)
-      mask <- zscore >= 1.960 ## 95% CI
-      cluster.m <- cluster.m[!mask,]
-    }
-      
-    ## Remove putative HET inversions???
-    #cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$putative.HETs,]
+    # if (remove.always.WC) {
+    #   #mask <- apply(cluster.m, 1, function(x) all(x == 3))
+    #   wc.counts <- apply(cluster.m, 1, function(x) length(x[x == 3]))
+    #   zscore <- (wc.counts - mean(wc.counts)) / sd(wc.counts)
+    #   mask <- zscore >= 2.576 ## 99% CI
+    #   cluster.m <- cluster.m[!mask,]
+    # }
+    
     if (nrow(cluster.m) == 0) { next }
     
     ## Reorient misoriented contigs
