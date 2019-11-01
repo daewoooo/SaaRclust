@@ -388,12 +388,13 @@ plotDistanceMatrix <- function(dist.matrix, col.low="chartreuse4", col.high="cad
 #'
 #' @param infile A file that contains assembled contigs in specific format.
 #' @param format Use 'bam' for contigs aligned to the reference or 'fai' for fasta index file or 'GRanges' for \code{\link{GRanges-class}} object.
+#' @param title Add title to the plot.
 #' @return A \code{ggplot} object.
 #' @importFrom Rsamtools scanBamHeader
 #' @author David Porubsky
 #' @export
 #'
-plotAssemblyStat <- function(infile=NULL, format='bam') {
+plotAssemblyStat <- function(infile=NULL, format='bam', title=NULL) {
   if (format == 'bam') {
     ## Get contigs/scaffolds names and sizes from BAM
     file.header <- Rsamtools::scanBamHeader(infile)[[1]]
@@ -425,5 +426,72 @@ plotAssemblyStat <- function(infile=NULL, format='bam') {
     xlab("Size ordered contigs") +
     ylab("Contig length (log10)") +
     theme_bw()
+  ## Add title if defined
+  if (!is.null(title) & is.character(title)) {
+    plt <- plt + ggtitle(title)
+  }
   return(plt)
 }
+
+
+#' Plot distribution of cluster assignment probabilities.
+#'
+#' @param em.prob A \code{matrix} of probability assignments per contig and per cluster.
+#' @inheritParams counts2ranges
+#' @return A \code{ggplot} object.
+#' @author David Porubsky
+#' @export
+#'
+plotEMprobs <- function(em.prob=NULL, prob.th=0) {
+  ptm <- startTimedMessage("Plotting probability distribution")
+  max.probs <- apply(em.prob, 1, function(x) x[which.max(x)])
+  max.probs.df <- data.frame(values=max.probs)
+  suppressWarnings(
+    plt <- ggplot2::ggplot(max.probs.df, aes(max.probs.df$values)) +
+      geom_histogram(bins = 50) +
+      scale_y_continuous(trans = 'log10') +
+      xlab("Distribution of cluster assignment probabilities") +
+      ylab("Counts (log10)") +
+      theme_bw()
+  )  
+  if (prob.th > 0) {
+    plt <- plt + geom_vline(xintercept = prob.th, color="red")
+  }
+  stopTimedMessage(ptm)
+  return(plt)
+}
+
+
+#' Plot distribution of cluster sizes.
+#'
+#' @param clustered.gr A \code{\link{GRanges-class}} object with a contig region and their cluster assignment in the 'ID' metacolumn.
+#' @return A \code{ggplot} object.
+#' @importFrom dplyr %>%
+#' @author David Porubsky
+#' @export
+#'
+plotClusteredContigSizes <- function(clustered.gr=NULL) {
+  ptm <- startTimedMessage("Plotting cluster sizes")
+  ## Prepare data for plotting
+  clustered.df <- as.data.frame(clustered.gr)
+  plt.df <- clustered.df %>% dplyr::group_by(ID, dir) %>% dplyr::summarise(length=sum(width)) %>%
+    dplyr::mutate(total.len = sum(length)) %>% dplyr::arrange(desc(total.len))
+  plt.df$ID <- factor(plt.df$ID, levels = unique(plt.df$ID))
+  
+  ## Get chromosome breaks and labels
+  max.len <- signif(max(c(plt.df$total.len)), digits = 2)
+  breaks <- seq(from = 0, to = max.len, length.out = 6)
+  labels <- breaks / 1000000
+  labels <- paste0(labels, 'Mb')
+  
+  ## Make plot
+  plt <- ggplot2::ggplot(data=plt.df, aes(x=ID, y=length, fill=dir)) +
+    geom_col() +
+    scale_fill_manual(values = c('cadetblue4','darkgoldenrod3'), name="Direction") +
+    scale_y_continuous(breaks = breaks, labels = labels, name="Cluster size (Mb)", expand = c(0,0)) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+    xlab("")
+  stopTimedMessage(ptm)
+  return(plt)
+}  
