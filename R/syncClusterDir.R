@@ -9,14 +9,23 @@
 #' 
 syncClusterDir <- function(contig.states) {
   ## Remove cell with wc states
-  mask <- apply(contig.states, 2, function(x) all(x != 3))
-  contig.states.sub <- as.matrix(contig.states[,mask])
+  #mask <- apply(contig.states, 2, function(x) all(x != 3))
+  #contig.states.sub <- as.matrix(contig.states[,mask])
+  ## Set wc states to NA
+  contig.states.sub <- contig.states
+  contig.states.sub[contig.states.sub == 3] <- NA
   ## Remove cell with 'pure' ww or cc state (non-informative)
   mask <- apply(contig.states.sub, 2, function(x) length(unique(x)) > 1)
   contig.states.sub <- as.matrix(contig.states.sub[,mask])
-  if (ncol(contig.states.sub) > 2 & nrow(contig.states.sub) > 2) {
-    ## Divide antiparallel set of contigs by hierarchical clustering
-    hc.obj <- hclust(dist(contig.states.sub))
+  ## Check if strand-state matrix can be clustered using HC
+  hc.obj <- tryCatch({
+    ## Cluster contigs by hierarchical clustering
+    hclust(dist(contig.states.sub))
+    }, error = function(e) {return('error')}
+  )
+  
+  if (ncol(contig.states.sub) > 2 & nrow(contig.states.sub) > 2 & hc.obj != 'error') {
+    ## Divide antiparallel set of contigs
     hc.clusters <- cutree(hc.obj, k = 2)
     misorients <- split(names(hc.clusters), hc.clusters)
     ## Flip WW and CC states in the smaller group of misorients
@@ -33,6 +42,7 @@ syncClusterDir <- function(contig.states) {
     ## Returnet re-oriented matrix  
     return(contig.states)
   } else {
+    message("    Contig orienting failed!!!")
     rownames(contig.states) <- paste0(rownames(contig.states), "_dir")
     return(contig.states)
   }
