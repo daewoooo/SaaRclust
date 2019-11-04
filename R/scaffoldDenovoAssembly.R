@@ -64,10 +64,27 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Make a copy of the config file ##
   writeConfig(config = config, configfile=file.path(outputfolder, 'SaaRclust.config'))
   
-  ## Get contigs/scaffolds names and sizes
+  ## Get contigs/scaffolds names and sizes from BAM
   bamfile <- list.files(bamfolder, pattern = ".bam$", full.names = TRUE)[1]
   file.header <- Rsamtools::scanBamHeader(bamfile)[[1]]
   chrom.lengths <- file.header$targets
+  ## Get contigs/scaffolds names and sizes from FASTA
+  if (!is.null(config[['assembly.fasta']]) & is.character(config[['assembly.fasta']])) {
+    ## Check if submitted fasta file is indexed
+    assembly.fasta.idx <- paste0(assembly.fasta, ".fai")
+    if (!file.exists(assembly.fasta.idx)) {
+      ptm <- startTimedMessage("Fasta file is not indexed, indexing")
+      fa.idx <- Rsamtools::indexFa(file = assembly.fasta)
+      stopTimedMessage(ptm)
+    }
+    fa.file <- open(Rsamtools::FaFile(assembly.fasta))
+    fa.idx <- Rsamtools::scanFaIndex(fa.file)
+  }
+  ## Check if submitted BAM and FASTA files have the same seqlengths
+  if(all(chrom.lengths == seqlengths(fa.idx)[names(chrom.lengths)])) {
+    stop("Not all sequence lengths in BAMs match those in submitted FASTA file, aborting!!!")
+  }
+  
   ## Keep only contigs/scaffolds >=100Kb
   chrom.lengths <- chrom.lengths[chrom.lengths >= config[['min.contig.size']]]
   chroms.in.data <- names(chrom.lengths)
