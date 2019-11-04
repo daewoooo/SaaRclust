@@ -80,7 +80,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     fa.file <- open(Rsamtools::FaFile(assembly.fasta))
     fa.idx <- Rsamtools::scanFaIndex(fa.file)
     ## Check if submitted BAM and FASTA files have the same seqlengths
-    if(all(chrom.lengths == seqlengths(fa.idx)[names(chrom.lengths)])) {
+    if(!all(chrom.lengths == seqlengths(fa.idx)[names(chrom.lengths)])) {
       stop("Not all sequence lengths in BAMs match those in submitted FASTA file, aborting!!!")
     }
   }
