@@ -24,7 +24,7 @@ syncClusterDir <- function(contig.states) {
     }, error = function(e) {return('error')}
   )
   
-  if (ncol(contig.states.sub) > 2 & nrow(contig.states.sub) > 2 & hc.obj != 'error') {
+  if (ncol(contig.states.sub) > 2 & nrow(contig.states.sub) > 2 & class(hc.obj) == 'hclust') {
     ## Divide antiparallel set of contigs
     hc.clusters <- cutree(hc.obj, k = 2)
     misorients <- split(names(hc.clusters), hc.clusters)

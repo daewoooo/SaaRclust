@@ -64,7 +64,7 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     ## Order contigs using TSP heuristic
     if (nrow(cluster.m) > 1) {
       if (ord.method == 'TSP') {
-        cluster.m.clustered <- orderContigsTSP(contig.states = cluster.m, filt.cols = TRUE)
+        cluster.m.clustered <- orderContigsTSP(contig.states = cluster.m, filt.cols = FALSE)
       } else if (ord.method == 'greedy') {  
         cluster.m.clustered <- orderContigsGreedy(contig.states = cluster.m)
       } else {

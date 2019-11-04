@@ -118,6 +118,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       zero.bins <- which(counts.sums == 0)
       if (length(zero.bins) > 0) {
         counts.l <- lapply(counts.l, function(x) x[-zero.bins,])
+        message("Removed zero count bins ", length(zero.bins), "/", length(counts.sums))
       }  
     }
   } else {
@@ -132,6 +133,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     zero.bins <- which(counts.sums == 0)
     if (length(zero.bins) > 0) {
       counts.l <- lapply(counts.l, function(x) x[-zero.bins,])
+      message("Removed zero count bins ", length(zero.bins), "/", length(counts.sums))
     }
   }
   ## Store data object
