@@ -18,6 +18,7 @@
 #' @inheritParams connectDividedClusters
 #' @inheritParams orderAndOrientClusters
 #' @inheritParams exportPseudoChromosomalScaffolds
+#' @importFrom Rsamtools indexFa FaFile scanBamHeader scanFaIndex
 #' @return NULL
 #' @author David Porubsky
 #' @export
@@ -71,13 +72,13 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Get contigs/scaffolds names and sizes from FASTA
   if (!is.null(config[['assembly.fasta']]) & is.character(config[['assembly.fasta']])) {
     ## Check if submitted fasta file is indexed
-    assembly.fasta.idx <- paste0(assembly.fasta, ".fai")
+    assembly.fasta.idx <- paste0(config[['assembly.fasta']], ".fai")
     if (!file.exists(assembly.fasta.idx)) {
-      ptm <- startTimedMessage("Fasta file is not indexed, indexing")
-      fa.idx <- Rsamtools::indexFa(file = assembly.fasta)
+      ptm <- startTimedMessage("Fasta file is not indexed, indexing ")
+      fa.idx <- Rsamtools::indexFa(file = config[['assembly.fasta']])
       stopTimedMessage(ptm)
     }
-    fa.file <- open(Rsamtools::FaFile(assembly.fasta))
+    fa.file <- open(Rsamtools::FaFile(config[['assembly.fasta']]))
     fa.idx <- Rsamtools::scanFaIndex(fa.file)
     ## Check if submitted BAM and FASTA files have the same seqlengths
     if(!all(chrom.lengths == seqlengths(fa.idx)[names(chrom.lengths)])) {
