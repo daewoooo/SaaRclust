@@ -22,7 +22,7 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
   ## Merge by group ID [!!! this might disrupt ordering and confuse primary cluster IDs !!!]
   #grl.collapsed <- endoapply(grl.collapsed, function(x) collapseBins(x, id.field = 4, measure.field = c(2,3)))
   ## Remove ranges smaller than the bin.size
-  grl.collapsed <- endoapply(grl.collapsed, function(x) x[width(x) >= bin.size])
+  #grl.collapsed <- endoapply(grl.collapsed, function(x) x[width(x) >= bin.size])
   ## Get strand state for each region
   grl.BN.probs <- lapply(grl.collapsed, function(x) countProb(minusCounts = x$W, plusCounts = x$C, alpha=alpha, log=TRUE))
   grl.BN.probs.max <- lapply(grl.BN.probs, function(x) apply(x, 1, which.max))
