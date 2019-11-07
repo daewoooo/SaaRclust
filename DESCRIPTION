@@ -11,6 +11,7 @@ Depends:
     BH (>= 1.51.0-3),
     cowplot,
     RColorBrewer,
+    scales,
     ggplot2,
     GenomicRanges
 LinkingTo: Rcpp, BH
@@ -27,7 +28,9 @@ Imports:
     IRanges,
     Rsamtools,
     bamsignals,
-    GenomicAlignments
+    GenomicAlignments,
+    GenomeInfoDb (>= 1.12.3),
+    S4Vectors
 Suggests:
     knitr,
     testthat,

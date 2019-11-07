@@ -426,6 +426,7 @@ plotDistanceMatrix <- function(dist.matrix, col.low="chartreuse4", col.high="cad
 #' @param title Add title to the plot.
 #' @return A \code{ggplot} object.
 #' @importFrom Rsamtools scanBamHeader
+#' @importFrom scales comma
 #' @author David Porubsky
 #' @export
 #'
@@ -452,6 +453,7 @@ plotAssemblyStat <- function(infile=NULL, format='bam', title=NULL) {
   total.size <- sum(len.sorted)/1000000000
   total.size <- round(total.size, digits = 2)
   total.size <- paste0('Total size = ', total.size, 'Gb')
+  total.contigs <- paste0('Total contigs = ', nrow(plt.df))
   
   plt.df$x <- 1:nrow(plt.df)
   plt <- ggplot2::ggplot() + geom_point(data = plt.df, aes(x=x, y=ctg.len)) +
@@ -459,9 +461,10 @@ plotAssemblyStat <- function(infile=NULL, format='bam', title=NULL) {
     geom_hline(yintercept = N50, color='chartreuse4') +
     geom_hline(yintercept = N90, color='darkgoldenrod3') +
     geom_text(aes(x=0, y=Inf, label=total.size), color='black', vjust=2, hjust=0.1) +
+    geom_text(aes(x=0, y=Inf, label=total.contigs), color='black', vjust=4, hjust=0.1) +
     geom_text(aes(x=0, y=N50, label=paste0('N50 = ', N50, 'bp')), color='black', vjust=-0.5, hjust=0.1) +
     geom_text(aes(x=0, y=N90, label=paste0('N90 = ', N90, 'bp')), color='black', vjust=-0.5, hjust=0.1) +
-    scale_y_continuous(trans = 'log10', labels = comma) +
+    scale_y_continuous(trans = 'log10', labels = scales::comma) +
     xlab("Size ordered contigs") +
     ylab("Contig length (log10)") +
     theme_bw()
