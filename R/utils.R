@@ -153,14 +153,14 @@ string2GRanges <- function(region.string=NULL) {
 
 expandGaps <- function(gr) {
   ## Check if seqlengths are defined
-  if (any(is.na(seqlengths(gr)))) {
+  if (any(is.na(GenomeInfoDb::seqlengths(gr)))) {
     stop("Undefined seqlengths for parameter gr ...")
   }
   
   ## Extend gaps between ranges
   new.gr <- gr
   gaps.gr <- GenomicRanges::gaps(GenomicRanges::sort(gr))
-  gaps.gr <- gaps.gr[strand(gaps.gr) == '*']
+  gaps.gr <- gaps.gr[GenomicRanges::strand(gaps.gr) == '*']
   if (length(gaps.gr) > 0) {
     ## Merge with preceeding range
     preceed.idx <- GenomicRanges::start(gaps.gr) > 1

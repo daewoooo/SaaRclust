@@ -81,7 +81,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     fa.file <- open(Rsamtools::FaFile(config[['assembly.fasta']]))
     fa.idx <- Rsamtools::scanFaIndex(fa.file)
     ## Check if submitted BAM and FASTA files have the same seqlengths
-    if(!all(chrom.lengths == seqlengths(fa.idx)[names(chrom.lengths)])) {
+    if(!all(chrom.lengths == GenomeInfoDb::seqlengths(fa.idx)[names(chrom.lengths)])) {
       stop("Not all sequence lengths in BAMs match those in submitted FASTA file, aborting!!!")
     }
   }
@@ -231,7 +231,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Order and orient contigs ##
   destination <- file.path(asmpath, paste0("ordered&oriented_", config[['bin.size']], "bp_", config[['bin.method']], ".tsv"))
   ordered.contigs.gr <- orderAndOrientClusters(clustered.grl=clustered.grl, split.pairs=split.pairs, ord.method=config[['ord.method']], alpha=config[['alpha']], bin.size=config[['bin.size']], filename=destination)
-  seqlengths(ordered.contigs.gr) <- chrom.lengths[seqlevels(ordered.contigs.gr)]
+  GenomeInfoDb::seqlengths(ordered.contigs.gr) <- chrom.lengths[GenomeInfoDb::seqlevels(ordered.contigs.gr)]
   
   ## Extend gaps between ranges
   ordered.contigs.gr <- expandGaps(ordered.contigs.gr)
@@ -244,7 +244,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   
   ## Report contigs assigned to more than one cluster or with putative misorient
   putative.errors <- ordered.contigs.gr[width(ordered.contigs.gr) >= 1000000]
-  putative.errors <- keepSeqlevels(putative.errors, value = unique(seqnames(putative.errors)), pruning.mode = 'coarse')
+  putative.errors <- GenomeInfoDb::keepSeqlevels(putative.errors, value = unique(seqnames(putative.errors)), pruning.mode = 'coarse')
   putative.errors.grl <- split(putative.errors, seqnames(putative.errors))
   putative.errors.grl <- putative.errors.grl[lengths(putative.errors.grl) > 1]
   mask <- lapply(putative.errors.grl, function(gr) length(unique(gr$ID)) > 1 | length(unique(gr$dir)) > 1)

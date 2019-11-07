@@ -319,38 +319,73 @@ plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, clu
 
 #' Plot genome-wide positions of clustered contigs
 #'
-#' @param gr A \code{\link{GRanges-class}} object with contig position and their cluster assignment in 'clust.ID' and 'group.ID' metacolumn.
+#' @param bedfile An aligned contigs to the reference sequence in bed format.
+#' @param min.mapq Minimum mapping quality of a contig to the refrence sequence.
 #' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
-#' @param blacklist A \code{\link{GRanges-class}} object of regions to be removed from input gr.
+#' @param blacklist A \code{\link{GRanges-class}} object of regions to be removed.
+#' @param report Plot either 'clustering' or 'ordering' of the contigs. Default: 'clustering'
 #' @return A \code{ggplot} object.
 #' @importFrom RColorBrewer brewer.pal.info brewer.pal
+#' @importFrom tidyr separate
 #' @author David Porubsky
 #' @export
 #' 
-plotContigsGenomeWide <- function(gr=NULL, bsgenome=NULL, blacklist=NULL) {
+plotClusteredContigs <- function(bedfile, min.mapq=10, bsgenome=NULL, blacklist=NULL, report='clustering') {
   ## Use standard chromosomes only
   chroms <- paste0('chr', c(1:22, 'X','Y'))
+  ## Read-in mapped congtigs to the human reference genome
+  data <- read.table(bedfile, stringsAsFactors = FALSE)
+  colnames(data) <- c('seqnames', 'start', 'end', 'info', 'mapq', 'dir')
+  ## Filter contigs by mapping quality
+  if (min.mapq > 0) {
+    data <- data[data$mapq >= min.mapq,]
+  }
+  plt.df <- tidyr::separate(data, col = info, sep = '_', into = c('contig', 'order','cluster.ID'))
+  plt.df$seqnames <- factor(plt.df$seqnames, levels=chroms)
+  plt.df$order <- as.numeric(plt.df$order)
+  ## Keep only standard chromosomes
+  plt.df <- plt.df[plt.df$seqnames %in% chroms,]
   ## Prepare ideogram plot
-  seq.len <- seqlengths(bsgenome)[chroms]
+  seq.len <- GenomeInfoDb::seqlengths(bsgenome)[chroms]
   ideo.df <- data.frame(seqnames=names(seq.len), length=seq.len)
   ideo.df$seqnames <- factor(ideo.df$seqnames, levels=chroms)
-  plt.df <- as.data.frame(gr)
-  ## Set colors
-  n.colors <- length(unique(gr$group.ID))
-  qual.col.pals <- brewer.pal.info[brewer.pal.info$category == 'qual',]
-  col.vector <- unlist(mapply(brewer.pal, qual.col.pals$maxcolors, rownames(qual.col.pals)))
+  ## Set chromosome cluster colors
+  n.colors <- length(unique(plt.df$cluster.ID))
+  qual.col.pals <- RColorBrewer::brewer.pal.info[RColorBrewer::brewer.pal.info$category == 'qual',]
+  col.vector <- unlist(mapply(RColorBrewer::brewer.pal, qual.col.pals$maxcolors, rownames(qual.col.pals)))
   col.vector <- sample(col.vector, n.colors)
+  ## Set chromosome order colors
+  plt.df$ord.color <- ""
+  for (chr in unique(plt.df$seqnames)) {
+    chr.idx <- which(plt.df$seqnames == chr)
+    colors <- gray.colors(max(plt.df$order[chr.idx]))
+    plt.df$ord.color[chr.idx] <- colors[plt.df$order[chr.idx]]
+  }
   
-  ## Plot contigs on ideogram
-  plt <- ggplot2::ggplot() + geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill="white", color="black") +
-    facet_grid(seqnames ~ ., switch = 'y') +
-    geom_rect(data=plt.df , aes(xmin=start, xmax=end, ymin=0, ymax=1, fill=group.ID)) +
-    scale_x_continuous(expand = c(0,0)) +
-    scale_fill_manual(values = col.vector) +
-    theme_void() +
-    theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
-    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-    theme(strip.text.y = element_text(angle = 180))
+  ## Plot ideogram
+  if (report == 'clustering') {
+    plt <- ggplot2::ggplot() + geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill="white", color="black") +
+      facet_grid(seqnames ~ ., switch = 'y') +
+      geom_rect(data=plt.df, aes(xmin=start, xmax=end, ymin=0, ymax=1, fill=cluster.ID)) +
+      scale_x_continuous(expand = c(0,0)) +
+      scale_fill_manual(values = col.vector) + 
+      theme_void() +
+      theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
+      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+      theme(strip.text.y = element_text(angle = 180))
+  } else if (report == 'ordering') {
+    plt <- ggplot2::ggplot() + geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill=NA, color="black") +
+      facet_grid(seqnames ~ ., switch = 'y') +
+      geom_rect(data=plt.df, aes(xmin=start, xmax=end, ymin=0, ymax=1), fill=plt.df$ord.color) +
+      scale_x_continuous(expand = c(0,0)) +
+      theme_void() +
+      theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
+      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+      theme(strip.text.y = element_text(angle = 180))
+  } else {
+    message("Please choose to report either 'clustering' or 'ordering'!!!")
+  }  
+  
   ## Plot blacklisted regions in white if defined
   if (!is.null(blacklist)) {
     blacklist.df <- as.data.frame(blacklist)
@@ -414,12 +449,16 @@ plotAssemblyStat <- function(infile=NULL, format='bam', title=NULL) {
   len.sorted <- rev(sort(as.numeric(plt.df$ctg.len)))
   N50 <- len.sorted[cumsum(len.sorted) >= sum(len.sorted)*0.5][1]
   N90 <- len.sorted[cumsum(len.sorted) >= sum(len.sorted)*0.9][1]
+  total.size <- sum(len.sorted)/1000000000
+  total.size <- round(total.size, digits = 2)
+  total.size <- paste0('Total size = ', total.size, 'Gb')
   
   plt.df$x <- 1:nrow(plt.df)
   plt <- ggplot2::ggplot() + geom_point(data = plt.df, aes(x=x, y=ctg.len)) +
     geom_hline(yintercept = 1000000, linetype='dashed', color='red') +
     geom_hline(yintercept = N50, color='chartreuse4') +
     geom_hline(yintercept = N90, color='darkgoldenrod3') +
+    geom_text(aes(x=0, y=Inf, label=total.size), color='black', vjust=2, hjust=0.1) +
     geom_text(aes(x=0, y=N50, label=paste0('N50 = ', N50, 'bp')), color='black', vjust=-0.5, hjust=0.1) +
     geom_text(aes(x=0, y=N90, label=paste0('N90 = ', N90, 'bp')), color='black', vjust=-0.5, hjust=0.1) +
     scale_y_continuous(trans = 'log10', labels = comma) +
