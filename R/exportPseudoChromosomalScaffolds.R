@@ -25,7 +25,7 @@ exportPseudoChromosomalScaffolds <- function(clustered.gr=NULL, assembly.fasta=N
   fa.file <- open(Rsamtools::FaFile(assembly.fasta))
   
   ## Go through all clusters and exports pseudo-chromosomal scaffolds
-  clustered.grl <- split(clustered.gr, clustered.gr$ID)
+  clustered.grl <- GenomicRanges::split(clustered.gr, clustered.gr$ID)
   for (i in seq_along(clustered.grl)) {
     cluster.regions <- clustered.grl[[i]]
     cluster.ID <- unique(cluster.regions$ID)

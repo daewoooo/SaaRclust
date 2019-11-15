@@ -243,14 +243,18 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   }
   
   ## Report contigs assigned to more than one cluster or with putative misorient
-  putative.errors <- ordered.contigs.gr[width(ordered.contigs.gr) >= 1000000]
-  putative.errors <- GenomeInfoDb::keepSeqlevels(putative.errors, value = unique(seqnames(putative.errors)), pruning.mode = 'coarse')
-  putative.errors.grl <- split(putative.errors, seqnames(putative.errors))
+  putative.errors <- ordered.contigs.gr
+  putative.errors.grl <- GenomicRanges::split(putative.errors, GenomicRanges::seqnames(putative.errors))
   putative.errors.grl <- putative.errors.grl[lengths(putative.errors.grl) > 1]
   mask <- lapply(putative.errors.grl, function(gr) length(unique(gr$ID)) > 1 | length(unique(gr$dir)) > 1)
   idx <- which(mask == TRUE)
   if (length(idx) > 0) {
     putative.errors.gr <- unlist(putative.errors.grl[idx], use.names = FALSE)
+    putative.errors.gr  <- GenomeInfoDb::keepSeqlevels(putative.errors.gr, value = unique(GenomicRanges::seqnames(putative.errors.gr)))
+    ## Collapse consecutive ranges
+    putative.errors.gr <- GenomicRanges::sort(putative.errors.gr)
+    putative.errors.gr$collapse.ID <- paste0(putative.errors.gr$dir, '_', putative.errors.gr$ID)
+    putative.errors.gr <- SaaRclust::collapseBins(putative.errors.gr, id.field = 4)
     ## Store data object
     destination <- file.path(datapath, paste0("putativeAsmErrors_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
     if (store.data.obj) {
