@@ -5,7 +5,8 @@
 \title{Plot genome-wide positions of clustered contigs}
 \usage{
 plotClusteredContigs(bedfile, min.mapq = 10, bsgenome = NULL,
-  blacklist = NULL, report = "clustering")
+  blacklist = NULL, report = "clustering", min.contig.size = NULL,
+  reverse.x = FALSE)
 }
 \arguments{
 \item{bedfile}{An aligned contigs to the reference sequence in bed format.}
@@ -16,7 +17,11 @@ plotClusteredContigs(bedfile, min.mapq = 10, bsgenome = NULL,
 
 \item{blacklist}{A \code{\link{GRanges-class}} object of regions to be removed.}
 
-\item{report}{Plot either 'clustering' or 'ordering' of the contigs. Default: 'clustering'}
+\item{report}{Plot either 'clustering', 'ordering' or 'orienting' of the contigs. Default: 'clustering'.}
+
+\item{min.contig.size}{Minimal contigs size to plot.}
+
+\item{reverse.x}{Set to \code{TRUE} if x-axis should be horizontaly reversed.}
 }
 \value{
 A \code{ggplot} object.

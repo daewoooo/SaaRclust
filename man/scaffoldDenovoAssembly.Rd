@@ -5,8 +5,9 @@
 \title{Main function of the \pkg{\link{SaaRclust}} package to order and orient contigs of denovo genome assembly.}
 \usage{
 scaffoldDenovoAssembly(bamfolder, outputfolder, configfile = NULL,
-  min.contig.size = 1e+05, pairedEndReads = TRUE, bin.size = 1e+05,
-  step.size = NULL, bin.method = "fixed", store.data.obj = TRUE,
+  min.contig.size = 1e+05, min.region.to.order = 0,
+  pairedEndReads = TRUE, bin.size = 1e+05, step.size = NULL,
+  bin.method = "fixed", store.data.obj = TRUE,
   reuse.data.obj = FALSE, num.clusters = 100, alpha = 0.1,
   best.prob = 1, prob.th = 0, ord.method = "TSP",
   assembly.fasta = NULL, concat.fasta = TRUE, z.limit = 3.29,
@@ -21,6 +22,8 @@ scaffoldDenovoAssembly(bamfolder, outputfolder, configfile = NULL,
 If a \code{configfile} is specified, it will take priority over the command line parameters.}
 
 \item{min.contig.size}{A minimal contig size to be processed (default: 100kb).}
+
+\item{min.region.to.order}{A minimum size region to try to order within a cluster.}
 
 \item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
 

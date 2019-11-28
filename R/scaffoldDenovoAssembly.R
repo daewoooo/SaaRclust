@@ -23,7 +23,7 @@
 #' @author David Porubsky
 #' @export
 #' 
-scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE) {
+scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, min.region.to.order=0, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE) {
   ## Get total processing time
   ptm <- proc.time()
   
@@ -56,7 +56,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   }
   
   ## Put all parameters into list and merge with config ##
-  params <- list(min.contig.size=min.contig.size, pairedEndReads=pairedEndReads, bin.size=bin.size, store.data.obj=store.data.obj, 
+  params <- list(min.contig.size=min.contig.size, min.region.to.order=min.region.to.order, pairedEndReads=pairedEndReads, bin.size=bin.size, store.data.obj=store.data.obj, 
                  step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, alpha=alpha, 
                  best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, 
                  concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC, mask.regions=mask.regions)
@@ -230,7 +230,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   
   ## Order and orient contigs ##
   destination <- file.path(asmpath, paste0("ordered&oriented_", config[['bin.size']], "bp_", config[['bin.method']], ".tsv"))
-  ordered.contigs.gr <- orderAndOrientClusters(clustered.grl=clustered.grl, split.pairs=split.pairs, ord.method=config[['ord.method']], alpha=config[['alpha']], bin.size=config[['bin.size']], filename=destination)
+  ordered.contigs.gr <- orderAndOrientClusters(clustered.grl=clustered.grl, split.pairs=split.pairs, ord.method=config[['ord.method']], alpha=config[['alpha']], min.region.to.order=config[['min.region.to.order']], filename=destination)
   GenomeInfoDb::seqlengths(ordered.contigs.gr) <- chrom.lengths[GenomeInfoDb::seqlevels(ordered.contigs.gr)]
   
   ## Extend gaps between ranges

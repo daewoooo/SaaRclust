@@ -5,7 +5,7 @@
 \title{Order and orient contigs within each cluster}
 \usage{
 orderAndOrientClusters(clustered.grl, split.pairs, ord.method = "TSP",
-  alpha = 0.1, bin.size = bin.size, filename = NULL,
+  alpha = 0.1, min.region.to.order = NULL, filename = NULL,
   remove.always.WC = FALSE)
 }
 \arguments{
@@ -17,7 +17,7 @@ orderAndOrientClusters(clustered.grl, split.pairs, ord.method = "TSP",
 
 \item{alpha}{Estimated level of background in Strand-seq reads.}
 
-\item{bin.size}{A length of a bin to count reads in.}
+\item{min.region.to.order}{A minimum size region to try to order within a cluster.}
 
 \item{filename}{A path to a file where clustered on ordered contigs should be stored.}
 
