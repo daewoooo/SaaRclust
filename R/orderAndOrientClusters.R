@@ -5,24 +5,27 @@
 #' 
 #' @param clustered.grl A \code{\link{GRangesList-class}} object with cluster assignments for each contig.
 #' @param split.pairs A \code{list} with a sets of cluster IDs that belong the same scaffold/chromosome.
-#' @param ord.method A method ('TSP' or 'greedy') used to order contigs within a cluster (default: 'TSP') 
+#' @param ord.method A method ('TSP' or 'greedy') used to order contigs within a cluster (default: 'TSP')
+#' @param min.region.to.order A minimum size region to try to order within a cluster.
 #' @param filename A path to a file where clustered on ordered contigs should be stored.
 #' @inheritParams countProb
 #' @inheritParams importBams
 #' @inheritParams connectDividedClusters
 #' @author David Porubsky
 #' @export
-orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP', alpha=0.1, bin.size=bin.size, filename=NULL, remove.always.WC=FALSE) {
+orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP', alpha=0.1, min.region.to.order=NULL, filename=NULL, remove.always.WC=FALSE) {
   
   ptm <- startTimedMessage("Preparing contigs for ordering and orienting")
   ## Merge by cluster ID
   grl.collapsed <- endoapply(clustered.grl, function(x) collapseBins(x, id.field = 1, measure.field = c(2,3)))
   ## Add cluster ID
   grl.collapsed <- endoapply(grl.collapsed, function(x) addClusterGroup(cluster.gr = x, cluster.groups = split.pairs$clusters))
-  ## Merge by group ID [!!! this might disrupt ordering and confuse primary cluster IDs !!!]
+  ## Merge by group ID [!!! this might disrupt ordering and confuse primary cluster IDs !!!] Collapses misorients within the same contig & cluster!!!
   #grl.collapsed <- endoapply(grl.collapsed, function(x) collapseBins(x, id.field = 4, measure.field = c(2,3)))
-  ## Remove ranges smaller than the bin.size
-  #grl.collapsed <- endoapply(grl.collapsed, function(x) x[width(x) >= bin.size])
+  ## Remove ranges smaller than the min.region.to.order
+  if (!is.null(min.region.to.order) & min.region.to.order > 0) {
+    grl.collapsed <- endoapply(grl.collapsed, function(x) x[width(x) >= min.region.to.order])
+  }  
   ## Get strand state for each region
   grl.BN.probs <- lapply(grl.collapsed, function(x) countProb(minusCounts = x$W, plusCounts = x$C, alpha=alpha, log=TRUE))
   grl.BN.probs.max <- lapply(grl.BN.probs, function(x) apply(x, 1, which.max))
@@ -41,8 +44,9 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     cluster.data <- cluster.states.dfl[[i]]
     cluster.m <- cluster.data
     
-    ## Remove putative HET inversions
+    ## Get putative HET inversions
     #cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$putative.HETs,]
+    HET.idx <- which(cluster.data$clust.ID %in% split.pairs$putative.HETs)
     
     ## Remove 'clust.ID' and 'group.ID' columns
     cluster.m <- cluster.m[,-which(colnames(cluster.m) %in% c('clust.ID', 'group.ID'))]
@@ -59,9 +63,16 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     if (nrow(cluster.m) == 0) { next }
     
     ## Reorient misoriented contigs
-    cluster.m <- syncClusterDir(contig.states = cluster.m)
+    if (length(HET.idx) > 0) {
+      ## Temporarily remove HET inversions from contig re-orienting procedure
+      het.ctg <- cluster.m[HET.idx,]
+      cluster.m <- syncClusterDir(contig.states = cluster.m[-HET.idx,])
+      cluster.m <- rbind(cluster.m, het.ctg)
+    } else {
+      cluster.m <- syncClusterDir(contig.states = cluster.m)
+    }  
     
-    ## Order contigs using TSP heuristic
+    ## Order contigs using TSP or contiBAIT heuristic
     if (nrow(cluster.m) > 1) {
       if (ord.method == 'TSP') {
         cluster.m.clustered <- orderContigsTSP(contig.states = cluster.m, filt.cols = FALSE)

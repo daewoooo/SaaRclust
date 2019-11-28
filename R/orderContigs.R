@@ -22,7 +22,7 @@ orderContigsTSP <- function(contig.states=NULL, dist.matrix=NULL, method='neares
       if (length(mask[mask == TRUE]) > 1) {
         contig.states.filt <- contig.states[,mask]
       } else {
-        message("    Parameter 'filt.cols' would leave only one cell, skipping ...")
+        message("    Parameter 'filt.cols' would leave only one informative cell, skipping ...")
         contig.states.filt <- contig.states
       }
       ## Transform columns of input contig.states into a factor
