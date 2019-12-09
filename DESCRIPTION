@@ -10,6 +10,7 @@ Depends:
     R (>= 3.5),
     BH (>= 1.51.0-3),
     cowplot,
+    ggplot2,
     RColorBrewer,
     scales,
     GenomicRanges
@@ -26,7 +27,6 @@ Imports:
     igraph,
     data.table,
     reshape2,
-    ggplot2,
     matrixStats,
     IRanges,
     Rsamtools,
