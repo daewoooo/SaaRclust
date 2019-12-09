@@ -20,5 +20,5 @@ A new hard clustering with the correct number of clusters
 This function takes as input the kmeans hard clustering output and the initialized thetas and merges the kmeans clusters based on thetas
 }
 \author{
-Maryam Ghareghani
+Maryam Ghareghani, David Porubsky
 }

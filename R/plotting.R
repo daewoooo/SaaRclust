@@ -19,15 +19,22 @@ plotThetaEstimates <- function(theta.param=NULL, title=NULL) {
   }
   plt.data.df <- do.call(rbind, plt.data)
 
-  my_theme <-  theme(panel.spacing = unit(0, "lines"), 
+  my_theme <-  ggplot2::theme(panel.spacing = unit(0, "lines"), 
                    strip.text.y = element_text(angle = 0),
                    axis.title.y=element_blank(),
                    axis.text.y=element_blank(),
                    axis.ticks.y=element_blank())
   if (is.null(title)) {
-    plt <- ggplot(plt.data.df , aes(x=clustID, y=value, fill=variable)) + geom_bar(stat='identity', width=1) + facet_grid(cell ~ .) + scale_fill_manual(values = c('prob.cc'="paleturquoise4", 'prob.mix'="olivedrab",'prob.ww'="sandybrown")) + my_theme
+    plt <- ggplot2::ggplot(plt.data.df , aes(x=clustID, y=value, fill=variable)) + geom_bar(stat='identity', width=1) + 
+      facet_grid(cell ~ .) + 
+      scale_fill_manual(values = c('prob.cc'="paleturquoise4", 'prob.mix'="olivedrab",'prob.ww'="sandybrown")) + 
+      my_theme
   } else {
-    plt <- ggplot(plt.data.df , aes(x=clustID, y=value, fill=variable)) + geom_bar(stat='identity', width=1) + facet_grid(cell ~ .) + scale_fill_manual(values = c('prob.cc'="paleturquoise4", 'prob.mix'="olivedrab",'prob.ww'="sandybrown")) + ggtitle(title) + my_theme
+    plt <- ggplot2::ggplot(plt.data.df , aes(x=clustID, y=value, fill=variable)) + 
+      geom_bar(stat='identity', width=1) + facet_grid(cell ~ .) + 
+      scale_fill_manual(values = c('prob.cc'="paleturquoise4", 'prob.mix'="olivedrab",'prob.ww'="sandybrown")) + 
+      ggtitle(title) + 
+      my_theme
   }
   stopTimedMessage(ptm)
   return(plt)
@@ -51,7 +58,10 @@ plotReadMappingDist <- function(count.list=NULL) {
   }
   all.counts <- do.call(rbind, SSperPB)
   plt.df1 <- as.data.frame(table(all.counts))
-  plt1 <- ggplot(plt.df1) + geom_bar(aes(x=as.numeric(all.counts), y=Freq), stat='identity', fill="red") + xlab("# of ShortReads per PBread per Library") + ylab("Frequency") + scale_x_continuous(breaks = as.numeric(plt.df1$all.counts), labels = plt.df1$all.counts)
+  plt1 <- ggplot2::ggplot(plt.df1) + 
+    geom_bar(aes(x=as.numeric(all.counts), y=Freq), stat='identity', fill="red") + 
+    xlab("# of ShortReads per PBread per Library") + ylab("Frequency") + 
+    scale_x_continuous(breaks = as.numeric(plt.df1$all.counts), labels = plt.df1$all.counts)
   
   count.list.collapsed <- do.call(rbind, count.list)
   counts <- table(count.list.collapsed$PBreadNames)
@@ -59,9 +69,12 @@ plotReadMappingDist <- function(count.list=NULL) {
   
   is.odd <- function(x) x %% 2 != 0
   breaks <- as.numeric(plt.df2$counts)[ is.odd(as.numeric(plt.df2$counts)) ]
-  plt2 <- ggplot(plt.df2) + geom_bar(aes(x=as.numeric(counts), y=Freq), stat='identity', fill="red") + xlab("# of ShortReads per PBread") + ylab("Frequency") + scale_x_continuous(breaks = breaks, labels = breaks)
+  plt2 <- ggplot2::ggplot(plt.df2) + 
+    geom_bar(aes(x=as.numeric(counts), y=Freq), stat='identity', fill="red") + 
+    xlab("# of ShortReads per PBread") + ylab("Frequency") + 
+    scale_x_continuous(breaks = breaks, labels = breaks)
   
-  plt <- plot_grid(plt1, plt2, nrow = 1, rel_widths = c(1,2))
+  plt <- cowplot::plot_grid(plt1, plt2, nrow = 1, rel_widths = c(1,2))
   return(plt)
 }
 
@@ -104,7 +117,16 @@ plotReadAlignments <- function(minimap.tab=NULL) {
   #all.probs.df <- do.call(rbind, probs.l)
   
   readLen <- data.frame(start=0, end=unique(all.libs.df$PBreadLen))
-  plt <- ggplot(all.libs.df) + geom_linerange(data=readLen, aes(x=0, ymin=start, ymax=end), color="black") + geom_linerange(aes(x=level, ymin=start, ymax=end, color=strand)) + coord_flip() + scale_color_manual(values = c("paleturquoise4","sandybrown")) + xlab("") + facet_grid(SSlibNames ~ ., scales = 'free') + geom_text(aes(x=Inf,y=0, vjust=1, hjust=0), label=all.libs.df$probs) + ggtitle(readID) + theme(strip.text.y = element_text(angle = 360))
+  plt <- ggplot2::ggplot(all.libs.df) + 
+    geom_linerange(data=readLen, aes(x=0, ymin=start, ymax=end), color="black") + 
+    geom_linerange(aes(x=level, ymin=start, ymax=end, color=strand)) + 
+    coord_flip() + 
+    scale_color_manual(values = c("paleturquoise4","sandybrown")) + 
+    xlab("") + 
+    facet_grid(SSlibNames ~ ., scales = 'free') + 
+    geom_text(aes(x=Inf,y=0, vjust=1, hjust=0), label=all.libs.df$probs) + 
+    ggtitle(readID) + 
+    theme(strip.text.y = element_text(angle = 360))
   return(plt)
 }
 
@@ -118,6 +140,8 @@ plotReadAlignments <- function(minimap.tab=NULL) {
 #' @param cluster.rows If set to \code{TRUE}, will order rows by hierarchical clustering.
 #' @param cluster.cols If set to \code{TRUE}, will order columns by hierarchical clustering.
 #' @param filt.cols If set to \code{TRUE}, will remove columns with the same strand-state across all contigs.
+#' @importFrom stats dist hclust
+#' @importFrom reshape2 melt
 #' @author David Porubsky
 #' @export
 #' 
@@ -193,6 +217,7 @@ plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, clu
 #' @return A \code{ggplot} object.
 #' @importFrom RColorBrewer brewer.pal.info brewer.pal
 #' @importFrom tidyr separate
+#' @importFrom utils read.table
 #' @author David Porubsky
 #' @export
 #' 
@@ -200,7 +225,7 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, bsgenome=NULL, blacklist=
   ## Use standard chromosomes only
   chroms <- paste0('chr', c(1:22, 'X','Y'))
   ## Read-in mapped congtigs to the human reference genome
-  data <- read.table(bedfile, stringsAsFactors = FALSE)
+  data <- utils::read.table(bedfile, stringsAsFactors = FALSE)
   colnames(data) <- c('seqnames', 'start', 'end', 'info', 'mapq', 'dir')
   ## Filter contigs by mapping quality
   if (min.mapq > 0) {
@@ -289,12 +314,13 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, bsgenome=NULL, blacklist=
   return(plt)
 }
 
-#' ...
+#' Plot co-inheritance matrix between a set of contigs or long sequencing reads.
 #'
-#' @param dist.matrix ...
-#' @param col.low ...
-#' @param col.high ...
+#' @param dist.matrix A \code{matrix} of alll pairwise distances between a set of contigs/long-reads.
+#' @param col.low User defined color for a high co-inheritance values.
+#' @param col.high User defined color for a low co-inheritance values.
 #' @return A \code{ggplot} object.
+#' @importFrom reshape2 melt
 #' @author David Porubsky
 #' @export
 #'
@@ -320,6 +346,7 @@ plotDistanceMatrix <- function(dist.matrix, col.low="chartreuse4", col.high="cad
 #' @return A \code{ggplot} object.
 #' @importFrom Rsamtools scanBamHeader
 #' @importFrom scales comma
+#' @importFrom utils read.table
 #' @author David Porubsky
 #' @export
 #'
@@ -331,7 +358,7 @@ plotAssemblyStat <- function(infile=NULL, format='bam', title=NULL) {
     plt.df <- data.frame(ctg.len = sort(chrom.lengths))
   } else if (format == 'fai') {
     ## Get contigs/scaffolds names and sizes from fasta index
-    fai.tab <- read.table(infile)
+    fai.tab <- utils::read.table(infile)
     plt.df <- data.frame(ctg.len = sort(fai.tab$V2))
   } else if (format == 'GRanges') {
     plt.df <- data.frame(ctg.len = sort(width(infile)))

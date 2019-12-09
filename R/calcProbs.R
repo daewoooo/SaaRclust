@@ -6,7 +6,7 @@
 #' @param plusCounts Plus (Crick) read counts aligned to PacBio reads.
 #' @param alpha Estimated level of background in Strand-seq reads.
 #' @return A \code{matrix} of binomial probabilities for a given counts of plus and minus reads for a single cell. (rows=reads/genomic segments, cols=strand states)
-#' @importFrom matrixStats logSumExp rowLogSumExps
+#' @importFrom stats dbinom
 #' @author David Porubsky, Maryam Ghareghani
 #' @export
 
@@ -35,6 +35,7 @@ countProb <- function(minusCounts, plusCounts, alpha=0.1, log=FALSE) {
 #' @param pi.scaled Paramter estimate of the size of each cluster scaled by cell number
 #' @param cellNum Number of Strand-seq cells used for clustering.
 #' @return A \code{matrix} of unormalized probalities of cell states per cluster.
+#' @importFrom matrixStats logSumExp rowLogSumExps
 #' @author David Porubsky, Maryam Ghareghani
 #' @export
 
@@ -45,7 +46,7 @@ gammaFunction <- function(clust.prob=NULL, pi.scaled=NULL, cellNum=NULL, log.sca
     reducedMatrix <- matrix(nrow=nrow(matrix.list[[1]]), ncol=ncol(matrix.list[[1]]), data=0)
     for (row in 1:nrow(reducedMatrix)) {
       for (col in 1:ncol(reducedMatrix)) {
-        sum <- logSumExp( sapply(matrix.list, '[[', row,col) )
+        sum <- matrixStats::logSumExp( sapply(matrix.list, '[[', row,col) )
         reducedMatrix[row,col] <- sum
       }
     }
@@ -54,9 +55,9 @@ gammaFunction <- function(clust.prob=NULL, pi.scaled=NULL, cellNum=NULL, log.sca
   
   if (log.scale) {
     #matrix.sums <- reduceByLogSumExp(clust.prob) #sum over clusters (matrices) position-wise
-    matrix.sums <- apply(simplify2array(clust.prob), c(1,2), logSumExp) #sum over clusters (matrices) position-wise
+    matrix.sums <- apply(simplify2array(clust.prob), c(1,2), matrixStats::logSumExp) #sum over clusters (matrices) position-wise
     #clust.sums <- apply(matrix.sums, 1, logSumExp) #sum over rows
-    clust.sums <- rowLogSumExps(matrix.sums) #sum over rows
+    clust.sums <- matrixStats::rowLogSumExps(matrix.sums) #sum over rows
     clust.gamma.l <- list()
     #loop over all clusters
     for (i in 1:length(clust.prob)) {

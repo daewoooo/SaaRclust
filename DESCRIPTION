@@ -12,18 +12,21 @@ Depends:
     cowplot,
     RColorBrewer,
     scales,
-    ggplot2,
     GenomicRanges
 LinkingTo: Rcpp, BH
 Imports:
     tidyr,
     dplyr,
-    lpSolve,
+    stats,
+    utils,
+    cluster,
+    lpSolve (>= 5.5.2.5),
     TSP,
     Rcpp,
     igraph,
     data.table,
     reshape2,
+    ggplot2,
     matrixStats,
     IRanges,
     Rsamtools,

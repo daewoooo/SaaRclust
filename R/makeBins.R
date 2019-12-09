@@ -60,7 +60,7 @@ makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromos
   ## Add step size if defined
   if (!is.null(step.size)) {
     shift.bp <- 0
-    bins.list.step <- GRangesList()
+    bins.list.step <- GenomicRanges::GRangesList()
     while (shift.bp < bin.size) {
       bins.list.step[[as.character(shift.bp)]] <- suppressWarnings( trim(shift(bins, shift.bp)) )
       shift.bp <- step.size + shift.bp
@@ -72,8 +72,8 @@ makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromos
   if (keep.small.chr) {
     chroms2keep <- chroms2use[!chroms2use %in% unique(seqnames(bins))]
     if (length(chroms2keep) > 0) {
-      chroms2keep.gr <- GRanges(seqnames = chroms2keep, ranges=IRanges(start = 1, end = chrom.lengths[chroms2keep]))
-      bins <- sort(c(bins, chroms2keep.gr))
+      chroms2keep.gr <- GenomicRanges::GRanges(seqnames = chroms2keep, ranges=IRanges(start = 1, end = chrom.lengths[chroms2keep]))
+      bins <- GenomicRanges::sort(c(bins, chroms2keep.gr))
     }  
   }
   
@@ -196,7 +196,7 @@ makeDynamicBins <- function(bamfiles=NULL, bin.size=100000, step.size=NULL, chro
   }
   
   ## Report chromosome/contigs smaller than the bin.size
-  skipped.chroms <- setdiff(seqlevels(bins), as.character(unique(seqnames(bins))))
+  skipped.chroms <- setdiff(GenomeInfoDb::seqlevels(bins), as.character(unique(seqnames(bins))))
   if (length(skipped.chroms) > 0) {
     warning("The following chromosomes/contigs were skipped because they are smaller than bin.size ", bin.size, ": ", paste0(skipped.chroms, collapse=', '))
   }

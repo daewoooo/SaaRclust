@@ -2,23 +2,23 @@
 % Please edit documentation in R/plotting.R
 \name{plotDistanceMatrix}
 \alias{plotDistanceMatrix}
-\title{...}
+\title{Plot co-inheritance matrix between a set of contigs or long sequencing reads.}
 \usage{
 plotDistanceMatrix(dist.matrix, col.low = "chartreuse4",
   col.high = "cadetblue1")
 }
 \arguments{
-\item{dist.matrix}{...}
+\item{dist.matrix}{A \code{matrix} of alll pairwise distances between a set of contigs/long-reads.}
 
-\item{col.low}{...}
+\item{col.low}{User defined color for a high co-inheritance values.}
 
-\item{col.high}{...}
+\item{col.high}{User defined color for a low co-inheritance values.}
 }
 \value{
 A \code{ggplot} object.
 }
 \description{
-...
+Plot co-inheritance matrix between a set of contigs or long sequencing reads.
 }
 \author{
 David Porubsky

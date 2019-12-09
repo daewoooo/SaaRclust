@@ -97,7 +97,7 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
   ordered.contigs.df <- as.data.frame(ordered.contigs.gr)
   if (!is.null(filename) & is.character(filename)) {
     ## Export contig order
-    write.table(ordered.contigs.df, file = filename, quote = FALSE, row.names = FALSE, append = FALSE, sep = "\t")
+    utils::write.table(ordered.contigs.df, file = filename, quote = FALSE, row.names = FALSE, append = FALSE, sep = "\t")
   }
   return(ordered.contigs.gr)
 }

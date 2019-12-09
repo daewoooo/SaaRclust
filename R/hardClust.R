@@ -5,6 +5,7 @@
 #' @param counts.l A \code{list} of directional read counts per PB read per library.
 #' @inheritParams SaaRclust
 #' @return A \code{list} of estimated theta values for every cluster and cell.
+#' @importFrom stats kmeans
 #' @author David Porubsky
 #' @export
 
@@ -30,7 +31,7 @@ hardClust <- function(counts.l=NULL, num.clusters=NULL, nstart=10, iter.max=10) 
   ratios.m[] <- as.numeric(findInterval(ratios.m, c(-0.5, 0.5)))
   
   #hard clustering using kmeans
-  km <- suppressWarnings( kmeans(ratios.m, centers = num.clusters, nstart = nstart, iter.max = iter.max) )
+  km <- suppressWarnings( stats::kmeans(ratios.m, centers = num.clusters, nstart = nstart, iter.max = iter.max) )
   ord <- km$cluster
   #ratios.m.ord <- ratios.m[order(ord),]
   stopTimedMessage(ptm)
@@ -94,15 +95,16 @@ estimateTheta <- function(counts.l=NULL, hard.clust=NULL, alpha=0.1) {
 #' @param k Desired number of clusters after merging.
 #' @inheritParams SaaRclust
 #' @return A new hard clustering with the correct number of clusters
-#' @author Maryam Ghareghani
+#' @importFrom stats dist hclust cutree
+#' @author Maryam Ghareghani, David Porubsky
 #' @export
 
 mergeClusters <- function(hard.clust, theta.l, k=46)
 {
   ptm <- startTimedMessage("Merging clusters")  
   theta.all <- do.call(cbind, theta.l)
-  hc <- hclust(dist(theta.all))
-  hc.clust <- cutree(hc, k=k)
+  hc <- stats::hclust(stats::dist(theta.all))
+  hc.clust <- stats::cutree(hc, k=k)
   
   stopTimedMessage(ptm)
   return(sapply(hard.clust, function(i) hc.clust[i]))

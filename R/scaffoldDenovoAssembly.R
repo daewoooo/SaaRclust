@@ -86,10 +86,10 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     }
   }
   
-  ## Keep only contigs/scaffolds >=100Kb
-  chrom.lengths <- chrom.lengths[chrom.lengths >= config[['min.contig.size']]]
-  chroms.in.data <- names(chrom.lengths)
-
+  ## Keep only contigs/scaffolds of size defined by min.contig.size
+  filt <- chrom.lengths >= config[['min.contig.size']]
+  chroms.in.data <- names(chrom.lengths[filt])
+  
   ## Create a mask of regions with and excess of read coverage that appears always WC
   ## and bins that have very low read counts
   destination <- file.path(datapath, paste0("maskRegions_", config[['bin.size']],"bp_", config[['bin.method']], ".RData"))
@@ -100,13 +100,13 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
         blacklist <- get(load(destination))
         #blacklist.gr <- c(blacklist$alwaysWC, blacklist$alwaysZero)
       } else {
-        bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = 50000, step.size = 50000, chromosomes = chroms.in.data)
+        bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = 50000, step.size = 1000, chromosomes = chroms.in.data)
         blacklist <- suppressWarnings( 
           maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, pairedEndReads = config[['pairedEndReads']])
         )
       }  
     } else {
-      bins.gr <- makeFixedBins(bamfile = bamFile, bin.size = 50000, step.size = 50000, chroms.in.data)
+      bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = 50000, step.size = 1000, chroms.in.data)
       blacklist <- suppressWarnings( 
         maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, pairedEndReads = config[['pairedEndReads']])
       )
@@ -260,6 +260,17 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     if (store.data.obj) {
       save(putative.errors.gr, file = destination)
     }
+  }
+  
+  ## Report contigs that have been filtered out
+  filtered.ctgs <- chrom.lengths[!names(chrom.lengths) %in% seqlevels(ordered.contigs.gr)]
+  filtered.ctgs.gr <- GenomicRanges::GRanges(seqnames = names(filtered.ctgs), ranges=IRanges(start = 1, end = filtered.ctgs))
+  seqlengths(filtered.ctgs.gr) <- filtered.ctgs
+  if (length(filtered.ctgs.gr) > 0) {
+    destination <- file.path(datapath, paste0("filteredContigs_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
+    if (store.data.obj) {
+      save(filtered.ctgs.gr, file = destination)
+    }
   }  
   
   ## Export clustered FASTA ##
@@ -275,7 +286,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Plot theta parameter
   theta.plt <- plotThetaEstimates(theta.param = EM.obj$theta.param)
   suppressWarnings(
-  ggsave(filename = file.path(pltpath, 'theta_param.pdf'), 
+  ggplot2::ggsave(filename = file.path(pltpath, 'theta_param.pdf'), 
          plot = theta.plt, 
          width = config[['num.clusters']] / 10, 
          height = length(EM.obj$theta.param) / 10, 
@@ -285,7 +296,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Plot probability distribution
   prob.plt <- plotEMprobs(em.prob = EM.obj$soft.pVal, prob.th = config[['prob.th']])
   suppressWarnings(
-  ggsave(filename = file.path(pltpath, 'prob_dist.pdf'), 
+  ggplot2::ggsave(filename = file.path(pltpath, 'prob_dist.pdf'), 
          plot = prob.plt, 
          width = 6, 
          height = 4, 
@@ -295,7 +306,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Plot cluster size distribution
   clust.plt <- plotClusteredContigSizes(clustered.gr = ordered.contigs.gr)
   suppressWarnings(
-  ggsave(filename = file.path(pltpath, 'cluster_sizes.pdf'), 
+  ggplot2::ggsave(filename = file.path(pltpath, 'cluster_sizes.pdf'), 
          plot = clust.plt, 
          width = 8, 
          height = 4, 

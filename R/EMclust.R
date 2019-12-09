@@ -65,7 +65,7 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
   
       ## Remove BN probs and corresponding PB reads which probability is assigned NaN value or when all probabilities are zero [TODO!!! resolve this problem]
       if (log.scale) {
-        mask <- which( apply(BN.probs, 1, function(x) any(is.nan(x) | logSumExp(x)==-Inf)) )
+        mask <- which( apply(BN.probs, 1, function(x) any(is.nan(x) | matrixStats::logSumExp(x)==-Inf)) )
       } else {
         mask <- which( apply(BN.probs, 1, function(x) any(is.nan(x) | sum(x)==0)) )
       }
@@ -94,7 +94,7 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
       ## clusters.per.cell[[[j]]: a list of vectors per cluster. Each vector represent rowSums of each cluster (matrix)
       if (log.scale) {
         #clusters.per.cell[[j]] <- lapply(clusters, function(x) apply(x, 1, logSumExp))
-        clusters.per.cell[[j]] <- lapply(clusters, rowLogSumExps)
+        clusters.per.cell[[j]] <- lapply(clusters, matrixStats::rowLogSumExps)
       } else {
         clusters.per.cell[[j]] <- lapply(clusters, rowSums)
       }  
@@ -122,7 +122,7 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
       ## Take sum over all reads/genomic segments ##
       if (log.scale) { 
         #clust.gammas.colsums <- lapply(clust.gammas.l, function(x) apply(x, 2, logSumExp))
-        clust.gammas.colsums <- lapply( clust.gammas.l, function(x) rowLogSumExps(t(x)) )
+        clust.gammas.colsums <- lapply( clust.gammas.l, function(x) matrixStats::rowLogSumExps(t(x)) )
       } else {  
         clust.gammas.colsums <- lapply(clust.gammas.l, colSums) ## clust.gammas.colsums: matrix with rows=clusters, cols=strand states
       }
@@ -131,7 +131,7 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
       ## Updating theta parameters
       if (log.scale) {
         #theta.update <- clust.gammas.colsums - apply(clust.gammas.colsums, 1, logSumExp)
-        theta.update <- clust.gammas.colsums - rowLogSumExps(clust.gammas.colsums)
+        theta.update <- clust.gammas.colsums - matrixStats::rowLogSumExps(clust.gammas.colsums)
       } else {
         theta.update <- clust.gammas.colsums / rowSums(clust.gammas.colsums)
       }  
@@ -157,10 +157,10 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
     if (log.scale) {
       #strand.states.sums <- sapply(clust.gammas.colsums.l, function(x) apply(x, 1, logSumExp)) #sums over all strand states per single cell. Results in matrix with rows=clusters, cols=cells
       #pi.update <- apply(strand.states.sums, 1, logSumExp)
-      pi.update <- rowLogSumExps(sapply(clust.gammas.colsums.l, rowLogSumExps)) #sums over all strand states per single cell. Results in matrix with rows=clusters, cols=cells
+      pi.update <- matrixStats::rowLogSumExps(sapply(clust.gammas.colsums.l, matrixStats::rowLogSumExps)) #sums over all strand states per single cell. Results in matrix with rows=clusters, cols=cells
       
       ## Normalize pi parameter to 1 and update pi
-      pi.norm.update <- pi.update - logSumExp(pi.update)
+      pi.norm.update <- pi.update - matrixStats::logSumExp(pi.update)
     } else {
       ## first rowSums = sums over all strand states per single cell. Results in matrix with rows=clusters, cols=cells
       ## second rowSums = sums over single cells
@@ -200,7 +200,7 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
     
     ## Calculate the likelihood function ##
     if (log.scale) {
-      cluts.tab.sums <- apply(cluts.tab.update, 1, logSumExp)
+      cluts.tab.sums <- apply(cluts.tab.update, 1, matrixStats::logSumExp)
       log.like <- sum(cluts.tab.sums)*(-1)
     } else {
       cluts.tab.sums <- rowSums(cluts.tab.update)
@@ -240,7 +240,7 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
   ## Scaling soft probabilities to 1
   if (log.scale) {
     #soft.probs.tab.norm <- cluts.tab.update - apply(cluts.tab.update, 1, logSumExp)
-    soft.probs.tab.norm <- cluts.tab.update - rowLogSumExps(cluts.tab.update)
+    soft.probs.tab.norm <- cluts.tab.update - matrixStats::rowLogSumExps(cluts.tab.update)
     soft.probs.tab.norm <- exp(soft.probs.tab.norm) #get non-log scale probabilities
     #convert theta.param and pi.param back to non-log scale probabilities
     theta.param <- lapply(theta.param, exp)
