@@ -32,12 +32,20 @@ syncClusterDir <- function(contig.states) {
     ## Remove cell with 'pure' ww or cc state (non-informative)
     mask <- apply(contig.states.sub, 2, function(x) length(unique(x)) > 1)
     contig.states.sub <- as.matrix(contig.states.sub[,mask])
-    ## Check if strand-state matrix can be clustered using HC
-    hc.obj <- tryCatch({
-      ## Cluster contigs by hierarchical clustering
-      stats::hclust(stats::dist(contig.states.sub))
-      }, error = function(e) {return('error')}
-    )
+    
+    hc.obj <- NULL
+    while (class(hc.obj) == 'NULL') {
+      ## Check if strand-state matrix can be clustered using Hierarchical clustering
+      hc.obj <- tryCatch({
+        ## Cluster contigs by hierarchical clustering
+        stats::hclust(stats::dist(contig.states.sub))
+        }, error = function(e) {return(NULL)}
+      )
+      ## Remove contig with the maximum number of missing values (NA's)
+      if (class(hc.obj) == 'NULL') {
+        contig.states.sub <- contig.states.sub[-which.min(rowSums(contig.states.sub, na.rm = TRUE)),]
+      }
+    }  
     
     if (ncol(contig.states.sub) > 2 & nrow(contig.states.sub) > 2 & class(hc.obj) == 'hclust') {
       ## Divide antiparallel set of contigs
