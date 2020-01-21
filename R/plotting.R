@@ -239,9 +239,16 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, bsgenome=NULL, blacklist=
     }  
   }
   
-  plt.df <- tidyr::separate(data, col = info, sep = '_', into = c('contig', 'order','cluster.ID'))
-  plt.df$seqnames <- factor(plt.df$seqnames, levels=chroms)
-  plt.df$order <- as.numeric(plt.df$order)
+  ## Check if sequence names in info field contains underscores to separate various metadata
+  if (all(grepl(data$info, pattern = "_"))) {
+    plt.df <- tidyr::separate(data, col = info, sep = '_', into = c('contig', 'order','cluster.ID'))
+    plt.df$seqnames <- factor(plt.df$seqnames, levels=chroms)
+    plt.df$order <- as.numeric(plt.df$order)
+  } else {
+    colnames(data)[4] <- 'cluster.ID'
+    plt.df <- data
+    warning('Sequence names in the BED file do not contain info about the contig order, ordering cannot be plotted!!!')
+  }  
   ## Keep only standard chromosomes
   plt.df <- plt.df[plt.df$seqnames %in% chroms,]
   
@@ -256,13 +263,8 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, bsgenome=NULL, blacklist=
   qual.col.pals <- RColorBrewer::brewer.pal.info[RColorBrewer::brewer.pal.info$category == 'qual',]
   col.vector <- unlist(mapply(RColorBrewer::brewer.pal, qual.col.pals$maxcolors, rownames(qual.col.pals)))
   col.vector <- sample(col.vector, n.colors)
-  ## Set chromosome order colors
-  plt.df$ord.color <- ""
-  for (chr in unique(plt.df$seqnames)) {
-    chr.idx <- which(plt.df$seqnames == chr)
-    colors <- gray.colors(max(plt.df$order[chr.idx]))
-    plt.df$ord.color[chr.idx] <- colors[plt.df$order[chr.idx]]
-  }
+  ## Make sure chromosome levels are in the correct order
+  plt.df$seqnames <- factor(plt.df$seqnames, levels=chroms)
   
   ## Plot ideogram
   if (report == 'clustering') {
@@ -275,7 +277,15 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, bsgenome=NULL, blacklist=
       theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
       theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
       theme(strip.text.y = element_text(angle = 180))
-  } else if (report == 'ordering') {
+  } else if (report == 'ordering' & 'order' %in% colnames(plt.df)) {
+    ## Set chromosome order colors
+    plt.df$ord.color <- ""
+    for (chr in unique(plt.df$seqnames)) {
+      chr.idx <- which(plt.df$seqnames == chr)
+      colors <- gray.colors(max(plt.df$order[chr.idx]))
+      plt.df$ord.color[chr.idx] <- colors[plt.df$order[chr.idx]]
+    }
+    
     plt <- ggplot2::ggplot() + geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill=NA, color="black") +
       facet_grid(seqnames ~ ., switch = 'y') +
       geom_rect(data=plt.df, aes(xmin=start, xmax=end, ymin=0, ymax=1), fill=plt.df$ord.color) +
@@ -295,7 +305,7 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, bsgenome=NULL, blacklist=
       theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
       theme(strip.text.y = element_text(angle = 180))
   } else {
-    message("Please choose to report either 'clustering' or 'ordering'!!!")
+    message("Please choose to report either 'clustering','ordering' or 'orienting' !!!")
   }  
   
   ## Plot blacklisted regions in white if defined
@@ -311,7 +321,11 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, bsgenome=NULL, blacklist=
   }
   
   ## Return final plot
-  return(plt)
+  if ('ggplot' %in% class(plt)) {
+    return(plt)
+  } else {
+    return(NULL)
+  }  
 }
 
 #' Plot co-inheritance matrix between a set of contigs or long sequencing reads.
