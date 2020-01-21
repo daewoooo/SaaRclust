@@ -90,6 +90,13 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
     bam.name <- basename(bam)
     message("    Processing ", bam.name)
     
+    ## Check if the bamfile is indexed
+    bamindex <- paste0(bam,'.bai')
+    if (!file.exists(bamindex)) {
+      warning("Couldn't find BAM index-file, indexing ...")
+      bamindex.own <- Rsamtools::indexBam(bam)
+    }
+    
     ## Scale bin size to the required minimum number of reads in a bin
     if (!is.null(reads.per.bin)) {
       bin.method <- 'fixed'

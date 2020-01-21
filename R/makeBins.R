@@ -158,6 +158,14 @@ makeDynamicBins <- function(bamfiles=NULL, bin.size=100000, step.size=NULL, chro
     for (j in 1:length(bamfiles)) {
       bam <- bamfiles[j]
       bam.name <- basename(bam)
+      
+      ## Check if the bamfile is indexed
+      bamindex <- paste0(bam,'.bai')
+      if (!file.exists(bamindex)) {
+        warning("Couldn't find BAM index-file, indexing ...")
+        bamindex.own <- Rsamtools::indexBam(bam)
+      }
+      
       #message("    Processing ", bam.name)
       chr.counts <- bamsignals::bamCoverage(bam, gr = chrom.gr, mapq=10, filteredFlag=1024, paired.end='ignore', verbose=FALSE)
       chr.cov <- chr.cov + chr.counts[1]
