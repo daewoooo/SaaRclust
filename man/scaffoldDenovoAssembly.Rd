@@ -8,10 +8,11 @@ scaffoldDenovoAssembly(bamfolder, outputfolder, configfile = NULL,
   min.contig.size = 1e+05, min.region.to.order = 0,
   pairedEndReads = TRUE, bin.size = 1e+05, step.size = NULL,
   bin.method = "fixed", store.data.obj = TRUE,
-  reuse.data.obj = FALSE, num.clusters = 100, alpha = 0.1,
-  best.prob = 1, prob.th = 0, ord.method = "TSP",
-  assembly.fasta = NULL, concat.fasta = TRUE, z.limit = 3.29,
-  remove.always.WC = FALSE, mask.regions = FALSE)
+  reuse.data.obj = FALSE, num.clusters = 100,
+  desired.num.clusters = NULL, alpha = 0.1, best.prob = 1,
+  prob.th = 0, ord.method = "TSP", assembly.fasta = NULL,
+  concat.fasta = TRUE, z.limit = 3.29, remove.always.WC = FALSE,
+  mask.regions = FALSE)
 }
 \arguments{
 \item{bamfolder}{A folder containing BAM files with Strand-seq reads aligned to denovo assembly.}
@@ -38,6 +39,8 @@ If a \code{configfile} is specified, it will take priority over the command line
 \item{reuse.data.obj}{A logical indicating whether or not existing files in \code{outputfolder} should be reused.}
 
 \item{num.clusters}{Expected number of clusters. (for 22 autosomes == 44 clusters)}
+
+\item{desired.num.clusters}{Desired number of clusters after cluster merging step.}
 
 \item{alpha}{Estimated level of background in Strand-seq reads.}
 

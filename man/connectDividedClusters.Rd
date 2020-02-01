@@ -2,10 +2,10 @@
 % Please edit documentation in R/connectDividedClusters.R
 \name{connectDividedClusters}
 \alias{connectDividedClusters}
-\title{Get pairs of clusters likely coming from the same chromosome}
+\title{Merge divided clusters likely coming from the same chromosome}
 \usage{
 connectDividedClusters(theta.param = NULL, z.limit = 3.29,
-  remove.always.WC = FALSE)
+  remove.always.WC = FALSE, desired.num.clusters = NULL)
 }
 \arguments{
 \item{theta.param}{A \code{list} of estimated cell types for each cluster and each cell.}
@@ -13,6 +13,8 @@ connectDividedClusters(theta.param = NULL, z.limit = 3.29,
 \item{z.limit}{Connect clusters with z-score equal or above this limit.}
 
 \item{remove.always.WC}{Set to \code{TRUE} if the cluster with majority of WC states should be removed.}
+
+\item{desired.num.clusters}{Desired number of clusters after cluster merging step.}
 }
 \value{
 A \code{matrix} of pairs of clusters IDs that belong to the same chromosome.

@@ -23,7 +23,7 @@
 #' @author David Porubsky
 #' @export
 #' 
-scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, min.region.to.order=0, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE) {
+scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, min.region.to.order=0, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE) {
   ## Get total processing time
   ptm <- proc.time()
   
@@ -57,7 +57,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   
   ## Put all parameters into list and merge with config ##
   params <- list(min.contig.size=min.contig.size, min.region.to.order=min.region.to.order, pairedEndReads=pairedEndReads, bin.size=bin.size, store.data.obj=store.data.obj, 
-                 step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, alpha=alpha, 
+                 step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, desired.num.clusters=desired.num.clusters, alpha=alpha, 
                  best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, 
                  concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC, mask.regions=mask.regions)
   config <- c(config, params[setdiff(names(params), names(config))])
@@ -205,20 +205,54 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     save(EM.obj, file = destination)
   }
   
-  ## Remove always WC cluster
+  # ## Remove always WC cluster
+  # if (config[['remove.always.WC']]) {
+  #   ## Find cluster with WC state in majority of cells
+  #   theta.sums <- Reduce("+", EM.obj$theta.param)
+  #   remove.clust <- which.max(theta.sums[,3])
+  #   ## Remove cluster with the most WC states
+  #   message("\nRemoving cluster ", remove.clust, " with the most WC states!!!")
+  #   EM.obj$theta.param <- lapply(EM.obj$theta.param, function(x) x[-remove.clust,])
+  #   EM.obj$soft.pVal <- EM.obj$soft.pVal[,-remove.clust]
+  #   EM.obj$pi.param <- EM.obj$pi.param[-remove.clust]
+  # }
+  
+  ## Find clusters with WC state in majority of cells ##
+  theta.sums <- Reduce("+", EM.obj$theta.param)
+  theta.zscore <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
+  wc.clust.idx <- which(theta.zscore > 2.5)
+  
+  ## Get names of always WC regions
+  if (length(wc.clust.idx) > 0) {
+    ## Get probability table
+    soft.prob <- EM.obj$soft.pVal
+    ## Remove segments that do not reach reguired prob.th
+    row.max.prob <- apply(soft.prob, 1, max)
+    mask <- row.max.prob >= config[['prob.th']]
+    soft.prob <- soft.prob[mask,]
+    clust.ID <- apply(soft.prob, 1, which.max)
+    always.wc.ctgs <- names(clust.ID)[clust.ID %in% wc.clust.idx]
+    
+    ## Store data object
+    destination <- file.path(datapath, paste0("alwaysWCregions_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
+    if (store.data.obj) {
+      save(always.wc.ctgs, file = destination)
+    }
+  } 
+  
+  ## Remove always WC clusters
   if (config[['remove.always.WC']]) {
-    ## Find cluster with WC state in majority of cells
-    theta.sums <- Reduce("+", EM.obj$theta.param)
-    remove.clust <- which.max(theta.sums[,3])
-    ## Remove cluster with the most WC states
-    message("\nRemoving cluster ", remove.clust, " with the most WC states!!!")
-    EM.obj$theta.param <- lapply(EM.obj$theta.param, function(x) x[-remove.clust,])
-    EM.obj$soft.pVal <- EM.obj$soft.pVal[,-remove.clust]
-    EM.obj$pi.param <- EM.obj$pi.param[-remove.clust]
+    if (length(wc.clust.idx) > 0) {
+      ## Remove cluster with the most WC states
+      message("Removing cluster ", paste(wc.clust.idx, collapse = ", "), " with the most WC states!!!")
+      EM.obj$theta.param <- lapply(EM.obj$theta.param, function(x) x[-wc.clust.idx,])
+      EM.obj$soft.pVal <- EM.obj$soft.pVal[,-wc.clust.idx]
+      EM.obj$pi.param <- EM.obj$pi.param[-wc.clust.idx]
+    }
   }
   
   ## Get cluster IDs that belong to the same chromosome/scaffold ##
-  split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']])
+  split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']])
   ## Store data object
   destination <- file.path(datapath, paste0("connectedClusters_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
   if (config[['store.data.obj']]) {
