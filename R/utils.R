@@ -177,3 +177,62 @@ expandGaps <- function(gr) {
     return(gr)
   }
 }
+
+
+#' Report summary of misassembled contigs/scaffolds
+#' 
+#' This function takes a \code{\link{GRanges-class}} object that contains putatively
+#' misassembled contigs/scaffolds and report if this misassembly is likely caused by
+#' an misorient, chimerism or both.
+#' 
+#' @param gr A \code{\link{GRanges-class}} object.
+#' @return A \code{data.frame} object.
+#' @author David Porubsky
+#' @export
+#' 
+reportMisAsmCTGs <- function(gr) {
+  grl <- GenomicRanges::split(gr, seqnames(gr))
+  
+  report.l <- list()
+  for (i in seq_along(grl)) {
+    gr.sub <- grl[[i]]
+    
+    ## Get number of misassembled bases
+    max.ctg <- gr.sub[which.max(width(gr.sub))]
+    misasm.bases <- sum(width(gr.sub[!gr.sub$collapse.ID %in% max.ctg$collapse.ID]))
+    
+    ## Split contig chunks per cluster ID
+    gr.sub.perClust <- GenomicRanges::split(gr.sub, gr.sub$ID)
+    
+    ## Classify observed assembly errors as misorient and/or chimerism
+    if (any(sapply(gr.sub.perClust, function(x) length(unique(x$dir)) > 1))) {
+      is.misorient <- TRUE
+    } else {
+      is.misorient <- FALSE
+    }
+    if (length(unique(gr.sub$ID)) > 1) {
+      is.chimerism <- TRUE
+    } else {
+      is.chimerism <- FALSE
+    }
+    
+    if (is.misorient & !is.chimerism) {
+      asm.error <- 'misorient'
+    } else if (is.chimerism & !is.misorient) {
+      asm.error <- 'chimerism'
+    } else if (is.chimerism & is.misorient) {
+      asm.error <- 'misorient&chimerism'
+    } else {
+      asm.error <- 'unknown'
+    }
+    
+    ctg.gr <- range(gr.sub)
+    ctg.gr$asm.error <- asm.error
+    ctg.gr$misasm.bases <- misasm.bases
+    
+    df <- as.data.frame(ctg.gr)
+    report.l[[i]] <- df
+  }
+  report.df <- do.call(rbind, report.l)
+  return(report.df)
+}

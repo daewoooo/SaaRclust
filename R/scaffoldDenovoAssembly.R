@@ -294,6 +294,10 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     if (store.data.obj) {
       save(putative.errors.gr, file = destination)
     }
+    ## Export summary table of assembly errors
+    putative.errors.report <- reportMisAsmCTGs(gr = putative.errors.gr)
+    destination <- file.path(asmpath, paste0("asmErrorsReport_", config[['bin.size']], "bp_", config[['bin.method']], ".tsv"))
+    utils::write.table(putative.errors.report, file = destination, quote = FALSE, row.names = FALSE, append = FALSE, sep = "\t")
   }
   
   ## Report contigs that have been filtered out
