@@ -96,6 +96,7 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   if (!is.null(desired.num.clusters)) {
     cl.num <- nrow(theta.param[[1]])
     clusters <- NULL
+    clusters.prev <- NULL
     while (desired.num.clusters < cl.num) {
       vertices.sub <- vertices[vertices[,3] >= z.limit,]
       vertices.sub <- c(rbind(vertices.sub[,1], vertices.sub[,2]))
@@ -110,7 +111,7 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
       z.limit <- z.limit - 0.1
     }
     ## Report previous iteration in case current number of clusters is smaller than 'desired.num.clusters'
-    if (length(clusters) < desired.num.clusters) {
+    if (length(clusters) < desired.num.clusters & !is.null(clusters.prev)) {
       clusters <- clusters.prev
     }
   } else {
