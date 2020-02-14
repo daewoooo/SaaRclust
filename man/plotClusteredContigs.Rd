@@ -2,16 +2,21 @@
 % Please edit documentation in R/plotting.R
 \name{plotClusteredContigs}
 \alias{plotClusteredContigs}
-\title{Plot genome-wide positions of clustered contigs}
+\title{Plot genome-wide positions of clustered contigs against human reference.}
 \usage{
-plotClusteredContigs(bedfile, min.mapq = 10, bsgenome = NULL,
-  blacklist = NULL, report = "clustering", min.contig.size = NULL,
-  reverse.x = FALSE)
+plotClusteredContigs(bedfile, min.mapq = 10, min.contig.size = NULL,
+  chromosomes = NULL, bsgenome = NULL, blacklist = NULL,
+  report = "clustering", info.delim = NULL, info.fields = NULL,
+  col.by = NULL, reverse.x = FALSE, title = NULL)
 }
 \arguments{
 \item{bedfile}{An aligned contigs to the reference sequence in bed format.}
 
 \item{min.mapq}{Minimum mapping quality of a contig to the refrence sequence.}
+
+\item{min.contig.size}{Minimal contigs size to plot.}
+
+\item{chromosomes}{User defined set of chromosomes to plot.}
 
 \item{bsgenome}{A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.}
 
@@ -19,15 +24,21 @@ plotClusteredContigs(bedfile, min.mapq = 10, bsgenome = NULL,
 
 \item{report}{Plot either 'clustering', 'ordering' or 'orienting' of the contigs. Default: 'clustering'.}
 
-\item{min.contig.size}{Minimal contigs size to plot.}
+\item{info.delim}{Define a delimiter to split 4th field of the input BED file.}
+
+\item{info.fields}{Define names of new fields after splitting the 4th field of the BED file.}
+
+\item{col.by}{Define a field to use to color the mapped contigs against the human reference.}
 
 \item{reverse.x}{Set to \code{TRUE} if x-axis should be horizontaly reversed.}
+
+\item{title}{Add title to the plot.}
 }
 \value{
 A \code{ggplot} object.
 }
 \description{
-Plot genome-wide positions of clustered contigs
+Plot genome-wide positions of clustered contigs against human reference.
 }
 \author{
 David Porubsky

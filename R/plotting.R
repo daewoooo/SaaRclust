@@ -205,15 +205,20 @@ plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, clu
 } 
 
 
-#' Plot genome-wide positions of clustered contigs
+#' Plot genome-wide positions of clustered contigs against human reference.
 #'
 #' @param bedfile An aligned contigs to the reference sequence in bed format.
 #' @param min.mapq Minimum mapping quality of a contig to the refrence sequence.
+#' @param min.contig.size Minimal contigs size to plot.
+#' @param chromosomes User defined set of chromosomes to plot.
 #' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
 #' @param blacklist A \code{\link{GRanges-class}} object of regions to be removed.
 #' @param report Plot either 'clustering', 'ordering' or 'orienting' of the contigs. Default: 'clustering'.
-#' @param min.contig.size Minimal contigs size to plot.
+#' @param info.delim Define a delimiter to split 4th field of the input BED file.
+#' @param info.fields Define names of new fields after splitting the 4th field of the BED file.
+#' @param col.by Define a field to use to color the mapped contigs against the human reference.
 #' @param reverse.x Set to \code{TRUE} if x-axis should be horizontaly reversed.
+#' @param title Add title to the plot.
 #' @return A \code{ggplot} object.
 #' @importFrom RColorBrewer brewer.pal.info brewer.pal
 #' @importFrom tidyr separate
@@ -221,12 +226,19 @@ plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, clu
 #' @author David Porubsky
 #' @export
 #' 
-plotClusteredContigs <- function(bedfile, min.mapq=10, bsgenome=NULL, blacklist=NULL, report='clustering', min.contig.size=NULL, reverse.x=FALSE) {
-  ## Use standard chromosomes only
-  chroms <- paste0('chr', c(1:22, 'X','Y'))
+plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chromosomes=NULL, bsgenome=NULL, blacklist=NULL, report='clustering', info.delim=NULL, info.fields=NULL, col.by=NULL, reverse.x=FALSE, title=NULL) {
+  
   ## Read-in mapped congtigs to the human reference genome
   data <- utils::read.table(bedfile, stringsAsFactors = FALSE)
   colnames(data) <- c('seqnames', 'start', 'end', 'info', 'mapq', 'dir')
+  
+  ## Keep only user defined chromosomes
+  chroms.in.data <- unique(data$seqnames)
+  if (is.null(chromosomes)) {
+    chromosomes <- chroms.in.data
+  }
+  chroms2use <- intersect(chromosomes, chroms.in.data)
+  
   ## Filter contigs by mapping quality
   if (min.mapq > 0) {
     data <- data[data$mapq >= min.mapq,]
@@ -240,44 +252,60 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, bsgenome=NULL, blacklist=
   }
   
   ## Check if sequence names in info field contains underscores to separate various metadata
-  if (all(grepl(data$info, pattern = "_"))) {
-    plt.df <- tidyr::separate(data, col = info, sep = '_', into = c('contig', 'order','cluster.ID'))
-    plt.df$seqnames <- factor(plt.df$seqnames, levels=chroms)
-    plt.df$order <- as.numeric(plt.df$order)
+  if (is.character(info.delim) & is.character(info.fields)) {
+    plt.df <- tidyr::separate(data, col = info, sep = info.delim, into = info.fields)
+    plt.df$seqnames <- factor(plt.df$seqnames, levels=chroms2use)
   } else {
-    colnames(data)[4] <- 'cluster.ID'
+    col.by <- colnames(data)[4]
     plt.df <- data
-    warning('Sequence names in the BED file do not contain info about the contig order, ordering cannot be plotted!!!')
+    warning("'col.by parameter is not defined, using BED's 4th field to color mapped contigs ...")
   }  
-  ## Keep only standard chromosomes
-  plt.df <- plt.df[plt.df$seqnames %in% chroms,]
-  
-  #plt.df$cluster.ID <- factor(plt.df$cluster.ID, levels = mixedsort(unique(plt.df$cluster.ID)))
+  ## Keep only chroms2use
+  plt.df <- plt.df[plt.df$seqnames %in% chroms2use,]
   
   ## Prepare ideogram plot
-  seq.len <- GenomeInfoDb::seqlengths(bsgenome)[chroms]
-  ideo.df <- data.frame(seqnames=names(seq.len), length=seq.len)
-  ideo.df$seqnames <- factor(ideo.df$seqnames, levels=chroms)
+  if (!is.null(bsgenome)) {
+    seq.len <- GenomeInfoDb::seqlengths(bsgenome)[chroms2use]
+    ideo.df <- data.frame(seqnames=names(seq.len), length=seq.len)
+    ideo.df$seqnames <- factor(ideo.df$seqnames, levels=chroms2use)
+  } else {
+    data.gr <- GenomicRanges::makeGRangesFromDataFrame(data)
+    data.gr <- range(data.gr)
+    seq.len <- end(data.gr[seqnames(data.gr) %in% chroms2use])
+    ideo.df <- data.frame(seqnames=as.character(seqnames(data.gr)), length=seq.len)
+    ideo.df <- ideo.df[order(seq.len, decreasing = TRUE),]
+    ideo.df$seqnames <- factor(ideo.df$seqnames, levels=unique(ideo.df$seqnames))
+  } 
   ## Set chromosome cluster colors
-  n.colors <- length(unique(plt.df$cluster.ID))
+  n.colors <- length(unique(plt.df[,col.by]))
   qual.col.pals <- RColorBrewer::brewer.pal.info[RColorBrewer::brewer.pal.info$category == 'qual',]
   col.vector <- unlist(mapply(RColorBrewer::brewer.pal, qual.col.pals$maxcolors, rownames(qual.col.pals)))
-  col.vector <- sample(col.vector, n.colors)
-  ## Make sure chromosome levels are in the correct order
-  plt.df$seqnames <- factor(plt.df$seqnames, levels=chroms)
+  if (length(col.vector) > n.colors) {
+    col.vector <- sample(col.vector, n.colors)
+  } else {
+    col.vector <- sample(col.vector, n.colors, replace = TRUE)
+  } 
+  ## Make sure chromosome levels are in the same order as ideogram
+  plt.df$seqnames <- factor(plt.df$seqnames, levels=unique(ideo.df$seqnames))
   
   ## Plot ideogram
   if (report == 'clustering') {
     plt <- ggplot2::ggplot() + geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill="white", color="black") +
       facet_grid(seqnames ~ ., switch = 'y') +
-      geom_rect(data=plt.df, aes(xmin=start, xmax=end, ymin=0, ymax=1, fill=cluster.ID)) +
+      geom_rect(data=plt.df, aes(xmin=start, xmax=end, ymin=0, ymax=1, fill=eval(parse(text=col.by)))) +
       scale_x_continuous(expand = c(0,0)) +
-      scale_fill_manual(values = col.vector) + 
       theme_void() +
       theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
       theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
       theme(strip.text.y = element_text(angle = 180))
+    if (length(col.vector) > 50) {
+      plt <- plt + scale_fill_manual(values = col.vector, guide="none")
+      warning("Plot legend will not be printed because there is more than 50 color categories!")
+    } else {
+      plt <- plt + scale_fill_manual(values = col.vector)
+    }
   } else if (report == 'ordering' & 'order' %in% colnames(plt.df)) {
+    plt.df$order <- as.numeric(plt.df$order)
     ## Set chromosome order colors
     plt.df$ord.color <- ""
     for (chr in unique(plt.df$seqnames)) {
@@ -318,6 +346,10 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, bsgenome=NULL, blacklist=
   ## Reverse x-axis
   if (reverse.x) {
     plt <- plt + scale_x_reverse()
+  }
+  
+  if (!is.null(title) & is.character(title)) {
+    plt <- plt + ggtitle(title)
   }
   
   ## Return final plot
