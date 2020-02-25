@@ -100,13 +100,13 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
         blacklist <- get(load(destination))
         #blacklist.gr <- c(blacklist$alwaysWC, blacklist$alwaysZero)
       } else {
-        bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = 50000, step.size = 1000, chromosomes = chroms.in.data)
+        bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = 50000, step.size = 10000, chromosomes = chroms.in.data)
         blacklist <- suppressWarnings( 
           maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, pairedEndReads = config[['pairedEndReads']])
         )
       }  
     } else {
-      bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = 50000, step.size = 1000, chroms.in.data)
+      bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = 50000, step.size = 10000, chromosomes = chroms.in.data)
       blacklist <- suppressWarnings( 
         maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, pairedEndReads = config[['pairedEndReads']])
       )
