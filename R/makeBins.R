@@ -62,7 +62,7 @@ makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromos
     shift.bp <- 0
     bins.list.step <- GenomicRanges::GRangesList()
     while (shift.bp < bin.size) {
-      bins.list.step[[as.character(shift.bp)]] <- suppressWarnings( trim(shift(bins, shift.bp)) )
+      bins.list.step[[as.character(shift.bp)]] <- suppressWarnings( trim(GenomicRanges::shift(bins, shift.bp)) )
       shift.bp <- step.size + shift.bp
     }
     bins <- sort(unlist(bins.list.step, use.names = FALSE))  
