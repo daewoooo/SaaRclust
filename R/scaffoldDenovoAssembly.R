@@ -69,6 +69,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   bamfile <- list.files(bamfolder, pattern = ".bam$", full.names = TRUE)[1]
   file.header <- Rsamtools::scanBamHeader(bamfile)[[1]]
   chrom.lengths <- file.header$targets
+  
   ## Get contigs/scaffolds names and sizes from FASTA
   if (!is.null(config[['assembly.fasta']]) & is.character(config[['assembly.fasta']])) {
     ## Check if submitted fasta file is indexed
@@ -82,7 +83,8 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     fa.idx <- Rsamtools::scanFaIndex(fa.file)
     ## Check if submitted BAM and FASTA files have the same seqlengths
     if(!all(chrom.lengths == GenomeInfoDb::seqlengths(fa.idx)[names(chrom.lengths)])) {
-      stop("Not all sequence lengths in BAMs match those in submitted FASTA file, aborting!!!")
+      stop("Not all sequence lengths in BAMs match those in submitted FASTA file.
+           Make sure that 'assembly.fasta' correspond to FASTA file used create BAMs, aborting!!!")
     }
   }
   
@@ -311,6 +313,18 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     }
   }  
   
+  ## Get statistics on clustered contigs
+  all.ctgs <- data.frame(ctg=names(chrom.lengths), ctg.len=chrom.lengths, stringsAsFactors = FALSE, row.names = NULL, index='all.ctgs')
+  size.select.ctgs <- data.frame(ctg=names(chrom.lengths)[names(chrom.lengths) %in% chroms.in.data], 
+                                 ctg.len=chrom.lengths[names(chrom.lengths) %in% chroms.in.data], 
+                                 stringsAsFactors = FALSE, row.names = NULL, 
+                                 index = paste0("min.ctg.len.", config[['min.contig.size']]))
+  clustered.ctgs <- data.frame(ctg=names(chrom.lengths)[names(chrom.lengths) %in% seqlevels(ordered.contigs.gr)], 
+                                ctg.len=chrom.lengths[names(chrom.lengths) %in% seqlevels(ordered.contigs.gr)], 
+                                stringsAsFactors = FALSE, row.names = NULL, 
+                                index = "clustered.ctgs")
+  ctg.stat <- rbind(all.ctgs, size.select.ctgs, clustered.ctgs)
+  
   ## Export clustered FASTA ##
   if (!is.null(config[['assembly.fasta']]) & is.character(config[['assembly.fasta']])) {
     if (file.exists(config[['assembly.fasta']])) {
@@ -349,6 +363,16 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
          width = 8, 
          height = 4, 
          limitsize = FALSE)
+  )
+  
+  ## Plot statistics of clustered contigs
+  ctg.stat.plt <- plotCTGstat(ctg.stat = ctg.stat)
+  suppressWarnings(
+  ggplot2::ggsave(filename = file.path(pltpath, 'clustered_ctgs.pdf'), 
+        plot = ctg.stat.plt, 
+        width = 7, 
+        height = 5, 
+        limitsize = FALSE)
   )
   
   ## Report total processing time
