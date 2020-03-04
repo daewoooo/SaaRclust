@@ -66,9 +66,13 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     if (length(HET.idx) > 0) {
       ## Temporarily remove HET inversions from contig re-orienting procedure
       het.ctg <- cluster.m[HET.idx,]
+      ## Add directionality mark to any putative HET inversion to be 'dir'
+      rownames(het.ctg) <- paste0(rownames(het.ctg), '_dir')
+      ## Synchronize contig directionality
       cluster.m <- syncClusterDir(contig.states = cluster.m[-HET.idx,])
       cluster.m <- rbind(cluster.m, het.ctg)
     } else {
+      ## Synchronize contig directionality
       cluster.m <- syncClusterDir(contig.states = cluster.m)
     }  
     

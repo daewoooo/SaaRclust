@@ -80,7 +80,9 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
   ## and bins that have very low read counts
   if (!is.null(blacklist)) {
     #removed.gr <- subsetByOverlaps(bins.gr, blacklist)
-    bins.gr <- IRanges::subsetByOverlaps(bins.gr, blacklist, invert = TRUE)
+    #bins.gr <- IRanges::subsetByOverlaps(bins.gr, blacklist, invert = TRUE)
+    disjoin.ranges <- GenomicRanges::disjoin(c(bins.gr, blacklist))
+    bins.gr <- IRanges::subsetByOverlaps(disjoin.ranges, blacklist, invert = TRUE)
     bins.gr <- GenomeInfoDb::keepSeqlevels(bins.gr, value = as.character(unique(seqnames(bins.gr))), pruning.mode = 'coarse')
   }
   

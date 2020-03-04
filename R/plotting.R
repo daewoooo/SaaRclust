@@ -504,3 +504,53 @@ plotClusteredContigSizes <- function(clustered.gr=NULL) {
   stopTimedMessage(ptm)
   return(plt)
 }  
+
+
+#' Plot total number and total length of all contigs analyzed and their number after filtering and clustering step.
+#'
+#' @param clustered.gr A \code{data.frame} object with columns containing contig names, their lengths and a unique index.
+#' @return A \code{ggplot} object.
+#' @importFrom dplyr %>%
+#' @author David Porubsky
+#' @export
+#'
+plotCTGstat <- function(ctg.stat=NULL) {
+  ptm <- startTimedMessage("Plotting contig statistics")
+  ## Set unique ID as a factor
+  ctg.stat$index <- factor(ctg.stat$index, levels = unique(ctg.stat$index))
+  ## Set custom plotting theme
+  custom_theme <- theme_minimal() +
+  theme(legend.position = "bottom",
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.line = element_blank(),
+          axis.text.y = element_blank(),
+          axis.text.x = element_blank(),
+          axis.ticks = element_blank())
+  ## Construct plots
+  plt1 <- ctg.stat %>% group_by(index) %>% summarise(asm.size = round(sum(ctg.len) / 1000000000, digits = 2)) %>% 
+    ggplot(aes(x=index, y=asm.size, fill=index)) + 
+    geom_bar(width = 0.9, stat="identity") + 
+    coord_polar(theta = "y") +
+    xlab("") + ylab("") +
+    geom_text(hjust = 0.5, vjust = 0.5, size = 5, aes(x = index, y = 0, label = paste0(asm.size, 'Gb'))) + 
+    scale_fill_manual(values = c('gray63', 'dodgerblue2', 'limegreen'), name="") + 
+    ggtitle("Total assembly length (Gb)") +
+    custom_theme
+  
+  plt2 <- ctg.stat %>% group_by(index) %>% summarise(ctg.num = n()) %>% 
+    ggplot(aes(x=index, y=ctg.num, fill=index)) + 
+    geom_bar(width = 0.9, stat="identity") + 
+    coord_polar(theta = "y") +
+    xlab("") + ylab("") +
+    geom_text(hjust = 0.5, vjust = 0.5, size = 5, aes(x = index, y = 0, label = ctg.num)) + 
+    scale_fill_manual(values = c('gray63', 'dodgerblue2', 'limegreen'), name="") + 
+    ggtitle("Total # of contigs") +
+    custom_theme
+  
+  ## Return final plot
+  final.plt <- cowplot::plot_grid(plt1, plt2, nrow = 1)
+  stopTimedMessage(ptm)
+  return(final.plt)
+}   
+  
