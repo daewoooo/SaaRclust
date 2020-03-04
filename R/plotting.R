@@ -302,7 +302,8 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
       plt <- plt + scale_fill_manual(values = col.vector, guide="none")
       warning("Plot legend will not be printed because there is more than 50 color categories!")
     } else {
-      plt <- plt + scale_fill_manual(values = col.vector)
+      plt <- plt + scale_fill_manual(values = col.vector, name="") +
+        theme(legend.position = "bottom")
     }
   } else if (report == 'ordering' & 'order' %in% colnames(plt.df)) {
     plt.df$order <- as.numeric(plt.df$order)
