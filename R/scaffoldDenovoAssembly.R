@@ -81,10 +81,18 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     }
     fa.file <- open(Rsamtools::FaFile(config[['assembly.fasta']]))
     fa.idx <- Rsamtools::scanFaIndex(fa.file)
-    ## Check if submitted BAM and FASTA files have the same seqlengths
-    if(!all(chrom.lengths == GenomeInfoDb::seqlengths(fa.idx)[names(chrom.lengths)])) {
-      stop("Not all sequence lengths in BAMs match those in submitted FASTA file.
-           Make sure that 'assembly.fasta' correspond to FASTA file used create BAMs, aborting!!!")
+    ## Check if BAMs have been aligned to thr FASTA file submitted as 'assembly.fasta'
+    if (!all(names(chrom.lengths) %in% GenomeInfoDb::seqlevels(fa.idx))) {
+      warning("Not all sequence names in BAMs match those in submitted FASTA file.
+              Final FASTA file cannot be exported, setting 'assembly.fasta=NULL'.")
+      assembly.fasta <- NULL
+    } else {
+      ## Check if submitted BAM and FASTA files have the same seqlengths
+      if(!all(chrom.lengths == GenomeInfoDb::seqlengths(fa.idx)[names(chrom.lengths)])) {
+        warning("Not all sequence lengths in BAMs match those in submitted FASTA file.
+                 Final FASTA file cannot be exported, setting 'assembly.fasta=NULL'.")
+        assembly.fasta <- NULL
+      }
     }
   }
   
