@@ -262,7 +262,15 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   }
   
   ## Get cluster IDs that belong to the same chromosome/scaffold ##
-  split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']])
+  nclust <- nrow(EM.obj$theta.param[[1]])
+  if (nclust > 2 & config[['num.clusters']] > config[['desired.num.clusters']]) {
+    split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']])
+  } else {
+    clusters <- as.list(c(1:nclust))
+    names(clusters) <- c(1:nclust)
+    split.pairs <- list(clusters=clusters, putative.HETs=NULL)
+  }
+  
   ## Store data object
   destination <- file.path(datapath, paste0("connectedClusters_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
   if (config[['store.data.obj']]) {

@@ -86,6 +86,7 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   ## Get cluster ID of putative het INVs
   putative.HETs <- c(vertices.het[,1][vertices.het[,3] > z.limit], vertices.het[,2][vertices.het[,3] > z.limit])
   putative.HETs <- unique(putative.HETs[duplicated(putative.HETs)])
+  if (length(putative.HETs) == 0) {putative.HETs <- NULL}
   
   ## Merge z-scores across all pairwise comparisons and order them by decreasing z-score
   vertices <- rbind(vertices.wc, vertices.ww, vertices.cc, vertices.het)  
@@ -98,17 +99,22 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
     clusters <- NULL
     clusters.prev <- NULL
     while (desired.num.clusters < cl.num) {
-      vertices.sub <- vertices[vertices[,3] >= z.limit,]
-      vertices.sub <- c(rbind(vertices.sub[,1], vertices.sub[,2]))
       ## Keep previous iteration 
       if (!is.null(clusters)) {
         clusters.prev <- clusters
       }
-      ## Find strongly connected clusters
-      G <- igraph::graph(vertices.sub, directed = FALSE)
-      clusters <- igraph::groups(igraph::components(G, mode = 'strong'))
-      cl.num <- length(clusters)
-      z.limit <- z.limit - 0.1
+      
+      vertices.sub <- vertices[vertices[,3] >= z.limit,]
+      if (nrow(vertices.sub) > 1) {
+        vertices.sub <- c(rbind(vertices.sub[,1], vertices.sub[,2]))
+        ## Find strongly connected clusters
+        G <- igraph::graph(vertices.sub, directed = FALSE)
+        clusters <- igraph::groups(igraph::components(G, mode = 'strong'))
+        cl.num <- length(clusters)
+        z.limit <- z.limit - 0.1
+      } else {
+        break
+      } 
     }
     ## Report previous iteration in case current number of clusters is smaller than 'desired.num.clusters'
     if (length(clusters) < desired.num.clusters & !is.null(clusters.prev)) {
@@ -116,10 +122,21 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
     }
   } else {
     vertices.sub <- vertices[vertices[,3] >= z.limit,]
-    vertices.sub <- c(rbind(vertices.sub[,1], vertices.sub[,2]))
-    ## Find strongly connected clusters
-    G <- igraph::graph(vertices.sub, directed = FALSE)
-    clusters <- igraph::groups(igraph::components(G, mode = 'strong'))
+    if (nrow(vertices.sub) > 1) {
+      vertices.sub <- c(rbind(vertices.sub[,1], vertices.sub[,2]))
+      ## Find strongly connected clusters
+      G <- igraph::graph(vertices.sub, directed = FALSE)
+      clusters <- igraph::groups(igraph::components(G, mode = 'strong'))
+    } else {
+      clusters <- NULL
+    }  
+  }
+  
+  if (is.null(clusters)) {
+    nclust <- nrow(theta.param[[1]])
+    clusters <- as.list(c(1:nclust))
+    names(clusters) <- c(1:nclust)
+    warning("[connectDividedClusters] No clusters could be merged.")
   }
   
   stopTimedMessage(ptm)
