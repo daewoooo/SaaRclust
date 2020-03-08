@@ -12,11 +12,14 @@
 #' @return A \code{list} of matrices (columns: minus (W) and plus (C) counts; rows: genomic regions).
 #' @importFrom bamsignals bamCount
 #' @importFrom Rsamtools BamFile
-#' @inheritParams readBamFileAsGRanges
 #' @inheritParams makeFixedBins
 #' @author David Porubsky
 #' @export
-#' 
+#' @examples
+#'\dontrun{
+#'## Required parameters to get BAM count table from BAM files stored "bam-data-folder" using default settings.
+#'importBams(bamfolder="bam-data-folder")}
+#'
 importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRUE, min.mapq=10, bin.size=100000, step.size=NULL, reads.per.bin=NULL, max.frag=1000, bin.method='fixed', blacklist=NULL) {
   ## Get total processing time
   ptm <- proc.time()

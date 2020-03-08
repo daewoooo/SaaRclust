@@ -26,8 +26,6 @@ If a \code{configfile} is specified, it will take priority over the command line
 
 \item{min.region.to.order}{A minimum size region to try to order within a cluster.}
 
-\item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
-
 \item{bin.size}{A length of a bin to count reads in.}
 
 \item{step.size}{A size of the genomic interval to move each bin.}
@@ -64,6 +62,13 @@ If a \code{configfile} is specified, it will take priority over the command line
 This function is an easy-to-use wrapper to take Strand-seq reads aligned to the denovo genome assembly
 and cluster each contig into chromosomal scaffold. In addition contigs are oriented and ordered within each
 cluster/scaffold.
+}
+\examples{
+\dontrun{
+## Required parameters to run SaaRclust on BAM files stored "bam-data-folder" using default settings.
+## To export clustred FASTA file, an original FASTA used in BAM alignments has to be submitted as 'assembly.fasta'.
+scaffoldDenovoAssembly(bamfolder="bam-data-folder", outputfolder="saarclust-output-folder")}
+
 }
 \author{
 David Porubsky

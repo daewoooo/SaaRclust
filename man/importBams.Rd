@@ -12,11 +12,7 @@ importBams(bamfolder = bamfolder, chromosomes = NULL,
 \arguments{
 \item{bamfolder}{A folder containing BAM files with Strand-seq reads aligned to denovo assembly.}
 
-\item{chromosomes}{If only a subset of the chromosomes should be binned, specify them here.}
-
-\item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
-
-\item{min.mapq}{Minimum mapping quality when importing from BAM files.}
+\item{chromosomes}{A user defined set of chromosomes for binning (eg. 'chr1')}
 
 \item{bin.size}{A length of a bin to count reads in.}
 
@@ -36,6 +32,12 @@ A \code{list} of matrices (columns: minus (W) and plus (C) counts; rows: genomic
 \description{
 Import aligned reads from a multiple BAM files and counts directional reads in specified genomic locations.
 Results are stored in a \code{list} of matrices with each element of a \code{list} representing counts for single BAM file.
+}
+\examples{
+\dontrun{
+## Required parameters to get BAM count table from BAM files stored "bam-data-folder" using default settings.
+importBams(bamfolder="bam-data-folder")}
+
 }
 \author{
 David Porubsky

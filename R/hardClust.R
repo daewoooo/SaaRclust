@@ -8,6 +8,13 @@
 #' @importFrom stats kmeans
 #' @author David Porubsky
 #' @export
+#' @examples
+#'## Get an example file
+#'exampleFile <- system.file("extdata", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
+#'## Load BAM count table
+#'counts.l <- get(load(exampleFile))
+#'## Get hard clustering results
+#'hardClust.ord <- hardClust(counts.l, num.clusters=100, nstart = 100)
 
 hardClust <- function(counts.l=NULL, num.clusters=NULL, nstart=10, iter.max=10) {
 
@@ -98,7 +105,7 @@ estimateTheta <- function(counts.l=NULL, hard.clust=NULL, alpha=0.1) {
 #' @importFrom stats dist hclust cutree
 #' @author Maryam Ghareghani, David Porubsky
 #' @export
-
+#' 
 mergeClusters <- function(hard.clust, theta.l, k=46)
 {
   ptm <- startTimedMessage("Merging clusters")  

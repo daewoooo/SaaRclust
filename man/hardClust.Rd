@@ -18,6 +18,14 @@ A \code{list} of estimated theta values for every cluster and cell.
 \description{
 This function expects output from custom minimap test dataset that contains original locations of mapped reads in the genome.
 }
+\examples{
+## Get an example file
+exampleFile <- system.file("extdata", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
+## Load BAM count table
+counts.l <- get(load(exampleFile))
+## Get hard clustering results
+hardClust.ord <- hardClust(counts.l, num.clusters=100, nstart = 100)
+}
 \author{
 David Porubsky
 }

@@ -23,6 +23,12 @@
 #' @author David Porubsky
 #' @export
 #' 
+#' @examples
+#'\dontrun{
+#'## Required parameters to run SaaRclust on BAM files stored "bam-data-folder" using default settings.
+#'## To export clustred FASTA file, an original FASTA used in BAM alignments has to be submitted as 'assembly.fasta'.
+#'scaffoldDenovoAssembly(bamfolder="bam-data-folder", outputfolder="saarclust-output-folder")}
+#'
 scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, min.region.to.order=0, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE) {
   ## Get total processing time
   ptm <- proc.time()
