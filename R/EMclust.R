@@ -12,8 +12,21 @@
 #' @importFrom matrixStats logSumExp rowLogSumExps
 #' @author David Porubsky, Maryam Ghareghani
 #' @export
+#' @examples
+#'## Get an example file
+#'exampleFile <- system.file("extdata", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
+#'## Load BAM count table
+#'counts.l <- get(load(exampleFile))
+#'## Get hard clustering results
+#'hardClust.ord <- hardClust(counts.l, num.clusters=100, nstart = 100)
+#'## Estimate theta parameter
+#'theta.param <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=0.1)
+#'## Estimate pi parameter
+#'readsPerCluts <- table(hardClust.ord)
+#'pi.param <- readsPerCluts / sum(readsPerCluts)
+#'## Run EM clustering
+#'EM.obj <- EMclust(counts.l, theta.param=theta.param, pi.param=pi.param, num.iter=10, alpha=0.1, logL.th=1, log.scale=TRUE)
 
-#saarclust <- function(tab.l, theta.l=NULL, pi.param=NULL, num.iter=100, raw.counts=NULL) {
 EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alpha=0.1, logL.th=1, log.scale=FALSE) {
 
   if (num.iter>1) {

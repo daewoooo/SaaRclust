@@ -13,7 +13,17 @@
 #' @inheritParams connectDividedClusters
 #' @author David Porubsky
 #' @export
-orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP', alpha=0.1, min.region.to.order=NULL, filename=NULL, remove.always.WC=FALSE) {
+#' @examples
+#'\dontrun{
+#'## Get example files
+#'mergeClusters.file <- system.file("extdata", "connectedClusters_5e+06bp_dynamic.RData", package = "SaaRclust")
+#'## Load BAM count table
+
+#'## Load connected clusters
+#'connected.clusters <- get(load(mergeClusters.file))
+#'ordered.contigs.gr <- orderAndOrientClusters(clustered.grl=clustered.grl, split.pairs=connected.clusters, min.region.to.order=0)
+#'} 
+orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP', alpha=0.1, min.region.to.order=0, filename=NULL, remove.always.WC=FALSE) {
   
   ptm <- startTimedMessage("Preparing contigs for ordering and orienting")
   ## Merge by cluster ID
@@ -23,7 +33,7 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
   ## Merge by group ID [!!! this might disrupt ordering and confuse primary cluster IDs !!!] Collapses misorients within the same contig & cluster!!!
   #grl.collapsed <- endoapply(grl.collapsed, function(x) collapseBins(x, id.field = 4, measure.field = c(2,3)))
   ## Remove ranges smaller than the min.region.to.order
-  if (!is.null(min.region.to.order) & min.region.to.order > 0) {
+  if (min.region.to.order > 0) {
     grl.collapsed <- endoapply(grl.collapsed, function(x) x[width(x) >= min.region.to.order])
   }  
   ## Get strand state for each region
@@ -105,3 +115,4 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
   }
   return(ordered.contigs.gr)
 }
+

@@ -52,7 +52,17 @@ clusters2ranges <- function(saarclust.obj = NULL, best.prob = 1, prob.th = 0.5) 
 #' @importFrom tidyr separate
 #' @author David Porubsky
 #' @export 
-#' 
+#' @examples
+#'## Get example files
+#'counts.file <- system.file("extdata", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
+#'saarclust.file <- system.file("extdata", "softClust_100K_5e+06bp_dynamic.RData", package = "SaaRclust")
+#'## Load BAM count table
+#'counts.l <- get(load(counts.file))
+#'## Load SaaRclust object
+#'EM.obj <- get(load(saarclust.file))
+#'## Assign long reads/contigs to clusters based on soft probabilities
+#'clustered.grl <- counts2ranges(counts.l, saarclust.obj=EM.obj)
+#'
 counts2ranges <- function(counts.l=NULL, saarclust.obj=NULL, best.prob=1, prob.th=0.5) {
   ## TODO check if submitted object is of class 'saarclust'
   

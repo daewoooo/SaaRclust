@@ -11,6 +11,13 @@
 #' @importFrom igraph graph groups components
 #' @author David Porubsky
 #' @export
+#' @examples
+#'## Get an example file
+#'exampleFile <- system.file("extdata", "softClust_100K_5e+06bp_dynamic.RData", package = "SaaRclust")
+#'## Load SaaRclust object
+#'EM.obj <- get(load(exampleFile))
+#'## Merge clusters that belong to the same chromosome/scaffold
+#'connected.clusters <- connectDividedClusters(theta.param=EM.obj$theta.param)
 #'
 connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always.WC=FALSE, desired.num.clusters=NULL) {
   

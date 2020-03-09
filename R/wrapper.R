@@ -122,7 +122,7 @@ runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num
     theta.estim <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=alpha)
     
     #Merge splitted clusters after hard clustering
-    hardClust.ord.merged <- mergeClusters(hard.clust=hardClust.ord, theta.l=theta.estim, k=47)
+    hardClust.ord.merged <- mergeClusters(hard.clust=hardClust.ord, theta.param=theta.estim, k=47)
     #findSplitedClusters(theta.param = theta.estim) -> to.join
     #hardClust.ord.merged <- hardClust.ord
     #for (i in 1:length(to.join)) {

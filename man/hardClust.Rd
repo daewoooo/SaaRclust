@@ -8,9 +8,13 @@ hardClust(counts.l = NULL, num.clusters = NULL, nstart = 10,
   iter.max = 10)
 }
 \arguments{
-\item{counts.l}{A \code{list} of directional read counts per PB read per library.}
+\item{counts.l}{A \code{list} of directional read counts per long read/contig per library.}
 
-\item{num.clusters}{Expected number of clusters. (for 22 autosomes == 44 clusters)}
+\item{num.clusters}{Desired number of clusters or cluster centers (k-means clustering).}
+
+\item{nstart}{Number of random sets to choose cluster centers (k-means clustering).}
+
+\item{iter.max}{A maximum number of allowed interations (k-means clustering).}
 }
 \value{
 A \code{list} of estimated theta values for every cluster and cell.
@@ -25,6 +29,7 @@ exampleFile <- system.file("extdata", "rawCounts_5e+06bp_dynamic.RData", package
 counts.l <- get(load(exampleFile))
 ## Get hard clustering results
 hardClust.ord <- hardClust(counts.l, num.clusters=100, nstart = 100)
+
 }
 \author{
 David Porubsky

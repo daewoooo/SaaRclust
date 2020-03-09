@@ -23,6 +23,15 @@ A \code{matrix} of pairs of clusters IDs that belong to the same chromosome.
 This function finds cluster likely coming from the same chromosome by looking for clusters that share the same
 directionality across multiple Strand-seq libraries.
 }
+\examples{
+## Get an example file
+exampleFile <- system.file("extdata", "softClust_100K_5e+06bp_dynamic.RData", package = "SaaRclust")
+## Load SaaRclust object
+EM.obj <- get(load(exampleFile))
+## Merge clusters that belong to the same chromosome/scaffold
+connected.clusters <- connectDividedClusters(theta.param=EM.obj$theta.param)
+
+}
 \author{
 David Porubsky
 }

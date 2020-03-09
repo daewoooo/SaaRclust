@@ -5,7 +5,7 @@
 \title{Order and orient contigs within each cluster}
 \usage{
 orderAndOrientClusters(clustered.grl, split.pairs, ord.method = "TSP",
-  alpha = 0.1, min.region.to.order = NULL, filename = NULL,
+  alpha = 0.1, min.region.to.order = 0, filename = NULL,
   remove.always.WC = FALSE)
 }
 \arguments{
@@ -26,6 +26,16 @@ orderAndOrientClusters(clustered.grl, split.pairs, ord.method = "TSP",
 \description{
 This function takes a \code{\link{GRangesList-class}} object and order and orient each contigs
 within the cluster and reports new clustered/scaffolded FASTA file.
+}
+\examples{
+\dontrun{
+## Get example files
+mergeClusters.file <- system.file("extdata", "connectedClusters_5e+06bp_dynamic.RData", package = "SaaRclust")
+## Load BAM count table
+## Load connected clusters
+connected.clusters <- get(load(mergeClusters.file))
+ordered.contigs.gr <- orderAndOrientClusters(clustered.grl=clustered.grl, split.pairs=connected.clusters, min.region.to.order=0)
+} 
 }
 \author{
 David Porubsky

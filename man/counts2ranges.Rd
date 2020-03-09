@@ -23,6 +23,18 @@ A \code{\link{GRangesList-class}} object with reported cluster ID per genomic re
 This function takes W and C counts togther cluster probabilties and reports user defined number of cluster IDs
 for each genomic region and every single cell as a \code{\link{GRangesList-class}} object.
 }
+\examples{
+## Get example files
+counts.file <- system.file("extdata", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
+saarclust.file <- system.file("extdata", "softClust_100K_5e+06bp_dynamic.RData", package = "SaaRclust")
+## Load BAM count table
+counts.l <- get(load(counts.file))
+## Load SaaRclust object
+EM.obj <- get(load(saarclust.file))
+## Assign long reads/contigs to clusters based on soft probabilities
+clustered.grl <- counts2ranges(counts.l, saarclust.obj=EM.obj)
+
+}
 \author{
 David Porubsky
 }

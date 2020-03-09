@@ -36,7 +36,7 @@ If a \code{configfile} is specified, it will take priority over the command line
 
 \item{reuse.data.obj}{A logical indicating whether or not existing files in \code{outputfolder} should be reused.}
 
-\item{num.clusters}{Expected number of clusters. (for 22 autosomes == 44 clusters)}
+\item{num.clusters}{Desired number of clusters or cluster centers (k-means clustering).}
 
 \item{desired.num.clusters}{Desired number of clusters after cluster merging step.}
 

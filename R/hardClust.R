@@ -2,8 +2,10 @@
 #'
 #' This function expects output from custom minimap test dataset that contains original locations of mapped reads in the genome.
 #'
-#' @param counts.l A \code{list} of directional read counts per PB read per library.
-#' @inheritParams SaaRclust
+#' @param counts.l A \code{list} of directional read counts per long read/contig per library.
+#' @param num.clusters Desired number of clusters or cluster centers (k-means clustering).
+#' @param nstart Number of random sets to choose cluster centers (k-means clustering).
+#' @param iter.max A maximum number of allowed interations (k-means clustering).
 #' @return A \code{list} of estimated theta values for every cluster and cell.
 #' @importFrom stats kmeans
 #' @author David Porubsky
@@ -15,7 +17,7 @@
 #'counts.l <- get(load(exampleFile))
 #'## Get hard clustering results
 #'hardClust.ord <- hardClust(counts.l, num.clusters=100, nstart = 100)
-
+#'
 hardClust <- function(counts.l=NULL, num.clusters=NULL, nstart=10, iter.max=10) {
 
   message("Hard clustering")
@@ -49,13 +51,22 @@ hardClust <- function(counts.l=NULL, num.clusters=NULL, nstart=10, iter.max=10) 
 #'
 #' This function takes results of hard clustering and estimates majority cell types for each Strand-seq library
 #'
-#' @param counts.l A \code{list} of directional read counts per PB read per library.
-#' @param hard.clust A \code{integer} of cluster assignments for each PacBio read. 
-#' @inheritParams SaaRclust
+#' @param hard.clust A \code{integer} of cluster assignments for each long read or contig. 
+#' @inheritParams hardClust
+#' @inheritParams countProb
 #' @return A \code{list} of estimated theta values for every cluster and cell.
 #' @author David Porubsky
 #' @export
-
+#' @examples
+#'## Get an example file
+#'exampleFile <- system.file("extdata", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
+#'## Load BAM count table
+#'counts.l <- get(load(exampleFile))
+#'## Get hard clustering results
+#'hardClust.ord <- hardClust(counts.l, num.clusters=100, nstart = 100)
+#'## Estimate theta parameter
+#'theta.param <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=0.1)
+#'
 estimateTheta <- function(counts.l=NULL, hard.clust=NULL, alpha=0.1) {
   ptm <- startTimedMessage("Estimate theta values") 
   theta.estim <- list()
@@ -97,19 +108,17 @@ estimateTheta <- function(counts.l=NULL, hard.clust=NULL, alpha=0.1) {
 #'
 #' This function takes as input the kmeans hard clustering output and the initialized thetas and merges the kmeans clusters based on thetas
 #'
-#' @param theta.l A \code{list} of estimated theta values for each cluster and cell.
-#' @param hard.clust The kmeans hard clustering.
+#' @param theta.param A \code{list} of estimated theta values for each cluster and cell.
 #' @param k Desired number of clusters after merging.
-#' @inheritParams SaaRclust
+#' @inheritParams estimateTheta
 #' @return A new hard clustering with the correct number of clusters
 #' @importFrom stats dist hclust cutree
 #' @author Maryam Ghareghani, David Porubsky
-#' @export
 #' 
-mergeClusters <- function(hard.clust, theta.l, k=46)
+mergeClusters <- function(hard.clust, theta.param, k=46)
 {
   ptm <- startTimedMessage("Merging clusters")  
-  theta.all <- do.call(cbind, theta.l)
+  theta.all <- do.call(cbind, theta.param)
   hc <- stats::hclust(stats::dist(theta.all))
   hc.clust <- stats::cutree(hc, k=k)
   
