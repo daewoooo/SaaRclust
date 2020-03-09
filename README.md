@@ -1,5 +1,4 @@
 <img src="https://github.com/daewoooo/SaaRclust/raw/master/saarclust_logo.png" />
-=========================================================================
 
 # SaaRclust
 R Package to cluster and orient long sequencing reads or contigs into chromosomal scaffolds to facilitate de novo genome assembly. To do so this package utilize single-cell Strand-seq data (Falconer et al., 2012) that are able to preserve structural contiguity of individual homologs.
