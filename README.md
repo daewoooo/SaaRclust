@@ -34,5 +34,6 @@ The 'devel' branch of SaaRclust package is currently under development and conta
 
 ## References
 Ghareghani, M., Porubsky, D., et al. Strand-seq enables reliable separation of long reads by chromosome via expectation maximization. Bioinformatics 34, i115–i123 (2018).
+
 Falconer, Ester, Mark Hills, Ulrike Naumann, Steven S. S. Poon, Elizabeth A. Chavez, Ashley D. Sanders, Yongjun Zhao, Martin Hirst, and Peter M. Lansdorp. 2012. “DNA Template Strand Sequencing of Single-Cells Maps Genomic Rearrangements at High Resolution.” Nature Methods 9 (11): 1107–12.
 
