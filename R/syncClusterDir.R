@@ -43,7 +43,11 @@ syncClusterDir <- function(contig.states) {
       )
       ## Remove contig with the maximum number of missing values (NA's)
       if (class(hc.obj) == 'NULL') {
-        contig.states.sub <- contig.states.sub[-which.min(rowSums(contig.states.sub, na.rm = TRUE)),]
+        if (nrow(contig.states.sub) > 2) {
+          contig.states.sub <- contig.states.sub[-which.min(rowSums(contig.states.sub, na.rm = TRUE)),]
+        } else {
+          break
+        }  
       }
     }  
     
