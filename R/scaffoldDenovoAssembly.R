@@ -236,7 +236,8 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Find clusters with WC state in majority of cells ##
   theta.sums <- Reduce("+", EM.obj$theta.param)
   theta.zscore <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
-  wc.clust.idx <- which(theta.zscore > 2.5)
+  #wc.clust.idx <- which(theta.zscore > 2.5)
+  wc.clust.idx <- which.max(theta.zscore)
   
   ## Get names of always WC regions
   if (length(wc.clust.idx) > 0) {
