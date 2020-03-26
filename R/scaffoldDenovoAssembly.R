@@ -335,12 +335,14 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   
   ## Report contigs that have been filtered out
   filtered.ctgs <- chrom.lengths[!names(chrom.lengths) %in% seqlevels(ordered.contigs.gr)]
-  filtered.ctgs.gr <- GenomicRanges::GRanges(seqnames = names(filtered.ctgs), ranges=IRanges(start = 1, end = filtered.ctgs))
-  seqlengths(filtered.ctgs.gr) <- filtered.ctgs
-  if (length(filtered.ctgs.gr) > 0) {
-    destination <- file.path(datapath, paste0("filteredContigs_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
-    if (store.data.obj) {
-      save(filtered.ctgs.gr, file = destination)
+  if (length(filtered.ctgs) > 0) {
+    filtered.ctgs.gr <- GenomicRanges::GRanges(seqnames = names(filtered.ctgs), ranges=IRanges(start = 1, end = filtered.ctgs))
+    seqlengths(filtered.ctgs.gr) <- filtered.ctgs
+    if (length(filtered.ctgs.gr) > 0) {
+      destination <- file.path(datapath, paste0("filteredContigs_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
+      if (store.data.obj) {
+        save(filtered.ctgs.gr, file = destination)
+      }
     }
   }  
   
