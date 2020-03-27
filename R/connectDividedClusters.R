@@ -91,7 +91,7 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   vertices.het <- cbind(pairs, zscores)
   vertices.het <- vertices.het[order(vertices.het[,3], decreasing = TRUE),]
   ## Get cluster ID of putative het INVs
-  putative.HETs <- c(vertices.het[,1][vertices.het[,3] > z.limit], vertices.het[,2][vertices.het[,3] > z.limit])
+  putative.HETs <- c(vertices.het[,1][vertices.het[,3] > z.limit], vertices.het[,2][vertices.het[,3] >= z.limit])
   putative.HETs <- unique(putative.HETs[duplicated(putative.HETs)])
   if (length(putative.HETs) == 0) {putative.HETs <- NULL}
   

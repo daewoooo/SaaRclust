@@ -47,7 +47,7 @@ maskAlwaysWCandZeroBins <- function(bamfolder=bamfolder, genomic.bins=NULL, min.
   total.read.sums <- rowSums(total.read.counts.m)
   
   ## Find bins that are always WC in a majority of cells
-  ## Remove bins that are WC in more than 75% of all cells (bamfiles)
+  ## Remove bins that are WC in more than 70% of all cells (bamfiles)
   #z.score <- (wc.counts.sums - median(wc.counts.sums)) / sd(wc.counts.sums)
   #mask.bins <- which(z.score >= 3)
   thresh <- length(bamfiles) * 0.70
