@@ -5,7 +5,13 @@
 #' @importFrom reshape2 melt
 #' @author David Porubsky
 #' @export
-
+#' @examples 
+#'## Get example files
+#'example.data <- system.file("extdata/data", "softClust_100K_5e+06bp_dynamic.RData", package = "SaaRclust")
+#'EM.obj <- get(load(example.data))
+#'## Plot theta parameter for 20 single cells
+#'theta.plt <- plotThetaEstimates(theta.param = EM.obj$theta.param[1:20])
+#'
 plotThetaEstimates <- function(theta.param=NULL, title=NULL) {
   
   ptm <- startTimedMessage("Plotting theta estimates")
@@ -450,6 +456,12 @@ plotAssemblyStat <- function(infile=NULL, format='bam', title=NULL) {
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
 #' @export
+#' @examples 
+#'## Get example files
+#'example.data <- system.file("extdata/data", "softClust_100K_5e+06bp_dynamic.RData", package = "SaaRclust")
+#'EM.obj <- get(load(example.data))
+#'## Plot size and orientation of each cluster
+#'prob.plt <- plotEMprobs(em.prob = EM.obj$soft.pVal)
 #'
 plotEMprobs <- function(em.prob=NULL, prob.th=0) {
   ptm <- startTimedMessage("Plotting probability distribution")
@@ -478,6 +490,12 @@ plotEMprobs <- function(em.prob=NULL, prob.th=0) {
 #' @importFrom dplyr %>%
 #' @author David Porubsky
 #' @export
+#' @examples 
+#'## Get example files
+#'example.data <- system.file("extdata/clustered_assembly", "ordered&oriented_5e+06bp_chunks.RData", package = "SaaRclust")
+#'ordered.contigs.gr <- get(load(example.data))
+#'## Plot size and orientation of each cluster
+#'clust.plt <- plotClusteredContigSizes(clustered.gr = ordered.contigs.gr)
 #'
 plotClusteredContigSizes <- function(clustered.gr=NULL) {
   ptm <- startTimedMessage("Plotting cluster sizes")

@@ -67,36 +67,62 @@ scaffoldDenovoAssembly(bamfolder = bamfolder,
 
 \newpage
 
-# Parameter settings recomendations
-\textbf{min.contig.size:} This parameter should be set at least 2x the N50 read length used for the assembly in order to filter out singleton reads. Removing small contigs/reads will also speed-up the clustering process.
-\textbf{min.region.to.order:} We recommned to set this parameter if one want to increase the ordering accuracy of contings within clusters (chromosomes). Small contigs tend to introduce a lot of noise in ordering process so we recommend to set this parameter to 500000 bp.
-\textbf{num.clusters:} By default this parameter is to 100 in order to be able to capture small human chromosomes such as chromosome 21 or 22. We recommend to set this number even higher in case you expect large heterozygous inversions in your sample. This way one can ensure proper assignment of such inversions to correct cluster/chromosome. 
-\textbf{desired.num.clusters:} If an user has a prior knowledge on the expected number of chromosomes/clusters for a given sample it can be set by this parameter. If this parameter is not set, SaaRclust will still report a perdicted number of clusters/chromosomes based on shared strand inheritance.
-\textbf{alpha:} Defines an expected level of noise in Strand-seq data. Increase this parameter in case Strand-seq data are of lower quality and contains a lot of background reads (see [@Sanders2017-zn] for more details on Strand-seq library quality).
-\textbf{ord.method:} 
+# Parameter settings recommendations
+\textbf{min.contig.size:} This parameter should be set at least 2x the N50 read length used for the assembly in order to filter out singleton reads. Removing small contigs/reads will also speed-up the clustering process. \hfill \break
+\textbf{min.region.to.order:} We recommned to set this parameter if one want to increase the ordering accuracy of contings within clusters (chromosomes). Small contigs tend to introduce a lot of noise in ordering process so we recommend to set this parameter to 500000 bp. \hfill \break
+\textbf{num.clusters:} By default this parameter is to 100 in order to be able to capture small human chromosomes such as chromosome 21 or 22. We recommend to set this number even higher in case you expect large heterozygous inversions in your sample. This way one can ensure proper assignment of such inversions to correct cluster/chromosome. \hfill \break 
+\textbf{desired.num.clusters:} If an user has a prior knowledge on the expected number of chromosomes/clusters for a given sample it can be set by this parameter. If this parameter is not set, SaaRclust will still report a perdicted number of clusters/chromosomes based on shared strand inheritance. \hfill \break
+\textbf{alpha:} Defines an expected level of noise in Strand-seq data. Increase this parameter in case Strand-seq data are of lower quality and contains a lot of background reads (see [@Sanders2017-zn] for more details on Strand-seq library quality). \hfill \break
+\textbf{ord.method:} TODO \hfill \break
 
 # SaaRclust results
-
+Saarclust results are organinzed in three subfolders: 'clustered_assembly', 'data' and 'plots'.
+\textbf{clustered assembly:} This folder contains a table of all clustered contigs and their assignment to specific clusters stored as RData file. Also predicted assembly errors are reported here in a .tsv table. Lastly, this folder contains all exported FASTA files that contains contig sequences per cluster/chromosome. \hfill \break
+\textbf{data:} This folder contains all intermediate results that are created during the clustering process. This files are created only if the parameter 'store.data.obj' is set to TRUE. \hfill \break
+\textbf{plots:} Contains some useful plots that allows to evaluate how well genome scaffolding perfomed. \hfill \break
 
 # Data quality exploration
-NOTE: Working only for data from the original publication.
-\hfill \break 
-Rscript below plots clustering accuracy measures presented in the orignal paper (Fig4 b,d,c)
-\hfill \break 
-Before running the script make sure that biovizBase and ggplot2 packages are installed on your machine.
-```{r, echo=TRUE, message=FALSE}
+
+```{r, message=FALSE}
 ## Load the package
 library(SaaRclust)
+```
+
+Plot distribution of strand state probabilities per cluster (columns) and per single cell (rows).
+```{r, echo=TRUE, message=FALSE}
 ## Get example files
-example.data <- system.file("extdata", "softClust_100K_5e+06bp_dynamic.RData", 
+example.data <- system.file("extdata/data", 
+                            "softClust_100K_5e+06bp_dynamic.RData", 
                             package = "SaaRclust")
 EM.obj <- get(load(example.data))
-## Plot theta parameter
+## Plot theta parameter for 20 single cells
 plotThetaEstimates(theta.param = EM.obj$theta.param[1:20])
+```
+
+Plot distribution of soft clustering probabilities of each genomic regions to all clusters.
+```{r, echo=TRUE, message=FALSE}
+## Plot size and orientation of each cluster
+plotEMprobs(em.prob = EM.obj$soft.pVal)
+```
+
+Plot size of each cluster and the directionality of contigs within each cluster (dir - direct, revcomp - reverse complement)
+```{r, echo=TRUE, message=FALSE}
+## Get example files
+example.data <- system.file("extdata/clustered_assembly", 
+                            "ordered&oriented_5e+06bp_chunks.RData",
+                            package = "SaaRclust")
+ordered.contigs.gr <- get(load(example.data))
+## Plot size and orientation of each cluster
+plotClusteredContigSizes(clustered.gr = ordered.contigs.gr)
 ```
 
 # General Recommendations
 
+## Recommended settings to scaffold human genome
+
+## Recommended settings to scaffold human genome with expected large SVs
+
+## Recommended settings to scaffold unknown (non-human) genome
 
 \newpage
 
