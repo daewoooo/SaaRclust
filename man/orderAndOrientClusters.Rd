@@ -30,12 +30,14 @@ within the cluster and reports new clustered/scaffolded FASTA file.
 \examples{
 \dontrun{
 ## Get example files
-mergeClusters.file <- system.file("extdata", "connectedClusters_5e+06bp_dynamic.RData", package = "SaaRclust")
-## Load BAM count table
+mergeClusters.file <- system.file("extdata/data", "connectedClusters_5e+06bp_dynamic.RData", package = "SaaRclust")
+clustered.file <- system.file("extdata/data", "clustered.grl.RData", package = "SaaRclust")
 ## Load connected clusters
 connected.clusters <- get(load(mergeClusters.file))
-ordered.contigs.gr <- orderAndOrientClusters(clustered.grl=clustered.grl, split.pairs=connected.clusters, min.region.to.order=0)
-} 
+#'## Load clustered regions per single cell
+clustered.grl <- get(load(clustered.file))
+ordered.contigs.gr <- orderAndOrientClusters(clustered.grl=clustered.grl, split.pairs=connected.clusters, min.region.to.order=0)}
+
 }
 \author{
 David Porubsky

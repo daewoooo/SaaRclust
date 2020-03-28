@@ -1,0 +1,567 @@
+@ARTICLE{Sanders2019-zh,
+  title    = "Single-cell analysis of structural variations and complex
+              rearrangements with tri-channel processing",
+  author   = "Sanders, Ashley D and Meiers, Sascha and Ghareghani, Maryam and
+              Porubsky, David and Jeong, Hyobin and van Vliet, M Alexandra C C
+              and Rausch, Tobias and Richter-Pecha{\'n}ska, Paulina and Kunz,
+              Joachim B and Jenni, Silvia and Bolognini, Davide and Longo,
+              Gabriel M C and Raeder, Benjamin and Kinanen, Venla and
+              Zimmermann, J{\"u}rgen and Benes, Vladimir and Schrappe, Martin
+              and Mardin, Balca R and Kulozik, Andreas E and Bornhauser, Beat
+              and Bourquin, Jean-Pierre and Marschall, Tobias and Korbel, Jan O",
+  abstract = "Structural variation (SV), involving deletions, duplications,
+              inversions and translocations of DNA segments, is a major source
+              of genetic variability in somatic cells and can dysregulate
+              cancer-related pathways. However, discovering somatic SVs in
+              single cells has been challenging, with copy-number-neutral and
+              complex variants typically escaping detection. Here we describe
+              single-cell tri-channel processing (scTRIP), a computational
+              framework that integrates read depth, template strand and
+              haplotype phase to comprehensively discover SVs in individual
+              cells. We surveyed SV landscapes of 565 single cells, including
+              transformed epithelial cells and patient-derived leukemic
+              samples, to discover abundant SV classes, including inversions,
+              translocations and complex DNA rearrangements. Analysis of the
+              leukemic samples revealed four times more somatic SVs than
+              cytogenetic karyotyping, submicroscopic copy-number alterations,
+              oncogenic copy-neutral rearrangements and a subclonal
+              chromothripsis event. Advancing current methods, single-cell
+              tri-channel processing can directly measure SV mutational
+              processes in individual cells, such as breakage-fusion-bridge
+              cycles, facilitating studies of clonal evolution, genetic
+              mosaicism and SV formation mechanisms, which could improve
+              disease classification for precision medicine.",
+  journal  = "Nat. Biotechnol.",
+  month    =  dec,
+  year     =  2019,
+  language = "en"
+}
+
+@ARTICLE{Porubsky2019-br,
+  title    = "breakpointR: an {R/Bioconductor} package to localize strand state
+              changes in Strand-seq data",
+  author   = "Porubsky, David and Sanders, Ashley D and Taudt, Aaron and
+              Colom{\'e}-Tatch{\'e}, Maria and Lansdorp, Peter M and Guryev,
+              Victor",
+  abstract = "MOTIVATION: Strand-seq is a specialized single-cell DNA
+              sequencing technique centered around the directionality of
+              single-stranded DNA. Computational tools for Strand-seq analyses
+              must capture the strand-specific information embedded in these
+              data. RESULTS: Here we introduce breakpointR, an R/Bioconductor
+              package specifically tailored to process and interpret
+              single-cell strand-specific sequencing data obtained from
+              Strand-seq. We developed breakpointR to detect local changes in
+              strand directionality of aligned Strand-seq data, to enable
+              fine-mapping of sister chromatid exchanges, germline inversion
+              and to support global haplotype assembly. Given the broad
+              spectrum of Strand-seq applications we expect breakpointR to be
+              an important addition to currently available tools and extend the
+              accessibility of this novel sequencing technique. AVAILABILITY:
+              R/Bioconductor package
+              https://bioconductor.org/packages/breakpointR.",
+  journal  = "Bioinformatics",
+  month    =  aug,
+  year     =  2019,
+  language = "en"
+}
+
+@ARTICLE{Van_Wietmarschen2016-tj,
+  title    = "Bromodeoxyuridine does not contribute to sister chromatid
+              exchange events in normal or Bloom syndrome cells",
+  author   = "van Wietmarschen, Niek and Lansdorp, Peter M",
+  abstract = "Sister chromatid exchanges (SCEs) are considered sensitive
+              indicators of genome instability. Detection of SCEs typically
+              requires cells to incorporate bromodeoxyuridine (BrdU) during two
+              rounds of DNA synthesis. Previous studies have suggested that
+              SCEs are induced by DNA replication over BrdU-substituted DNA and
+              that BrdU incorporation alone could be responsible for the high
+              number of SCE events observed in cells from patients with Bloom
+              syndrome (BS), a rare genetic disorder characterized by marked
+              genome instability and high SCE frequency. Here we show using
+              Strand-seq, a single cell DNA template strand sequencing
+              technique, that the presence of variable BrdU concentrations in
+              the cell culture medium and in DNA template strands has no effect
+              on SCE frequency in either normal or BS cells. We conclude that
+              BrdU does not induce SCEs and that SCEs detected in either normal
+              or BS cells reflect DNA repair events that occur spontaneously.",
+  journal  = "Nucleic Acids Res.",
+  volume   =  44,
+  number   =  14,
+  pages    = "6787--6793",
+  month    =  aug,
+  year     =  2016,
+  language = "en"
+}
+
+% The entry below contains non-ASCII chars that could not be converted
+% to a LaTeX equivalent.
+@ARTICLE{Ghareghani2018-rv,
+  title    = "Strand-seq enables reliable separation of long reads by
+              chromosome via expectation maximization",
+  author   = "Ghareghani, Maryam and Porubsky, David and Sanders, Ashley D and
+              Meiers, Sascha and Eichler, Evan E and Korbel, Jan O and
+              Marschall, Tobias",
+  abstract = "Motivation: Current sequencing technologies are able to produce
+              reads orders of magnitude longer than ever possible before. Such
+              long reads have sparked a new interest in de novo genome
+              assembly, which removes reference biases inherent to
+              re-sequencing approaches and allows for a direct characterization
+              of complex genomic variants. However, even with latest
+              algorithmic advances, assembling a mammalian genome from long
+              error-prone reads incurs a significant computational burden and
+              does not preclude occasional misassemblies. Both problems could
+              potentially be mitigated if assembly could commence for each
+              chromosome separately. Results: To address this, we show how
+              single-cell template strand sequencing (Strand-seq) data can be
+              leveraged for this purpose. We introduce a novel latent variable
+              model and a corresponding Expectation Maximization algorithm,
+              termed SaaRclust, and demonstrates its ability to reliably
+              cluster long reads by chromosome. For each long read, this
+              approach produces a posterior probability distribution over all
+              chromosomes of origin and read directionalities. In this way, it
+              allows to assess the amount of uncertainty inherent to sparse
+              Strand-seq data on the level of individual reads. Among the reads
+              that our algorithm confidently assigns to a chromosome, we
+              observed more than 99\% correct assignments on a subset of
+              Pacific Bioscience reads with 30.1x coverage. To our
+              knowledge, SaaRclust is the first approach for the in silico
+              separation of long reads by chromosome prior to assembly.
+              Availability and implementation:
+              https://github.com/daewoooo/SaaRclust.",
+  journal  = "Bioinformatics",
+  volume   =  34,
+  number   =  13,
+  pages    = "i115--i123",
+  month    =  jul,
+  year     =  2018,
+  language = "en"
+}
+
+@MISC{Carolin_A_Muller_1_Michael_A_Boemo_1_Paolo_Spingardi_2_Benedikt_M_Kessler_3_Skirmantas_Kriaucionis_2_Jared_T_Simpson_4_5_Conrad_A_Nieduszynski_1_undated-ce,
+  title       = "Capturing the dynamics of genome replication on individual
+                 ultra - long nanopore sequence reads",
+  author      = "{Carolin A M{\"u}ller 1+ , Michael A Boemo 1+ , Paolo
+                 Spingardi 2 , Benedikt M Kessler 3 , Skirmantas Kriaucionis 2
+                 , Jared T Simpson 4 ,5 , Conrad A Nieduszynski 1*}",
+  institution = "bioRxiv"
+}
+
+@ARTICLE{ONeill2017-ti,
+  title    = "Assembling draft genomes using {contiBAIT}",
+  author   = "O'Neill, Kieran and Hills, Mark and Gottlieb, Mike and Borkowski,
+              Matthew and Karsan, Aly and Lansdorp, Peter M",
+  abstract = "Summary: Massively parallel sequencing is now widely used, but
+              data interpretation is only as good as the reference assembly to
+              which it is aligned. While the number of reference assemblies has
+              rapidly expanded, most of these remain at intermediate stages of
+              completion, either as scaffold builds, or as chromosome builds
+              (consisting of correctly ordered, but not necessarily correctly
+              oriented scaffolds separated by gaps). Completion of de novo
+              assemblies remains difficult, as regions that are repetitive or
+              hard to sequence prevent the accumulation of larger scaffolds,
+              and create errors such as misorientations and mislocalizations.
+              Thus, complementary methods for determining the orientation and
+              positioning of fragments are important for finishing assemblies.
+              Strand-seq is a method for determining template strand
+              inheritance in single cells, information that can be used to
+              determine relative genomic distance and orientation between
+              scaffolds, and find errors within them. We present contiBAIT, an
+              R/Bioconductor package which uses Strand-seq data to repair and
+              improve existing assemblies. Availability and Implementation:
+              contiBAIT is available on Bioconductor. Source files available
+              from GitHub. Contact: koneill@bcgsc.ca or
+              mark.hills@stemcell.com. Supplementary information: Supplementary
+              data are available at Bioinformatics online.",
+  journal  = "Bioinformatics",
+  volume   =  33,
+  number   =  17,
+  pages    = "2737--2739",
+  month    =  sep,
+  year     =  2017,
+  language = "en"
+}
+
+@ARTICLE{Hills2013-ty,
+  title    = "{BAIT}: Organizing genomes and mapping rearrangements in single
+              cells",
+  author   = "Hills, Mark and O'Neill, Kieran and Falconer, Ester and Brinkman,
+              Ryan and Lansdorp, Peter M",
+  abstract = "Strand-seq is a single-cell sequencing technique to finely map
+              sister chromatid exchanges (SCEs) and other rearrangements. To
+              analyze these data, we introduce BAIT, software which assigns
+              templates and identifies and localizes SCEs. We demonstrate BAIT
+              can refine completed reference assemblies, identifying
+              approximately 21 Mb of incorrectly oriented fragments and placing
+              over half (2.6 Mb) of the orphan fragments in mm10/GRCm38. BAIT
+              also stratifies scaffold-stage assemblies, potentially
+              accelerating the assembling and finishing of reference genomes.
+              BAIT is available at http://sourceforge.net/projects/bait/.",
+  journal  = "Genome Med.",
+  volume   =  5,
+  number   =  9,
+  pages    = "82",
+  month    =  sep,
+  year     =  2013,
+  language = "en"
+}
+
+@ARTICLE{Falconer2012-ut,
+  title    = "{DNA} template strand sequencing of single-cells maps genomic
+              rearrangements at high resolution",
+  author   = "Falconer, Ester and Hills, Mark and Naumann, Ulrike and Poon,
+              Steven S S and Chavez, Elizabeth A and Sanders, Ashley D and
+              Zhao, Yongjun and Hirst, Martin and Lansdorp, Peter M",
+  abstract = "DNA rearrangements such as sister chromatid exchanges (SCEs) are
+              sensitive indicators of genomic stress and instability, but they
+              are typically masked by single-cell sequencing techniques. We
+              developed Strand-seq to independently sequence parental DNA
+              template strands from single cells, making it possible to map
+              SCEs at orders-of-magnitude greater resolution than was
+              previously possible. On average, murine embryonic stem (mES)
+              cells exhibit eight SCEs, which are detected at a resolution of
+              up to 23 bp. Strikingly, Strand-seq of 62 single mES cells
+              predicts that the mm 9 mouse reference genome assembly contains
+              at least 17 incorrectly oriented segments totaling nearly 1\% of
+              the genome. These misoriented contigs and fragments have
+              persisted through several iterations of the mouse reference
+              genome and have been difficult to detect using conventional
+              sequencing techniques. The ability to map SCE events at high
+              resolution and fine-tune reference genomes by Strand-seq
+              dramatically expands the scope of single-cell sequencing.",
+  journal  = "Nat. Methods",
+  volume   =  9,
+  number   =  11,
+  pages    = "1107--1112",
+  month    =  nov,
+  year     =  2012,
+  language = "en"
+}
+
+@ARTICLE{Sanders2017-zn,
+  title    = "Single-cell template strand sequencing by Strand-seq enables the
+              characterization of individual homologs",
+  author   = "Sanders, Ashley D and Falconer, Ester and Hills, Mark and
+              Spierings, Diana C J and Lansdorp, Peter M",
+  abstract = "The ability to distinguish between genome sequences of homologous
+              chromosomes in single cells is important for studies of
+              copy-neutral genomic rearrangements (such as inversions and
+              translocations), building chromosome-length haplotypes, refining
+              genome assemblies, mapping sister chromatid exchange events and
+              exploring cellular heterogeneity. Strand-seq is a single-cell
+              sequencing technology that resolves the individual homologs
+              within a cell by restricting sequence analysis to the DNA
+              template strands used during DNA replication. This protocol,
+              which takes up to 4 d to complete, relies on the directionality
+              of DNA, in which each single strand of a DNA molecule is
+              distinguished based on its 5'-3' orientation. Culturing cells in
+              a thymidine analog for one round of cell division labels nascent
+              DNA strands, allowing for their selective removal during genomic
+              library construction. To preserve directionality of template
+              strands, genomic preamplification is bypassed and labeled nascent
+              strands are nicked and not amplified during library preparation.
+              Each single-cell library is multiplexed for pooling and
+              sequencing, and the resulting sequence data are aligned, mapping
+              to either the minus or plus strand of the reference genome, to
+              assign template strand states for each chromosome in the cell.
+              The major adaptations to conventional single-cell sequencing
+              protocols include harvesting of daughter cells after a single
+              round of BrdU incorporation, bypassing of whole-genome
+              amplification, and removal of the BrdU+strand during Strand-seq
+              library preparation. By sequencing just template strands, the
+              structure and identity of each homolog are preserved.",
+  journal  = "Nat. Protoc.",
+  volume   =  12,
+  number   =  6,
+  pages    = "1151--1176",
+  month    =  jun,
+  year     =  2017,
+  language = "en"
+}
+
+@ARTICLE{Claussin2017-rd,
+  title    = "Genome-wide mapping of sister chromatid exchange events in single
+              yeast cells using Strand-seq",
+  author   = "Claussin, Cl{\'e}mence and Porubsk{\'y}, David and Spierings,
+              Diana Cj and Halsema, Nancy and Rentas, Stefan and Guryev, Victor
+              and Lansdorp, Peter M and Chang, Michael",
+  abstract = "Homologous recombination involving sister chromatids is the most
+              accurate, and thus most frequently used, form of
+              recombination-mediated DNA repair. Despite its importance, sister
+              chromatid recombination is not easily studied because it does not
+              result in a change in DNA sequence, making recombination between
+              sister chromatids difficult to detect. We have previously
+              developed a novel DNA template strand sequencing technique,
+              called Strand-seq, that can be used to map sister chromatid
+              exchange (SCE) events genome-wide in single cells. An increase in
+              the rate of SCE is an indicator of elevated recombination
+              activity and of genome instability, which is a hallmark of
+              cancer. In this study, we have adapted Strand-seq to detect SCE
+              in the yeastSaccharomyces cerevisiae. We provide the first
+              quantifiable evidence that most spontaneous SCE events in
+              wild-type cells are not due to the repair of DNA double-strand
+              breaks.",
+  journal  = "Elife",
+  volume   =  6,
+  month    =  dec,
+  year     =  2017,
+  keywords = "DNA repair; S. cerevisiae; Strand-seq; chromosomes; double-strand
+              break; genes; homologous recombination; single cell sequencing;
+              sister chromatid exchange",
+  language = "en"
+}
+
+@ARTICLE{Ferronika2017-ax,
+  title    = "Copy number alterations assessed at the single-cell level
+              revealed mono- and polyclonal seeding patterns of distant
+              metastasis in a small-cell lung cancer patient",
+  author   = "Ferronika, P and van den Bos, H and Taudt, A and Spierings, D C J
+              and Saber, A and Hiltermann, T J N and Kok, K and Porubsky, D and
+              van der Wekken, A J and Timens, W and Foijer, F and
+              Colom{\'e}-Tatch{\'e}, M and Groen, H J M and Lansdorp, P M and
+              van den Berg, A",
+  journal  = "Ann. Oncol.",
+  volume   =  28,
+  number   =  7,
+  pages    = "1668--1670",
+  month    =  jul,
+  year     =  2017,
+  language = "en"
+}
+
+@ARTICLE{Buganim2014-qr,
+  title    = "The developmental potential of {iPSCs} is greatly influenced by
+              reprogramming factor selection",
+  author   = "Buganim, Yosef and Markoulaki, Styliani and van Wietmarschen,
+              Niek and Hoke, Heather and Wu, Tao and Ganz, Kibibi and
+              Akhtar-Zaidi, Batool and He, Yupeng and Abraham, Brian J and
+              Porubsky, David and Kulenkampff, Elisabeth and Faddah, Dina A and
+              Shi, Linyu and Gao, Qing and Sarkar, Sovan and Cohen, Malkiel and
+              Goldmann, Johanna and Nery, Joseph R and Schultz, Matthew D and
+              Ecker, Joseph R and Xiao, Andrew and Young, Richard A and
+              Lansdorp, Peter M and Jaenisch, Rudolf",
+  abstract = "Induced pluripotent stem cells (iPSCs) are commonly generated by
+              transduction of Oct4, Sox2, Klf4, and Myc (OSKM) into cells.
+              Although iPSCs are pluripotent, they frequently exhibit high
+              variation in terms of quality, as measured in mice by chimera
+              contribution and tetraploid complementation. Reliably
+              high-quality iPSCs will be needed for future therapeutic
+              applications. Here, we show that one major determinant of iPSC
+              quality is the combination of reprogramming factors used. Based
+              on tetraploid complementation, we found that ectopic expression
+              of Sall4, Nanog, Esrrb, and Lin28 (SNEL) in mouse embryonic
+              fibroblasts (MEFs) generated high-quality iPSCs more efficiently
+              than other combinations of factors including OSKM. Although
+              differentially methylated regions, transcript number of master
+              regulators, establishment of specific superenhancers, and global
+              aneuploidy were comparable between high- and low-quality lines,
+              aberrant gene expression, trisomy of chromosome 8, and abnormal
+              H2A.X deposition were distinguishing features that could
+              potentially also be applicable to human.",
+  journal  = "Cell Stem Cell",
+  volume   =  15,
+  number   =  3,
+  pages    = "295--309",
+  month    =  sep,
+  year     =  2014,
+  language = "en"
+}
+
+@ARTICLE{Bakker2016-ei,
+  title    = "Single-cell sequencing reveals karyotype heterogeneity in murine
+              and human malignancies",
+  author   = "Bakker, Bjorn and Taudt, Aaron and Belderbos, Mirjam E and
+              Porubsky, David and Spierings, Diana C J and de Jong, Tristan V
+              and Halsema, Nancy and Kazemier, Hinke G and Hoekstra-Wakker,
+              Karina and Bradley, Allan and de Bont, Eveline S J M and van den
+              Berg, Anke and Guryev, Victor and Lansdorp, Peter M and
+              Colom{\'e}-Tatch{\'e}, Maria and Foijer, Floris",
+  abstract = "BACKGROUND: Chromosome instability leads to aneuploidy, a state
+              in which cells have abnormal numbers of chromosomes, and is found
+              in two out of three cancers. In a chromosomal instable p53
+              deficient mouse model with accelerated lymphomagenesis, we
+              previously observed whole chromosome copy number changes
+              affecting all lymphoma cells. This suggests that chromosome
+              instability is somehow suppressed in the aneuploid lymphomas or
+              that selection for frequently lost/gained chromosomes
+              out-competes the CIN-imposed mis-segregation. RESULTS: To
+              distinguish between these explanations and to examine karyotype
+              dynamics in chromosome instable lymphoma, we use a newly
+              developed single-cell whole genome sequencing (scWGS) platform
+              that provides a complete and unbiased overview of copy number
+              variations (CNV) in individual cells. To analyse these scWGS
+              data, we develop AneuFinder, which allows annotation of copy
+              number changes in a fully automated fashion and quantification of
+              CNV heterogeneity between cells. Single-cell sequencing and
+              AneuFinder analysis reveals high levels of copy number
+              heterogeneity in chromosome instability-driven murine T-cell
+              lymphoma samples, indicating ongoing chromosome instability.
+              Application of this technology to human B cell leukaemias reveals
+              different levels of karyotype heterogeneity in these cancers.
+              CONCLUSION: Our data show that even though aneuploid tumours
+              select for particular and recurring chromosome combinations,
+              single-cell analysis using AneuFinder reveals copy number
+              heterogeneity. This suggests ongoing chromosome instability that
+              other platforms fail to detect. As chromosome instability might
+              drive tumour evolution, karyotype analysis using single-cell
+              sequencing technology could become an essential tool for cancer
+              treatment stratification.",
+  journal  = "Genome Biol.",
+  volume   =  17,
+  number   =  1,
+  pages    = "115",
+  month    =  may,
+  year     =  2016,
+  keywords = "Aneuploidy; Copy number detection; Karyotype heterogeneity;
+              Leukaemia; Lymphoma; Single-cell sequencing",
+  language = "en"
+}
+
+@ARTICLE{Van_den_Bos2016-ec,
+  title    = "Single-cell whole genome sequencing reveals no evidence for
+              common aneuploidy in normal and Alzheimer's disease neurons",
+  author   = "van den Bos, Hilda and Spierings, Diana C J and Taudt, Aaron S
+              and Bakker, Bjorn and Porubsk{\'y}, David and Falconer, Ester and
+              Novoa, Carolina and Halsema, Nancy and Kazemier, Hinke G and
+              Hoekstra-Wakker, Karina and Guryev, Victor and den Dunnen,
+              Wilfred F A and Foijer, Floris and Tatch{\'e}, Maria Colom{\'e}
+              and Boddeke, Hendrikus W G M and Lansdorp, Peter M",
+  abstract = "BACKGROUND: Alzheimer's disease (AD) is a neurodegenerative
+              disease of the brain and the most common form of dementia in the
+              elderly. Aneuploidy, a state in which cells have an abnormal
+              number of chromosomes, has been proposed to play a role in
+              neurodegeneration in AD patients. Several studies using
+              fluorescence in situ hybridization have shown that the brains of
+              AD patients contain an increased number of aneuploid cells.
+              However, because the reported rate of aneuploidy in neurons
+              ranges widely, a more sensitive method is needed to establish a
+              possible role of aneuploidy in AD pathology. RESULTS: In the
+              current study, we used a novel single-cell whole genome
+              sequencing (scWGS) approach to assess aneuploidy in isolated
+              neurons from the frontal cortex of normal control individuals (n
+              = 6) and patients with AD (n = 10). The sensitivity and
+              specificity of our method was shown by the presence of three
+              copies of chromosome 21 in all analyzed neuronal nuclei of a
+              Down's syndrome sample (n = 36). Very low levels of aneuploidy
+              were found in the brains from control individuals (n = 589) and
+              AD patients (n = 893). In contrast to other studies, we observe
+              no selective gain of chromosomes 17 or 21 in neurons of AD
+              patients. CONCLUSION: scWGS showed no evidence for common
+              aneuploidy in normal and AD neurons. Therefore, our results do
+              not support an important role for aneuploidy in neuronal cells in
+              the pathogenesis of AD. This will need to be confirmed by future
+              studies in larger cohorts.",
+  journal  = "Genome Biol.",
+  volume   =  17,
+  number   =  1,
+  pages    = "116",
+  month    =  may,
+  year     =  2016,
+  keywords = "Alzheimer's disease; Aneuploidy; Brain; Neurons; Single-cell
+              sequencing",
+  language = "en"
+}
+
+@ARTICLE{Sanders2016-tz,
+  title    = "Characterizing polymorphic inversions in human genomes by
+              single-cell sequencing",
+  author   = "Sanders, Ashley D and Hills, Mark and Porubsk{\'y}, David and
+              Guryev, Victor and Falconer, Ester and Lansdorp, Peter M",
+  abstract = "Identifying genomic features that differ between individuals and
+              cells can help uncover the functional variants that drive
+              phenotypes and disease susceptibilities. For this, single-cell
+              studies are paramount, as it becomes increasingly clear that the
+              contribution of rare but functional cellular subpopulations is
+              important for disease prognosis, management, and progression.
+              Until now, studying these associations has been challenged by our
+              inability to map structural rearrangements accurately and
+              comprehensively. To overcome this, we coupled single-cell
+              sequencing of DNA template strands (Strand-seq) with custom
+              analysis software to rapidly discover, map, and genotype genomic
+              rearrangements at high resolution. This allowed us to explore the
+              distribution and frequency of inversions in a heterogeneous cell
+              population, identify several polymorphic domains in complex
+              regions of the genome, and locate rare alleles in the reference
+              assembly. We then mapped the entire genomic complement of
+              inversions within two unrelated individuals to characterize their
+              distinct inversion profiles and built a nonredundant global
+              reference of structural rearrangements in the human genome. The
+              work described here provides a powerful new framework to study
+              structural variation and genomic heterogeneity in single-cell
+              samples, whether from individuals for population studies or
+              tissue types for biomarker discovery.",
+  journal  = "Genome Res.",
+  volume   =  26,
+  number   =  11,
+  pages    = "1575--1587",
+  month    =  nov,
+  year     =  2016,
+  language = "en"
+}
+
+% The entry below contains non-ASCII chars that could not be converted
+% to a LaTeX equivalent.
+@ARTICLE{Porubsky2016-zg,
+  title    = "Direct chromosome-length haplotyping by single-cell sequencing",
+  author   = "Porubsky David and Sanders, Ashley D and van Wietmarschen,
+              Niek and Falconer, Ester and Hills, Mark and Spierings, Diana C J
+              and Bevova, Marianna R and Guryev, Victor and Lansdorp, Peter M",
+  abstract = "Haplotypes are fundamental to fully characterize the diploid
+              genome of an individual, yet methods to directly chart the unique
+              genetic makeup of each parental chromosome are lacking. Here we
+              introduce single-cell DNA template strand sequencing (Strand-seq)
+              as a novel approach to phasing diploid genomes along the entire
+              length of all chromosomes. We demonstrate this by building a
+              complete haplotype for a HapMap individual (NA12878) at high
+              accuracy (concordance 99.3\%), without using generational
+              information or statistical inference. By use of this approach, we
+              mapped all meiotic recombination events in a family trio with
+              high resolution (median range ∼14 kb) and phased larger
+              structural variants like deletions, indels, and balanced
+              rearrangements like inversions. Lastly, the single-cell
+              resolution of Strand-seq allowed us to observe loss of
+              heterozygosity regions in a small number of cells, a significant
+              advantage for studies of heterogeneous cell populations, such as
+              cancer cells. We conclude that Strand-seq is a unique and
+              powerful approach to completely phase individual genomes and map
+              inheritance patterns in families, while preserving haplotype
+              differences between single cells.",
+  journal  = "Genome Res.",
+  volume   =  26,
+  number   =  11,
+  pages    = "1565--1574",
+  month    =  nov,
+  year     =  2016,
+  language = "en"
+}
+
+@ARTICLE{Porubsky2017-dh,
+  title    = "Dense and accurate whole-chromosome haplotyping of individual
+              genomes",
+  author   = "Porubsky, David and Garg, Shilpa and Sanders, Ashley D and
+              Korbel, Jan O and Guryev, Victor and Lansdorp, Peter M and
+              Marschall, Tobias",
+  abstract = "The diploid nature of the human genome is neglected in many
+              analyses done today, where a genome is perceived as a set of
+              unphased variants with respect to a reference genome. This lack
+              of haplotype-level analyses can be explained by a lack of methods
+              that can produce dense and accurate chromosome-length haplotypes
+              at reasonable costs. Here we introduce an integrative phasing
+              strategy that combines global, but sparse haplotypes obtained
+              from strand-specific single-cell sequencing (Strand-seq) with
+              dense, yet local, haplotype information available through
+              long-read or linked-read sequencing. We provide comprehensive
+              guidance on the required sequencing depths and reliably assign
+              more than 95\% of alleles (NA12878) to their parental haplotypes
+              using as few as 10 Strand-seq libraries in combination with
+              10-fold coverage PacBio data or, alternatively, 10X Genomics
+              linked-read sequencing data. We conclude that the combination of
+              Strand-seq with different technologies represents an attractive
+              solution to chart the genetic variation of diploid genomes.",
+  journal  = "Nat. Commun.",
+  volume   =  8,
+  number   =  1,
+  pages    = "1293",
+  month    =  nov,
+  year     =  2017,
+  language = "en"
+}

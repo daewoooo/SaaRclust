@@ -25,7 +25,7 @@ directionality across multiple Strand-seq libraries.
 }
 \examples{
 ## Get an example file
-exampleFile <- system.file("extdata", "softClust_100K_5e+06bp_dynamic.RData", package = "SaaRclust")
+exampleFile <- system.file("extdata/data", "softClust_100K_5e+06bp_dynamic.RData", package = "SaaRclust")
 ## Load SaaRclust object
 EM.obj <- get(load(exampleFile))
 ## Merge clusters that belong to the same chromosome/scaffold

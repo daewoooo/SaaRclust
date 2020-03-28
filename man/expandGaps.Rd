@@ -16,6 +16,14 @@ A \code{\link{GRanges-class}} object.
 This function takes a \code{\link{GRanges-class}} object and extend gaps between
 subsequent ranges by merging with the preceeding or following genomic range.
 }
+\examples{
+## Get an example file
+ctg.file <- system.file("extdata/clustered_assembly", "ordered&oriented_5e+06bp_chunks.RData", package = "SaaRclust")
+## Load ordered and oriented contigs
+ctg.gr <- get(load(ctg.file))
+## Expand gaps inside contigs
+ctg.gr.expanded <- expandGaps(gr = ctg.gr)
+}
 \author{
 David Porubsky
 }

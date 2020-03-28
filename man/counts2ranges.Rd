@@ -25,8 +25,8 @@ for each genomic region and every single cell as a \code{\link{GRangesList-class
 }
 \examples{
 ## Get example files
-counts.file <- system.file("extdata", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
-saarclust.file <- system.file("extdata", "softClust_100K_5e+06bp_dynamic.RData", package = "SaaRclust")
+counts.file <- system.file("extdata/data", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
+saarclust.file <- system.file("extdata/data", "softClust_100K_5e+06bp_dynamic.RData", package = "SaaRclust")
 ## Load BAM count table
 counts.l <- get(load(counts.file))
 ## Load SaaRclust object

@@ -24,7 +24,7 @@ This function expects output from custom minimap test dataset that contains orig
 }
 \examples{
 ## Get an example file
-exampleFile <- system.file("extdata", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
+exampleFile <- system.file("extdata/data", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
 ## Load BAM count table
 counts.l <- get(load(exampleFile))
 ## Get hard clustering results

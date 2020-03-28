@@ -128,6 +128,10 @@ addClusterGroup <- function(cluster.gr=NULL, cluster.groups=NULL) {
 #' @importFrom tidyr separate
 #' @author David Porubsky
 #' @export
+#' @examples 
+#' ## An example string to convert into \code{\link{GRanges-class}} object.
+#' genomic.location.str <- 'chr4:128840654-143665255'
+#' gr <- string2GRanges(region.string = genomic.location.str)
 #' 
 string2GRanges <- function(region.string=NULL) {
   regions.df <- data.frame(regions=region.string)
@@ -150,6 +154,13 @@ string2GRanges <- function(region.string=NULL) {
 #' @return A \code{\link{GRanges-class}} object.
 #' @author David Porubsky
 #' @export
+#' @examples
+#'## Get an example file
+#'ctg.file <- system.file("extdata/clustered_assembly", "ordered&oriented_5e+06bp_chunks.RData", package = "SaaRclust")
+#'## Load ordered and oriented contigs
+#'ctg.gr <- get(load(ctg.file))
+#'## Expand gaps inside contigs
+#'ctg.gr.expanded <- expandGaps(gr = ctg.gr)
 
 expandGaps <- function(gr) {
   ## Check if seqlengths are defined
@@ -189,7 +200,14 @@ expandGaps <- function(gr) {
 #' @return A \code{data.frame} object.
 #' @author David Porubsky
 #' @export
-#' 
+#' @examples 
+#'## Get an example file
+#'putative.errors.file <- system.file("extdata/data", "putativeAsmErrors_5e+06bp_dynamic.RData", package = "SaaRclust")
+#'## Load putative errors 
+#'putative.errors.gr <- get(load(putative.errors.file))
+#'## Export putative errors 
+#'putative.errors.report <- reportMisAsmCTGs(gr = putative.errors.gr)
+#'
 reportMisAsmCTGs <- function(gr) {
   grl <- GenomicRanges::split(gr, seqnames(gr))
   

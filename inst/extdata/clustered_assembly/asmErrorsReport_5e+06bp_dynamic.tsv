@@ -1,0 +1,2 @@
+seqnames	start	end	width	strand	asm.error	misasm.bases
+chr1	1	248956422	248956422	*	chimerism	36679820

@@ -17,6 +17,15 @@ This function takes a \code{\link{GRanges-class}} object that contains putativel
 misassembled contigs/scaffolds and report if this misassembly is likely caused by
 an misorient, chimerism or both.
 }
+\examples{
+## Get an example file
+putative.errors.file <- system.file("extdata/data", "putativeAsmErrors_5e+06bp_dynamic.RData", package = "SaaRclust")
+## Load putative errors 
+putative.errors.gr <- get(load(putative.errors.file))
+## Export putative errors 
+putative.errors.report <- reportMisAsmCTGs(gr = putative.errors.gr)
+
+}
 \author{
 David Porubsky
 }

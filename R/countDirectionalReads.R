@@ -6,8 +6,7 @@
 #' @return A \code{list} of matrices reporting counts of Watson('-') and Crick('+') reads aligned to each genomic segment per cell. (rows=reads or genomic segments, cols=watson & crick read counts)
 #' @importFrom data.table data.table
 #' @author David Porubsky
-#' @export
-
+#' 
 countDirectionalReads <- function(tab.l=NULL) {
   ptm <- startTimedMessage("Counting directional reads") 
   ratios.l <- list()

@@ -5,8 +5,7 @@
 #' @param inputData A \code{data.frame} loaded by \code{\link[SaaRclust]{importTestData}}
 #' @importFrom dplyr group_by summarise
 #' @author David Porubsky
-#' @export
-
+#' 
 getQualMeasure <- function(inputData) {
   ptm <- startTimedMessage("Getting data quality measures")
   
@@ -35,7 +34,7 @@ getQualMeasure <- function(inputData) {
 #'
 #' @param clusters List of clusters with predicted chromosome identity for each PB read
 #' @author David Porubsky
-
+#' 
 getClusterAcc <- function(clusters) {
   stat <- list()
   miss.reads <- list()
@@ -71,7 +70,7 @@ getClusterAcc <- function(clusters) {
 #' @param female Set to \code{TRUE} if analyzed data are coming from female individual.
 #' @author Maryam Ghareghani, David Porubsky
 #' @export
-
+#' 
 hardClustAccuracy <- function(hard.clust, pb.chr, pb.flag, tab.filt, female=TRUE)
 {
   # filter and keep PB reads that have only defined (true) chromosome names with flag 0 or 16
@@ -124,7 +123,7 @@ hardClustAccuracy <- function(hard.clust, pb.chr, pb.flag, tab.filt, female=TRUE
 #' @param num.clusters Expected number of clusters. (for 22 autosomes == 44 clusters)
 #' @author David Porubsky
 #' @export
-
+#' 
 #TODO: set parameter alpha to be optional
 randomTheta <- function(num.cells=100, num.clusters=44) {
   theta.l <- list()
@@ -155,8 +154,7 @@ randomTheta <- function(num.cells=100, num.clusters=44) {
 #' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
 #' @param theta.expected A \code{vector} of expected sums of probabilities to observe WW,CC or WC chromosomes across all cells.
 #' @author David Porubsky
-#' @export
-
+#' 
 thetaRescale <- function(theta.param, theta.expected) {
   theta.rescaled <- list()
   for (i in 1:length(theta.param)) {
@@ -174,7 +172,7 @@ thetaRescale <- function(theta.param, theta.expected) {
 #'
 #' @param x A \code{vector} of values tp sum up.
 #' @export
-
+#' 
 kahansum <- function(x) {
   ks <- 0
   c <- 0
@@ -195,8 +193,7 @@ kahansum <- function(x) {
 #' @param soft.clust ...
 #' @param prob.th ...
 #' @author David Porubsky
-#' @export
-
+#' 
 exportGenomicLocations <- function(soft.clust, prob.th=0.6) {
   
   getMaxPvals <- function(pval.vector) {
@@ -248,8 +245,7 @@ exportGenomicLocationsAllBest <- function(soft.clust, prob.th=0.6) {
 #' @param chr.rows Expected location of long reads based on their mapping to a respective chromosome
 #' @param chr.flag Expected directionality of long reads based on their mapping to a respective chromosome
 #' @author David Porubsky
-#' @export
-
+#' 
 getClusterIdentityPerChrPerDir <- function(soft.clust, chr.rows, chr.flag) {
   max.Clust <- apply(soft.clust, 1, which.max)
   unique.clust.ID <- paste0(chr.rows,"_",chr.flag)
@@ -265,8 +261,7 @@ getClusterIdentityPerChrPerDir <- function(soft.clust, chr.rows, chr.flag) {
 #' @param soft.clust Soft clustering probabilities for each long read and each cluster
 #' @param chr.rows Expected location of long reads based on their mapping to a respective chromosome
 #' @author David Porubsky
-#' @export
-
+#' 
 getClusterIdentityPerChr <- function(soft.clust, chr.rows) {
   max.Clust <- apply(soft.clust, 1, which.max)
   clustByChrom <- split(max.Clust, chr.rows)
@@ -281,8 +276,7 @@ getClusterIdentityPerChr <- function(soft.clust, chr.rows) {
 #' @param prob.th Filter out long reads with max probability below this threshold
 #' @param minLib Filter out long reads with number of StrandS libraries being represented below this threshold
 #' @author David Porubsky
-#' @export
-
+#' 
 exportClusteredReads <- function(inputfolder=NULL, prob.th=NULL, minLib=NULL) {
   
   #This function exports group of largest probabilites per PacBio read.

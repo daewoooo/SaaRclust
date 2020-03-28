@@ -6,8 +6,7 @@
 #' @return A \code{matrix} of pairs of clusters IDs that belong to the same chromosome.
 #' @importFrom lpSolve lp.assign
 #' @author David Porubsky
-#' @export
-
+#' 
 findClusterPartners <- function(theta.param=NULL) {
   
   ## If there is an uneven number of clusters remove the one with the most WC states

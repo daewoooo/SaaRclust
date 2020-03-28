@@ -11,6 +11,11 @@
 #' @author David Porubsky
 #' @importFrom Rsamtools BamFile
 #' @export
+#' @examples 
+#'## Get an example BAM (empty bam)
+#'bamfile <- system.file("extdata", "example.bam", package = "SaaRclust")
+#'## Prepare genomic bins
+#'genomic.bins <- makeFixedBins(bamfile = bamfile, bin.size = 200000, step.size = 200000, chromosomes = 'chr1')
 #'
 makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromosomes=NULL, keep.small.chr=FALSE) {
   

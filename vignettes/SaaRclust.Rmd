@@ -1,5 +1,5 @@
 ---
-title: "Quick introduction to SaaRclust"
+title: "Whole genome scaffolding using SaaRclust"
 author: "David Porubsky"
 date: "`r Sys.Date()`"
 package: SaaRclust
@@ -9,104 +9,94 @@ vignette: >
     %\VignetteIndexEntry{Vignette Title}
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}
+    
+bibliography: /home/porubsky/SaaRclust/vignettes/strandSeqBib.bib
 ---    
+
+<!---
+bibliography: /home/porubsky/SaaRclust/vignettes/strandSeqBib.bib
+-->
 
 # Introduction
 
-Strand-seq is a single-cell sequencing technique able to preserve contiguity of individual parental homologues in single-cell. This feature has been shown to be valuable for scaffolding early build genome assemblies as well finding chimeric or misoriented contigs. Here we introduce a SaaRclust as an R based package that implements a novel latent variable model and a corresponding Expectation Maximization (EM) algorithm in order to reliably cluster long sequencing reads by chromosome. Briefly, our approach produces, for each long read, a posterior probability distribution over all chromosomes of origin and read directionalities. In this way, it allows to assess the amount of uncertainty inherent to sparse Strand-seq data on the level of individual reads.
+Strand-seq is a single-cell sequencing technique able to preserve contiguity of individual parental homologues in single-cell [@Falconer2012-ut]. Each parental homolog undergoes independent random segregation during cell division, leading to a unique strand state profile in Strand-seq data. Strand-seq distinguishes three possible template strand states for each chromosome of a diploid genome. The Watson-Watson (WW) strand state is characteristic of two Watson (reads aligned to minus strand) templates inherited from both parental homologues. The Crick-Crick (CC) strand state is characteristic of two Crick (reads aligned to plus strand) templates inherited from both parental homologues. Lastly, the Watson-Crick (WC) strand state is characteristic of a Watson and Crick template being inherited from either parental homologue [@Sanders2017-zn]. Such Strand-seq signal can be used to assign contigs or long sequencing reads to a chromosome of origin. This feature has been shown to be valuable for scaffolding early build genome assemblies as well finding chimeric or misoriented contigs [@Hills2013-ty]. We do so using SaaRclust, an R based package that implements a novel latent variable model and a corresponding Expectation Maximization (EM) algorithm in order to reliably cluster contigs or long sequencing reads by chromosome. SaaRclust was previously introduced for this in silico separation of long sequencing reads by chromosome and direction [@Ghareghani2018-rv]. Here we have extended its functionalities to be able to scaffold contig stage assemblies and to detect and correct assembly error such as chimeric or misoriented contigs. SaaRclust employs an Expectation-Maximization (EM) soft clustering algorithm to handle the uncertainty arising from the sparse Strand-seq data. The main idea underlying our clustering algorithm is that contigs originating from the same chromosome share the same directionality pattern of aligned Strand-seq reads across multiple single cells, that differs from contigs originating from a different chromosome. The EM algorithm is based on iterating between assigning strand states for each Strand-seq library and chromosome and assigning chromosomes to each contig, which are both hidden information at the beginning. EM converges to a local optimum solution of the maximum likelihood problem, e.g., maximizing the likelihood of observed data (number of directional aligned Strand-seq reads to long reads), given the model parameters (strand states), and we have shown SaaRclust to be able to assign even individual long sequencing reads to chromosomes of origin.
 
 \newpage
 
-# Parameters
-\textbf{inputfolder:} A folder name where minimap file(s) is stored. \hfill \break
-\textbf{outputfolder:} A folder name to export the results. \hfill \break
-\textbf{minimap.file:} A path to the minimap file to load. \hfill \break
-\textbf{num.clusters:} Expected number of clusters. (for 22 human autosomes == 44 clusters). However overclusterring (~ 54 clusters) is recommended such that smaller chromosomes are not missed \hfill \break
-\textbf{EM.iter:} Number of iteration of EM algorithm. \hfill \break
-\textbf{alpha:} Estimated level of background in Strand-seq reads. In other words expected noise in sequencing data caused either by library prepration or mapping to repetitive parts of the genome. \hfill \break
-\textbf{minLib:} Minimal number of different Strand-seq libraries being represent per every long read. \hfill \break
-\textbf{upperQ:} Filter out given percentage of long reads with the highest number of Strand-seq alignments. \hfill \break
-\textbf{logL.th:} Set the difference between objective function from the current and the previous interation for EM algorithm to converge. \hfill \break
-\textbf{theta.constrain:} Recalibrate theta values to meet expected distribution of W and C strands across all Strand-seq libraries. \hfill \break
-\textbf{store.counts:} Logical TRUE/FALSE if to store raw read counts aligned to each long read. \hfill \break
-\textbf{store.bestAlign:} If set to TRUE (best) representative alignements will be stored in RData object \hfill \break
-\textbf{numAlignments:} Required number of (best) representative alignmnets to be used in hard clustering. \hfill \break
-\textbf{HC.only:} If set to TRUE only the hard clustering will be performed and the rest of the clustering pipeline will be skipped. \hfill \break
-\textbf{HC.input:} A location to a filaname where the hard clustering results are stored. \hfill \break
-\textbf{verbose:} Set to TRUE if progress messages should be printed. \hfill \break
+# Minimal parameters
+Here are the minimal parameters required to successfully run genome scaffolding using SaaRclust.
+
+\textbf{bamfolder:} A folder name where minimap file(s) is stored. \hfill \break
+\textbf{outputfolder:} A folder containing BAM files with Strand-seq reads aligned to a denovo assembly. \hfill \break
+\textbf{pairedEndReads:} Make sure to set to TRUE if paired-end reads are being used. \hfill \break
+\textbf{assembly.fasta:} A denovo assembly FASTA file, if one want to export scaffolded denovo assembly in FASTA format.  \hfill \break
+
+For more details on available parameters please run.
+```
+library(SaaRclust)
+?scaffoldDenovoAssembly
+```
 
 # Quick Start
 
-Download example data from the github repository
-```
-git clone https://github.com/daewoooo/SaaRclustExampleData
-```
-
-Set the location of the example data
-```
-inputfolder <- 'SaaRclust_exampleData'
-```
-
-## Hard Clustering
-In order to run only k-means based hard clustering on a example data.
-```
-# Hard clustering
-# Remember to set HC.only=TRUE
-
-runSaaRclust(inputfolder=inputfolder, outputfolder="SaaRclust_results", num.clusters=54,
-EM.iter=100,alpha=0.01, minLib=10, upperQ=0.95, logL.th=1, theta.constrain=FALSE,
-store.counts=FALSE, store.bestAlign=TRUE, numAlignments=3000, HC.only=TRUE, verbose=TRUE)
-```
-
-## Soft Clustering
-If RData object containing hard clustering results is already available you can run only soft clustering.
-```
-# Setting some variables
-
-HC.input='SaaRclust_results/Clusters/hardClusteringResults.RData'
-minimap.file='SaaRclust_exampleData/NA12878_WashU_PBreads_chunk9126.maf.gz'
-```
+Run SaaRclust using pre-computed binned counts of Strand-seq reads aligned to the GRCh38.
+To speed up this process we sent bin size to 5 Mbp and included sequences of 10 Mbp and longer.
+Because Strand-seq data have been aligned to GRCh38 with chromosomes 1-22, X and Y we have set 
+'desired.num.clusters' parameter to 24.
 
 ```
-# If theta.param & pi.param are set to NULL SaaRclust will try to load them from HC.input.
-
-SaaRclust(minimap.file=minimap.file, outputfolder='SaaRclust_results', num.clusters=47,
-EM.iter=100, alpha=0.1, minLib=10, upperQ=0.95, theta.param=NULL, pi.param=NULL, logL.th=1,
-theta.constrain=FALSE, store.counts=FALSE, HC.input=HC.input)
+bamfolder <- system.file("extdata", package = "SaaRclust")
+scaffoldDenovoAssembly(bamfolder = bamfolder, 
+                       outputfolder = bamfolder,
+                       store.data.obj = TRUE,
+                       reuse.data.obj = TRUE,
+                       pairedEndReads = TRUE,
+                       bin.size = 5000000,
+                       step.size = 5000000,
+                       bin.method = 'dynamic', 
+                       prob.th = 0.25, 
+                       ord.method = 'greedy',
+                       min.contig.size = 10000000,
+                       concat.fasta = FALSE,
+                       num.clusters = 100, 
+                       desired.num.clusters = 24, 
+                       min.region.to.order = 1000000, 
+                       remove.always.WC = TRUE,
+                       mask.regions = FALSE)
 ```
 
-## Hard & Soft Clustering
-In order to run both, hard and soft clustering in a single command.
-```
-# Hard clustering
-# Remember to set HC.only=FALSE
+\newpage
 
-runSaaRclust(inputfolder=inputfolder, outputfolder="SaaRclust_results", num.clusters=54,
-EM.iter=100,alpha=0.01, minLib=10, upperQ=0.95, logL.th=1, theta.constrain=FALSE,
-store.counts=FALSE, store.bestAlign=TRUE, numAlignments=3000, HC.only=FALSE, verbose=TRUE)
-```
+# Parameter settings recomendations
+\textbf{min.contig.size:} This parameter should be set at least 2x the N50 read length used for the assembly in order to filter out singleton reads. Removing small contigs/reads will also speed-up the clustering process.
+\textbf{min.region.to.order:} We recommned to set this parameter if one want to increase the ordering accuracy of contings within clusters (chromosomes). Small contigs tend to introduce a lot of noise in ordering process so we recommend to set this parameter to 500000 bp.
+\textbf{num.clusters:} By default this parameter is to 100 in order to be able to capture small human chromosomes such as chromosome 21 or 22. We recommend to set this number even higher in case you expect large heterozygous inversions in your sample. This way one can ensure proper assignment of such inversions to correct cluster/chromosome. 
+\textbf{desired.num.clusters:} If an user has a prior knowledge on the expected number of chromosomes/clusters for a given sample it can be set by this parameter. If this parameter is not set, SaaRclust will still report a perdicted number of clusters/chromosomes based on shared strand inheritance.
+\textbf{alpha:} Defines an expected level of noise in Strand-seq data. Increase this parameter in case Strand-seq data are of lower quality and contains a lot of background reads (see [@Sanders2017-zn] for more details on Strand-seq library quality).
+\textbf{ord.method:} 
 
-## Export clustered long reads
-In order export soft clustered long sequencing reads use function below.
-Set required threshold for probalility values and minimal number of libraries being represented per long read.
-```
-exportClusteredReads(inputfolder="SaaRclust_results", prob.th=0.5, minLib=5)
-```
+# SaaRclust results
 
-## Plot clustering accuracy plots
+
+# Data quality exploration
 NOTE: Working only for data from the original publication.
 \hfill \break 
 Rscript below plots clustering accuracy measures presented in the orignal paper (Fig4 b,d,c)
 \hfill \break 
 Before running the script make sure that biovizBase and ggplot2 packages are installed on your machine.
+```{r, echo=TRUE, message=FALSE}
+## Load the package
+library(SaaRclust)
+## Get example files
+example.data <- system.file("extdata", "softClust_100K_5e+06bp_dynamic.RData", 
+                            package = "SaaRclust")
+EM.obj <- get(load(example.data))
+## Plot theta parameter
+plotThetaEstimates(theta.param = EM.obj$theta.param[1:20])
 ```
-plotScripts = /SaaRclust/utils/postProcessing.R
-inputdir = SaaRclust_results
-outputdir = user_defined
 
-run from the commnad line:
-Rscript /SaaRclust/utils/runPostProcessing.R <plotScripts> <inputdir> <outputdir>
-```
+# General Recommendations
+
 
 \newpage
 
@@ -117,3 +107,7 @@ devtools::session_info()
 
 Report any issues
 [here](https://github.com/daewoooo/SaaRclust/issues):
+
+\newpage
+
+# References

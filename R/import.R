@@ -7,7 +7,7 @@
 #' @importFrom data.table fread
 #' @author David Porubsky
 #' @export 
-
+#' 
 importData <- function(infile=NULL) {  #TODO modify this function for input where genomic location of PB reads is unknown
   
   ptm <- startTimedMessage("Reading the data") 
@@ -115,8 +115,7 @@ importTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO modify
 #' @importFrom dplyr group_by summarise
 #' @author David Porubsky
 #' @export
-
-
+#' 
 filterInput <- function(inputData=NULL, quantileSSreads=c(0,0.9), minSSlibs=c(20,25)) {
   
   ptm <- startTimedMessage("Filtering the data")

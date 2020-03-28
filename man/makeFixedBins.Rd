@@ -24,6 +24,13 @@ A \code{\link{GRanges-class}} object with fixed-width bins.
 \description{
 Make fixed-width bins based on given bin and step size.
 }
+\examples{
+## Get an example BAM (empty bam)
+bamfile <- system.file("extdata", "example.bam", package = "SaaRclust")
+## Prepare genomic bins
+genomic.bins <- makeFixedBins(bamfile = bamfile, bin.size = 200000, step.size = 200000, chromosomes = 'chr1')
+
+}
 \author{
 David Porubsky
 }
