@@ -4,6 +4,8 @@
 #' Results are stored in a \code{list} of matrices with each element of a \code{list} representing counts for single BAM file.
 #'
 #' @param bamfolder A folder containing BAM files with Strand-seq reads aligned to denovo assembly.
+#' @param pairedEndReads Set to \code{TRUE} if you have paired-end reads in your file.
+#' @param min.mapq Minimum mapping quality when importing from BAM files.
 #' @param bin.size A length of a bin to count reads in.
 #' @param reads.per.bin An approximate number of desired reads per bin. The bin size will be selected accordingly. Forces 'bin.method' to be 'fixed'.
 #' @param max.frag A maximum fragment length to import from the BAM file.
@@ -36,7 +38,7 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
   # } 
   
   ## List bams present in a directory
-  bamfiles <- list.files(bamfolder, pattern = '.bam$', full.names = T)
+  bamfiles <- list.files(bamfolder, pattern = '.bam$', full.names = TRUE)
   
   ### Get chromosome lengths ###
   bamfile <- bamfiles[1] ## process a first bamfile in a list

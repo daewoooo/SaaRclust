@@ -9,6 +9,7 @@
 #' @param desired.num.clusters Desired number of clusters after cluster merging step.
 #' @return A \code{matrix} of pairs of clusters IDs that belong to the same chromosome.
 #' @importFrom igraph graph groups components
+#' @importFrom BiocGenerics as.list
 #' @author David Porubsky
 #' @export
 #' @examples
@@ -29,7 +30,7 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   
   ## Find clusters with WC state in majority of cells
   theta.sums <- Reduce("+", theta.param)
-  theta.zscore <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
+  theta.zscore <- (theta.sums[,3] - mean(theta.sums[,3])) / stats::sd(theta.sums[,3])
   wc.clust.idx <- which(theta.zscore > 2.5)
   ## Remove cluster with the most WC states
   if (remove.always.WC) {
@@ -37,7 +38,7 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   }
   
   ## Get all possible cluster pairs
-  pairs <- t(combn(nrow(theta.param[[1]]), 2))
+  pairs <- t(utils::combn(nrow(theta.param[[1]]), 2))
   
   dist.wc <- list()
   dist.ww <- list()
@@ -66,28 +67,28 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   dist.wc.m <- do.call(cbind, dist.wc)
   simil.wc.m <- max(dist.wc.m) - dist.wc.m
   simil.wc.sum <- rowSums(simil.wc.m)
-  zscores <- (simil.wc.sum - mean(simil.wc.sum)) / sd(simil.wc.sum)
+  zscores <- (simil.wc.sum - mean(simil.wc.sum)) / stats::sd(simil.wc.sum)
   vertices.wc <- cbind(pairs, zscores)
   vertices.wc <- vertices.wc[order(vertices.wc[,3], decreasing = TRUE),]
   ## Get the most significant connections for WW state
   dist.ww.m <- do.call(cbind, dist.ww)
   simil.ww.m <- max(dist.ww.m) - dist.ww.m
   simil.ww.sum <- rowSums(simil.ww.m)
-  zscores <- (simil.ww.sum - mean(simil.ww.sum)) / sd(simil.ww.sum)
+  zscores <- (simil.ww.sum - mean(simil.ww.sum)) / stats::sd(simil.ww.sum)
   vertices.ww <- cbind(pairs, zscores)
   vertices.ww <- vertices.ww[order(vertices.ww[,3], decreasing = TRUE),]
   ## Get the most significant connections for CC state
   dist.cc.m <- do.call(cbind, dist.cc)
   simil.cc.m <- max(dist.cc.m) - dist.cc.m
   simil.cc.sum <- rowSums(simil.cc.m)
-  zscores <- (simil.cc.sum - mean(simil.cc.sum)) / sd(simil.cc.sum)
+  zscores <- (simil.cc.sum - mean(simil.cc.sum)) / stats::sd(simil.cc.sum)
   vertices.cc <- cbind(pairs, zscores)
   vertices.cc <- vertices.cc[order(vertices.cc[,3], decreasing = TRUE),]
   ## Get the most significant connections for HET inversion cases
   dist.het.m <- do.call(cbind, dist.het)
   simil.het.m <- max(dist.het.m) - dist.het.m
   simil.het.sum <- rowSums(simil.het.m)
-  zscores <- (simil.het.sum - mean(simil.het.sum)) / sd(simil.het.sum)
+  zscores <- (simil.het.sum - mean(simil.het.sum)) / stats::sd(simil.het.sum)
   vertices.het <- cbind(pairs, zscores)
   vertices.het <- vertices.het[order(vertices.het[,3], decreasing = TRUE),]
   ## Get cluster ID of putative het INVs
@@ -141,7 +142,7 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   
   if (is.null(clusters)) {
     nclust <- nrow(theta.param[[1]])
-    clusters <- as.list(c(1:nclust))
+    clusters <- BiocGenerics::as.list(c(1:nclust))
     names(clusters) <- c(1:nclust)
     warning("[connectDividedClusters] No clusters could be merged.")
   }

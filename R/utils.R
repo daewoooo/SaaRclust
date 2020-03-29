@@ -5,6 +5,7 @@
 #' @param gr A \code{\link{GRanges-class}} object.
 #' @param id.field A number of metadata column to use for region merging.
 #' @param measure.field A field column that contains measured value to be sum up.
+#' @importFrom S4Vectors runLength Rle
 #' @return A \code{\link{GRanges-class}} object.
 #' @author David Porubsky
 #' @export
@@ -13,11 +14,13 @@ collapseBins <- function(gr, id.field=0, measure.field=NULL) {
   ## Include seqnames into the unique ID
   unique.ID <- paste0(seqnames(gr), '_', mcols(gr)[,id.field])
   ## Get continous runs of the same unique ID
-  unique.ID.runLength <- runLength(Rle(unique.ID))
+  unique.ID.runLength <- S4Vectors::runLength(S4Vectors::Rle(unique.ID))
   ind.last <- cumsum(unique.ID.runLength) ##get indices of last range in a consecutive(RLE) run of the same value
-  ind.first <- c(1,cumsum(unique.ID.runLength) + 1) ##get indices of first range in a consecutive(RLE) run of the same value
+  ind.first <- c(1, cumsum(unique.ID.runLength) + 1) ##get indices of first range in a consecutive(RLE) run of the same value
   ind.first <- ind.first[-length(ind.first)]  ##erase last index from first range indices 
-  collapsed.gr <- GenomicRanges::GRanges(seqnames=seqnames(gr[ind.first]), ranges=IRanges(start=start(gr[ind.first]), end=end(gr[ind.last])), mcols=mcols(gr[ind.first]))
+  collapsed.gr <- GenomicRanges::GRanges(seqnames=GenomeInfoDb::seqnames(gr[ind.first]), 
+                                         ranges=IRanges::IRanges(start=start(gr[ind.first]), end=end(gr[ind.last])), 
+                                         mcols=GenomicRanges::mcols(gr[ind.first]))
   names(mcols(collapsed.gr)) <- names(mcols(gr[ind.first]))
   ## Sum values in user defined measure fields(s)
   if (!is.null(measure.field)) {
@@ -60,6 +63,7 @@ flipCounts <- function(counts.l) {
 #'
 #' @param contig.states A \code{data.frame} of strand states per contig and per cell.
 #' @param scale If set to \code{TRUE} returned values will be scaled to 1.
+#' @param WWtoCC.penalty Penalize cases where there is W and C state in a single cell
 #' @return A symetric \code{matrix} of similarities for each contig pair.
 #' @author David Porubsky
 #' @export
@@ -135,8 +139,8 @@ addClusterGroup <- function(cluster.gr=NULL, cluster.groups=NULL) {
 #' 
 string2GRanges <- function(region.string=NULL) {
   regions.df <- data.frame(regions=region.string)
-  regions.df <- tidyr::separate(data = regions.df, col = regions, into = c('chr','posANDdir'), sep = ":")
-  regions.df <- tidyr::separate(data = regions.df, col = posANDdir, into = c('start','end','dir'), sep = "-|_")
+  regions.df <- tidyr::separate(data = regions.df, col = 'regions', into = c('chr','posANDdir'), sep = ":")
+  regions.df <- tidyr::separate(data = regions.df, col = 'posANDdir', into = c('start','end','dir'), sep = "-|_")
   regions.gr <- GenomicRanges::GRanges(seqnames=regions.df$chr, 
                                        ranges=IRanges(start=as.numeric(regions.df$start), 
                                                       end=as.numeric(regions.df$end)), 
@@ -152,6 +156,7 @@ string2GRanges <- function(region.string=NULL) {
 #' 
 #' @param gr A \code{\link{GRanges-class}} object.
 #' @return A \code{\link{GRanges-class}} object.
+#' @importFrom S4Vectors subjectHits
 #' @author David Porubsky
 #' @export
 #' @examples
@@ -182,7 +187,7 @@ expandGaps <- function(gr) {
     follow.idx <- GenomicRanges::start(gaps.gr) == 1
     GenomicRanges::end(gaps.gr)[follow.idx] <- GenomicRanges::end(gaps.gr)[follow.idx] + 1
     follow.hits <- GenomicRanges::findOverlaps(gaps.gr[follow.idx], new.gr)
-    GenomicRanges::start(new.gr[subjectHits(follow.hits)]) <- GenomicRanges::start(gaps.gr[follow.idx])
+    GenomicRanges::start(new.gr[S4Vectors::subjectHits(follow.hits)]) <- GenomicRanges::start(gaps.gr[follow.idx])
     return(new.gr)
   } else {
     return(gr)
@@ -198,6 +203,7 @@ expandGaps <- function(gr) {
 #' 
 #' @param gr A \code{\link{GRanges-class}} object.
 #' @return A \code{data.frame} object.
+#' @importFrom BiocGenerics as.data.frame
 #' @author David Porubsky
 #' @export
 #' @examples 
@@ -248,7 +254,7 @@ reportMisAsmCTGs <- function(gr) {
     ctg.gr$asm.error <- asm.error
     ctg.gr$misasm.bases <- misasm.bases
     
-    df <- as.data.frame(ctg.gr)
+    df <- BiocGenerics::as.data.frame(ctg.gr)
     report.l[[i]] <- df
   }
   report.df <- do.call(rbind, report.l)

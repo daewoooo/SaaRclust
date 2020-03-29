@@ -5,22 +5,24 @@
 #' @param minusCounts Minus (Watson) read counts aligned to PacBio reads.
 #' @param plusCounts Plus (Crick) read counts aligned to PacBio reads.
 #' @param alpha Estimated level of background in Strand-seq reads.
+#' @param log.scale Set to \code{TRUE} if probabilty should be calculated in a log scale. Recommended for high reads count 
+#' numbers expected for larger genomic regions such as contigs.
 #' @return A \code{matrix} of binomial probabilities for a given counts of plus and minus reads for a single cell. (rows=reads/genomic segments, cols=strand states)
 #' @importFrom stats dbinom
 #' @author David Porubsky, Maryam Ghareghani
 #' @export
 
-countProb <- function(minusCounts, plusCounts, alpha=0.1, log=FALSE) {
+countProb <- function(minusCounts, plusCounts, alpha=0.1, log.scale=FALSE) {
   
   sumCounts <- minusCounts + plusCounts
   #calculate that given PB read is WW
-  prob.ww <- stats::dbinom(minusCounts, size = sumCounts, prob = 1-alpha, log = log)
+  prob.ww <- stats::dbinom(minusCounts, size = sumCounts, prob = 1-alpha, log = log.scale)
     
   #calculate that given PB read is CC
-  prob.cc <- stats::dbinom(minusCounts, size = sumCounts, prob = alpha, log = log)
+  prob.cc <- stats::dbinom(minusCounts, size = sumCounts, prob = alpha, log = log.scale)
     
   #calculate that given PB read is WC
-  prob.mix <- stats::dbinom(minusCounts, size = sumCounts, prob = 0.5, log = log)
+  prob.mix <- stats::dbinom(minusCounts, size = sumCounts, prob = 0.5, log = log.scale)
     
   prob.m <- cbind(prob.ww, prob.cc, prob.mix)
     
@@ -34,7 +36,8 @@ countProb <- function(minusCounts, plusCounts, alpha=0.1, log=FALSE) {
 #' @param clust.prob A \code{list} of binomial probabilities (multiplied by theta & pi parameter) of each PB read in every possible cluster
 #' @param pi.scaled Paramter estimate of the size of each cluster scaled by cell number
 #' @param cellNum Number of Strand-seq cells used for clustering.
-#' @return A \code{matrix} of unormalized probalities of cell states per cluster.
+#' @inheritParams countProb
+#' @return A \code{matrix} of unnormalized probalities of cell states per cluster.
 #' @importFrom matrixStats logSumExp rowLogSumExps
 #' @author David Porubsky, Maryam Ghareghani
 #' @export

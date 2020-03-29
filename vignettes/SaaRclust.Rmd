@@ -99,12 +99,6 @@ EM.obj <- get(load(example.data))
 plotThetaEstimates(theta.param = EM.obj$theta.param[1:20])
 ```
 
-Plot distribution of soft clustering probabilities of each genomic regions to all clusters.
-```{r, echo=TRUE, message=FALSE}
-## Plot size and orientation of each cluster
-plotEMprobs(em.prob = EM.obj$soft.pVal)
-```
-
 Plot size of each cluster and the directionality of contigs within each cluster (dir - direct, revcomp - reverse complement)
 ```{r, echo=TRUE, message=FALSE}
 ## Get example files
@@ -114,6 +108,17 @@ example.data <- system.file("extdata/clustered_assembly",
 ordered.contigs.gr <- get(load(example.data))
 ## Plot size and orientation of each cluster
 plotClusteredContigSizes(clustered.gr = ordered.contigs.gr)
+```
+
+Plot summary statistics of successfully clustered contigs
+```{r, echo=TRUE, message=FALSE}
+## Get example files
+example.data <- system.file("extdata/clustered_assembly", 
+                            "ctgStat_minCtgSize_1e+07.RData", 
+                            package = "SaaRclust")
+ctg.stat <- get(load(example.data))
+## Plot statistics of clustered contigs
+plotCTGstat(ctg.stat = ctg.stat)
 ```
 
 # General Recommendations

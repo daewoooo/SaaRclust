@@ -19,6 +19,7 @@
 #' @inheritParams orderAndOrientClusters
 #' @inheritParams exportPseudoChromosomalScaffolds
 #' @importFrom Rsamtools indexFa FaFile scanBamHeader scanFaIndex
+#' @importFrom BiocGenerics table as.list
 #' @return NULL
 #' @author David Porubsky
 #' @export
@@ -204,7 +205,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       ## Estimate theta parameter
       theta.param <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=config[['alpha']])
       ## Estimate pi parameter
-      readsPerCluts <- table(hardClust.ord)
+      readsPerCluts <- BiocGenerics::table(hardClust.ord)
       pi.param <- readsPerCluts / sum(readsPerCluts)
       EM.obj <- EMclust(counts.l, theta.param=theta.param, pi.param=pi.param, num.iter=20, alpha=config[['alpha']], logL.th=1, log.scale=TRUE)
     }
@@ -212,7 +213,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     ## Estimate theta parameter
     theta.param <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=config[['alpha']])
     ## Estimate pi parameter
-    readsPerCluts <- table(hardClust.ord)
+    readsPerCluts <- BiocGenerics::table(hardClust.ord)
     pi.param <- readsPerCluts / sum(readsPerCluts)
     EM.obj <- EMclust(counts.l, theta.param=theta.param, pi.param=pi.param, num.iter=20, alpha=config[['alpha']], logL.th=1, log.scale=TRUE)
   }
@@ -274,7 +275,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     if (nclust > 2 & config[['num.clusters']] > config[['desired.num.clusters']]) {
       split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']])
     } else {
-      clusters <- as.list(c(1:nclust))
+      clusters <- BiocGenerics::as.list(c(1:nclust))
       names(clusters) <- c(1:nclust)
       split.pairs <- list(clusters=clusters, putative.HETs=NULL)
     }
@@ -357,6 +358,11 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
                                 stringsAsFactors = FALSE, row.names = NULL, 
                                 index = "clustered.ctgs")
   ctg.stat <- rbind(all.ctgs, size.select.ctgs, clustered.ctgs)
+  ## Store data object
+  destination <- file.path(asmpath, paste0("ctgStat_minCtgSize_", config[['min.contig.size']], ".RData"))
+  if (store.data.obj) {
+    save(ctg.stat, file = destination)
+  }
   
   ## Export clustered FASTA ##
   if (!is.null(config[['assembly.fasta']]) & is.character(config[['assembly.fasta']])) {

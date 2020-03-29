@@ -2,7 +2,9 @@
 #'
 #' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
 #' @param title A \code{character} to use as a title of the plot.
+#' @import ggplot2
 #' @importFrom reshape2 melt
+#' @importFrom BiocGenerics as.data.frame
 #' @author David Porubsky
 #' @export
 #' @examples 
@@ -17,7 +19,7 @@ plotThetaEstimates <- function(theta.param=NULL, title=NULL) {
   ptm <- startTimedMessage("Plotting theta estimates")
   plt.data <- list()
   for (j in 1:length(theta.param)) {
-    df <- as.data.frame(theta.param[[j]])
+    df <- BiocGenerics::as.data.frame(theta.param[[j]])
     df$clustID <- rownames(df)
     df.plt <- suppressMessages( reshape2::melt(df) )
     df.plt$cell <- j
@@ -31,12 +33,12 @@ plotThetaEstimates <- function(theta.param=NULL, title=NULL) {
                    axis.text.y=element_blank(),
                    axis.ticks.y=element_blank())
   if (is.null(title)) {
-    plt <- ggplot2::ggplot(plt.data.df , aes(x=clustID, y=value, fill=variable)) + geom_bar(stat='identity', width=1) + 
+    plt <- ggplot2::ggplot(plt.data.df , aes_string(x='clustID', y='value', fill='variable')) + geom_bar(stat='identity', width=1) + 
       facet_grid(cell ~ .) + 
       scale_fill_manual(values = c('prob.cc'="paleturquoise4", 'prob.mix'="olivedrab",'prob.ww'="sandybrown")) + 
       my_theme
   } else {
-    plt <- ggplot2::ggplot(plt.data.df , aes(x=clustID, y=value, fill=variable)) + 
+    plt <- ggplot2::ggplot(plt.data.df , aes_string(x='clustID', y='value', fill='variable')) + 
       geom_bar(stat='identity', width=1) + facet_grid(cell ~ .) + 
       scale_fill_manual(values = c('prob.cc'="paleturquoise4", 'prob.mix'="olivedrab",'prob.ww'="sandybrown")) + 
       ggtitle(title) + 
@@ -50,6 +52,9 @@ plotThetaEstimates <- function(theta.param=NULL, title=NULL) {
 #' Plot distribution of short reads mapped on top of PB reads
 #'
 #' @param count.list A \code{list} of short read mappings per library.
+#' @import ggplot2
+#' @importFrom cowplot plot_grid
+#' @importFrom BiocGenerics table as.data.frame
 #' @author David Porubsky
 #' @export
 
@@ -59,24 +64,27 @@ plotReadMappingDist <- function(count.list=NULL) {
   for (j in 1:length(count.list)) {
 
       lib.aligns <- count.list[[j]]
-      counts <- table(lib.aligns$PBreadNames)
+      counts <- BiocGenerics::table(lib.aligns$PBreadNames)
       SSperPB[[j]] <- counts
   }
   all.counts <- do.call(rbind, SSperPB)
-  plt.df1 <- as.data.frame(table(all.counts))
+  plt.df1 <- BiocGenerics::as.data.frame(BiocGenerics::table(all.counts))
+  plt.df1$all.counts <- as.numeric(plt.df1$all.counts)
+  
   plt1 <- ggplot2::ggplot(plt.df1) + 
-    geom_bar(aes(x=as.numeric(all.counts), y=Freq), stat='identity', fill="red") + 
+    geom_bar(aes_string(x='all.counts', y='Freq'), stat='identity', fill='red') + 
     xlab("# of ShortReads per PBread per Library") + ylab("Frequency") + 
     scale_x_continuous(breaks = as.numeric(plt.df1$all.counts), labels = plt.df1$all.counts)
   
   count.list.collapsed <- do.call(rbind, count.list)
-  counts <- table(count.list.collapsed$PBreadNames)
-  plt.df2 <- as.data.frame(table(counts))
+  counts <- BiocGenerics::table(count.list.collapsed$PBreadNames)
+  plt.df2 <- BiocGenerics::as.data.frame(BiocGenerics::table(counts))
+  plt.df2$all.counts <- as.numeric(plt.df2$all.counts)
   
   is.odd <- function(x) x %% 2 != 0
   breaks <- as.numeric(plt.df2$counts)[ is.odd(as.numeric(plt.df2$counts)) ]
   plt2 <- ggplot2::ggplot(plt.df2) + 
-    geom_bar(aes(x=as.numeric(counts), y=Freq), stat='identity', fill="red") + 
+    geom_bar(aes_string(x='counts', y='Freq'), stat='identity', fill='red') + 
     xlab("# of ShortReads per PBread") + ylab("Frequency") + 
     scale_x_continuous(breaks = breaks, labels = breaks)
   
@@ -88,6 +96,8 @@ plotReadMappingDist <- function(count.list=NULL) {
 #' Plot coverage of short reads mapped on top of PB reads
 #'
 #' @param minimap.tab A \code{data.frame} of short read mappings per PacBio read in maf.
+#' @import ggplot2
+#' @importFrom BiocGenerics as.data.frame
 #' @author David Porubsky
 #' @export
 
@@ -107,7 +117,7 @@ plotReadAlignments <- function(minimap.tab=NULL) {
     gr$level[which(GenomicRanges::strand(gr) == '-')] <- gr$level[which(GenomicRanges::strand(gr) == '-')] * -1
     
     #Get probabilities for StrandS read distribution
-    dirRead.counts <- table(GenomicRanges::strand(gr))
+    dirRead.counts <- BiocGenerics::table(GenomicRanges::strand(gr))
     probs <- countProb(minusCounts = dirRead.counts['-'], plusCounts = dirRead.counts["+"], alpha = 0.1)
     probs.norm <- probs/sum(probs) #normalize prob values to 1
     probs.string <- paste(probs.norm, collapse = ", ")
@@ -116,7 +126,7 @@ plotReadAlignments <- function(minimap.tab=NULL) {
     #probs.df <- data.frame(minus=dirRead.counts['-'], plus=dirRead.counts["+"], ww=probs[,1], cc=probs[,2] ,wc=probs[,3], max=which.max(probs))
     #probs.l[[i]] <- probs.df
     
-    plt.df <- as.data.frame(gr)
+    plt.df <- BiocGenerics::as.data.frame(gr)
     all.libs[[i]] <- plt.df
   }
   all.libs.df <- do.call(rbind, all.libs)
@@ -124,8 +134,8 @@ plotReadAlignments <- function(minimap.tab=NULL) {
   
   readLen <- data.frame(start=0, end=unique(all.libs.df$PBreadLen))
   plt <- ggplot2::ggplot(all.libs.df) + 
-    geom_linerange(data=readLen, aes(x=0, ymin=start, ymax=end), color="black") + 
-    geom_linerange(aes(x=level, ymin=start, ymax=end, color=strand)) + 
+    geom_linerange(data=readLen, aes(x=0, ymin=start, ymax=end), color='black') + 
+    geom_linerange(aes_string(x='level', ymin='start', ymax='end', color='strand')) + 
     coord_flip() + 
     scale_color_manual(values = c("paleturquoise4","sandybrown")) + 
     xlab("") + 
@@ -146,15 +156,17 @@ plotReadAlignments <- function(minimap.tab=NULL) {
 #' @param cluster.rows If set to \code{TRUE}, will order rows by hierarchical clustering.
 #' @param cluster.cols If set to \code{TRUE}, will order columns by hierarchical clustering.
 #' @param filt.cols If set to \code{TRUE}, will remove columns with the same strand-state across all contigs.
+#' @import ggplot2
 #' @importFrom stats dist hclust
 #' @importFrom reshape2 melt
+#' @importFrom BiocGenerics as.data.frame
 #' @author David Porubsky
 #' @export
 #' 
-plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, cluster.cols=FALSE, filt.cols=FALSE) {
+plotContigStrandStates <- function(contig.states=NULL, cluster.rows=FALSE, cluster.cols=FALSE, filt.cols=FALSE) {
   ## Make sure that submitted object is a data.frame
   if (class(contig.states) != 'data.frame') {
-    contig.states <- as.data.frame(contig.states)
+    contig.states <- BiocGenerics::as.data.frame(contig.states)
   }
   ## Remove columns that have the same strand state across all contigs ('uninformative cells')
   if (filt.cols) {
@@ -199,9 +211,10 @@ plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, clu
     plt.df$contig <- factor(rownames(plt.df), levels = rownames(plt.df))
   }
   plt.df <- reshape2::melt(plt.df, id.vars = 'contig')
+  plt.df$value <- factor(plt.df$value)
   ## Plot contigs
   plt <- ggplot2::ggplot(plt.df) + 
-    geom_tile(aes(x=variable, y=contig, fill=factor(value))) +
+    geom_tile(aes_string(x='variable', y='contig', fill='value')) +
     scale_fill_manual(values = brewer.pal(n=4, name = 'Set1'), name='States') +
     xlab("Cell number") +
     ylab("Contig ID") +
@@ -217,7 +230,7 @@ plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, clu
 #' @param min.mapq Minimum mapping quality of a contig to the refrence sequence.
 #' @param min.contig.size Minimal contigs size to plot.
 #' @param chromosomes User defined set of chromosomes to plot.
-#' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
+#' @param bsgenome A \code{BSgenome} object to provide chromosome lengths for plotting.
 #' @param blacklist A \code{\link{GRanges-class}} object of regions to be removed.
 #' @param report Plot either 'clustering', 'ordering' or 'orienting' of the contigs. Default: 'clustering'.
 #' @param info.delim Define a delimiter to split 4th field of the input BED file.
@@ -226,9 +239,12 @@ plotContigStrandStates <- function(contig.states = NULL, cluster.rows=FALSE, clu
 #' @param reverse.x Set to \code{TRUE} if x-axis should be horizontaly reversed.
 #' @param title Add title to the plot.
 #' @return A \code{ggplot} object.
+#' @import ggplot2
 #' @importFrom RColorBrewer brewer.pal.info brewer.pal
 #' @importFrom tidyr separate
 #' @importFrom utils read.table
+#' @importFrom grDevices gray.colors
+#' @importFrom BiocGenerics as.data.frame
 #' @author David Porubsky
 #' @export
 #' 
@@ -259,7 +275,7 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
   
   ## Check if sequence names in info field contains underscores to separate various metadata
   if (is.character(info.delim) & is.character(info.fields)) {
-    plt.df <- tidyr::separate(data, col = info, sep = info.delim, into = info.fields)
+    plt.df <- tidyr::separate(data, col = 'info', sep = info.delim, into = info.fields)
     plt.df$seqnames <- factor(plt.df$seqnames, levels=chroms2use)
   } else {
     col.by <- colnames(data)[4]
@@ -317,7 +333,7 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
     plt.df$ord.color <- ""
     for (chr in unique(plt.df$seqnames)) {
       chr.idx <- which(plt.df$seqnames == chr)
-      colors <- gray.colors(max(plt.df$order[chr.idx]))
+      colors <- grDevices::gray.colors(max(plt.df$order[chr.idx]))
       plt.df$ord.color[chr.idx] <- colors[plt.df$order[chr.idx]]
     }
     
@@ -345,8 +361,8 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
   
   ## Plot blacklisted regions in white if defined
   if (!is.null(blacklist)) {
-    blacklist.df <- as.data.frame(blacklist)
-    blacklist.df <- blacklist.df[blacklist.df$seqnames %in% chroms,]
+    blacklist.df <- BiocGenerics::as.data.frame(blacklist)
+    blacklist.df <- blacklist.df[blacklist.df$seqnames %in% chroms2use,]
     plt <- plt + geom_rect(data=blacklist.df , aes(xmin=start, xmax=end, ymin=0, ymax=1), fill='white')
   }
   
@@ -373,14 +389,15 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
 #' @param col.low User defined color for a high co-inheritance values.
 #' @param col.high User defined color for a low co-inheritance values.
 #' @return A \code{ggplot} object.
+#' @import ggplot2
 #' @importFrom reshape2 melt
 #' @author David Porubsky
 #' @export
 #'
 plotDistanceMatrix <- function(dist.matrix, col.low="chartreuse4", col.high="cadetblue1") {
   dist.matrix.long <- reshape2::melt(dist.matrix)
-  plt <- ggplot2::ggplot(dist.matrix.long, aes(x = Var2, y = Var1)) + 
-    geom_raster(aes(fill = value)) + 
+  plt <- ggplot2::ggplot(dist.matrix.long, aes_string(x = 'Var2', y = 'Var1')) + 
+    geom_raster(aes_string(fill = 'value')) + 
     scale_fill_gradient(low = col.low, high = col.high) +
     coord_fixed() +
     xlab("") +
@@ -397,6 +414,8 @@ plotDistanceMatrix <- function(dist.matrix, col.low="chartreuse4", col.high="cad
 #' @param format Use 'bam' for contigs aligned to the reference or 'fai' for fasta index file or 'GRanges' for \code{\link{GRanges-class}} object.
 #' @param title Add title to the plot.
 #' @return A \code{ggplot} object.
+#' @import ggplot2
+#' @importFrom cowplot plot_grid
 #' @importFrom Rsamtools scanBamHeader
 #' @importFrom scales comma
 #' @importFrom utils read.table
@@ -429,7 +448,7 @@ plotAssemblyStat <- function(infile=NULL, format='bam', title=NULL) {
   total.contigs <- paste0('Total contigs = ', nrow(plt.df))
   
   plt.df$x <- 1:nrow(plt.df)
-  plt <- ggplot2::ggplot() + geom_point(data = plt.df, aes(x=x, y=ctg.len)) +
+  plt <- ggplot2::ggplot() + geom_point(data = plt.df, aes_string(x='x', y='ctg.len')) +
     geom_hline(yintercept = 1000000, linetype='dashed', color='red') +
     geom_hline(yintercept = N50, color='chartreuse4') +
     geom_hline(yintercept = N90, color='darkgoldenrod3') +
@@ -454,6 +473,7 @@ plotAssemblyStat <- function(infile=NULL, format='bam', title=NULL) {
 #' @param em.prob A \code{matrix} of probability assignments per contig and per cluster.
 #' @inheritParams counts2ranges
 #' @return A \code{ggplot} object.
+#' @import ggplot2
 #' @author David Porubsky
 #' @export
 #' @examples 
@@ -468,7 +488,7 @@ plotEMprobs <- function(em.prob=NULL, prob.th=0) {
   max.probs <- apply(em.prob, 1, function(x) x[which.max(x)])
   max.probs.df <- data.frame(values=max.probs)
   suppressWarnings(
-    plt <- ggplot2::ggplot(max.probs.df, aes(max.probs.df$values)) +
+    plt <- ggplot2::ggplot(max.probs.df, aes_string('values')) +
       geom_histogram(bins = 50) +
       scale_y_continuous(trans = 'log10') +
       xlab("Distribution of cluster assignment probabilities") +
@@ -487,7 +507,10 @@ plotEMprobs <- function(em.prob=NULL, prob.th=0) {
 #'
 #' @param clustered.gr A \code{\link{GRanges-class}} object with a contig region and their cluster assignment in the 'ID' metacolumn.
 #' @return A \code{ggplot} object.
+#' @import ggplot2
 #' @importFrom dplyr %>%
+#' @importFrom BiocGenerics as.data.frame
+#' @importFrom rlang .data
 #' @author David Porubsky
 #' @export
 #' @examples 
@@ -500,9 +523,9 @@ plotEMprobs <- function(em.prob=NULL, prob.th=0) {
 plotClusteredContigSizes <- function(clustered.gr=NULL) {
   ptm <- startTimedMessage("Plotting cluster sizes")
   ## Prepare data for plotting
-  clustered.df <- as.data.frame(clustered.gr)
-  plt.df <- clustered.df %>% dplyr::group_by(ID, dir) %>% dplyr::summarise(length=sum(width)) %>%
-    dplyr::mutate(total.len = sum(length)) %>% dplyr::arrange(desc(total.len))
+  clustered.df <- BiocGenerics::as.data.frame(clustered.gr)
+  plt.df <- clustered.df %>% dplyr::group_by(.data$ID, .data$dir) %>% dplyr::summarise(length=sum(.data$width)) %>%
+    dplyr::mutate(total.len = sum(.data$length)) %>% dplyr::arrange(desc(.data$total.len))
   plt.df$ID <- factor(plt.df$ID, levels = unique(plt.df$ID))
   
   ## Get chromosome breaks and labels
@@ -512,7 +535,7 @@ plotClusteredContigSizes <- function(clustered.gr=NULL) {
   labels <- paste0(labels, 'Mb')
   
   ## Make plot
-  plt <- ggplot2::ggplot(data=plt.df, aes(x=ID, y=length, fill=dir)) +
+  plt <- ggplot2::ggplot(data=plt.df, aes_string(x='ID', y='length', fill='dir')) +
     geom_col() +
     scale_fill_manual(values = c('cadetblue4','darkgoldenrod3'), name="Direction") +
     scale_y_continuous(breaks = breaks, labels = labels, name="Cluster size (Mb)", expand = c(0,0)) +
@@ -526,11 +549,20 @@ plotClusteredContigSizes <- function(clustered.gr=NULL) {
 
 #' Plot total number and total length of all contigs analyzed and their number after filtering and clustering step.
 #'
-#' @param clustered.gr A \code{data.frame} object with columns containing contig names, their lengths and a unique index.
+#' @param ctg.stat A \code{data.frame} object with columns containing contig names, their lengths and a unique index.
 #' @return A \code{ggplot} object.
+#' @import ggplot2
+#' @importFrom cowplot plot_grid
+#' @importFrom rlang .data
 #' @importFrom dplyr %>%
 #' @author David Porubsky
 #' @export
+#' @examples 
+#'## Get example files
+#'example.data <- system.file("extdata/clustered_assembly", "ctgStat_minCtgSize_1e+07.RData", package = "SaaRclust")
+#'ctg.stat <- get(load(example.data))
+#'## Plot statistics of clustered contigs
+#'ctg.stat.plt <- plotCTGstat(ctg.stat = ctg.stat)
 #'
 plotCTGstat <- function(ctg.stat=NULL) {
   ptm <- startTimedMessage("Plotting contig statistics")
@@ -546,22 +578,26 @@ plotCTGstat <- function(ctg.stat=NULL) {
           axis.text.x = element_blank(),
           axis.ticks = element_blank())
   ## Construct plots
-  plt1 <- ctg.stat %>% group_by(index) %>% summarise(asm.size = round(sum(ctg.len) / 1000000000, digits = 2)) %>% 
-    ggplot(aes(x=index, y=asm.size, fill=index)) + 
+  plt1 <- ctg.stat %>% dplyr::group_by(.data$index) %>% 
+    dplyr::summarise(asm.size = round(sum(.data$ctg.len) / 1000000000, digits = 2)) %>% 
+    dplyr::mutate(y = 0, label = paste0(.data$asm.size, 'Gb')) %>%
+    ggplot2::ggplot(aes_string(x='index', y='asm.size', fill='index')) + 
     geom_bar(width = 0.9, stat="identity") + 
     coord_polar(theta = "y") +
     xlab("") + ylab("") +
-    geom_text(hjust = 0.5, vjust = 0.5, size = 5, aes(x = index, y = 0, label = paste0(asm.size, 'Gb'))) + 
+    geom_text(hjust = 0.5, vjust = 0.5, size = 5, aes_string(x = 'index', y = 'y', label = 'label')) + 
     scale_fill_manual(values = c('gray63', 'dodgerblue2', 'limegreen'), name="") + 
     ggtitle("Total assembly length (Gb)") +
     custom_theme
   
-  plt2 <- ctg.stat %>% group_by(index) %>% summarise(ctg.num = n()) %>% 
-    ggplot(aes(x=index, y=ctg.num, fill=index)) + 
+  plt2 <- ctg.stat %>% dplyr::group_by(.data$index) %>% 
+    dplyr::summarise(ctg.num = dplyr::n()) %>% 
+    dplyr::mutate(y = 0) %>%
+    ggplot2::ggplot(aes_string(x='index', y='ctg.num', fill='index')) + 
     geom_bar(width = 0.9, stat="identity") + 
     coord_polar(theta = "y") +
     xlab("") + ylab("") +
-    geom_text(hjust = 0.5, vjust = 0.5, size = 5, aes(x = index, y = 0, label = ctg.num)) + 
+    geom_text(hjust = 0.5, vjust = 0.5, size = 5, aes_string(x = 'index', y = 'y', label = 'ctg.num')) + 
     scale_fill_manual(values = c('gray63', 'dodgerblue2', 'limegreen'), name="") + 
     ggtitle("Total # of contigs") +
     custom_theme

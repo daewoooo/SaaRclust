@@ -11,6 +11,8 @@
 #' @inheritParams countProb
 #' @inheritParams importBams
 #' @inheritParams connectDividedClusters
+#' @importFrom S4Vectors endoapply
+#' @importFrom BiocGenerics as.data.frame
 #' @author David Porubsky
 #' @export
 #' @examples
@@ -28,17 +30,17 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
   
   ptm <- startTimedMessage("Preparing contigs for ordering and orienting")
   ## Merge by cluster ID
-  grl.collapsed <- endoapply(clustered.grl, function(x) collapseBins(x, id.field = 1, measure.field = c(2,3)))
+  grl.collapsed <- S4Vectors::endoapply(clustered.grl, function(x) collapseBins(x, id.field = 1, measure.field = c(2,3)))
   ## Add cluster ID
-  grl.collapsed <- endoapply(grl.collapsed, function(x) addClusterGroup(cluster.gr = x, cluster.groups = split.pairs$clusters))
+  grl.collapsed <- S4Vectors::endoapply(grl.collapsed, function(x) addClusterGroup(cluster.gr = x, cluster.groups = split.pairs$clusters))
   ## Merge by group ID [!!! this might disrupt ordering and confuse primary cluster IDs !!!] Collapses misorients within the same contig & cluster!!!
-  #grl.collapsed <- endoapply(grl.collapsed, function(x) collapseBins(x, id.field = 4, measure.field = c(2,3)))
+  #grl.collapsed <- S4Vectors::endoapply(grl.collapsed, function(x) collapseBins(x, id.field = 4, measure.field = c(2,3)))
   ## Remove ranges smaller than the min.region.to.order
   if (min.region.to.order > 0) {
-    grl.collapsed <- endoapply(grl.collapsed, function(x) x[width(x) >= min.region.to.order])
+    grl.collapsed <- S4Vectors::endoapply(grl.collapsed, function(x) x[width(x) >= min.region.to.order])
   }  
   ## Get strand state for each region
-  grl.BN.probs <- lapply(grl.collapsed, function(x) countProb(minusCounts = x$W, plusCounts = x$C, alpha=alpha, log=TRUE))
+  grl.BN.probs <- lapply(grl.collapsed, function(x) countProb(minusCounts = x$W, plusCounts = x$C, alpha=alpha, log.scale=TRUE))
   grl.BN.probs.max <- lapply(grl.BN.probs, function(x) apply(x, 1, which.max))
   grl.BN.probs.max <- do.call(cbind, grl.BN.probs.max)
   ## Construct strand-state data.frame
@@ -109,7 +111,7 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     ordered.contigs.grl[[length(ordered.contigs.grl) + 1]] <- ordered.contigs
   }
   ordered.contigs.gr <- unlist(ordered.contigs.grl, use.names = FALSE)
-  ordered.contigs.df <- as.data.frame(ordered.contigs.gr)
+  ordered.contigs.df <- BiocGenerics::as.data.frame(ordered.contigs.gr)
   if (!is.null(filename) & is.character(filename)) {
     ## Export contig order
     utils::write.table(ordered.contigs.df, file = filename, quote = FALSE, row.names = FALSE, append = FALSE, sep = "\t")

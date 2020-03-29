@@ -14,6 +14,14 @@ plotThetaEstimates(theta.param = NULL, title = NULL)
 \description{
 Plot theta estimates resulting from EM algorithm.
 }
+\examples{
+## Get example files
+example.data <- system.file("extdata/data", "softClust_100K_5e+06bp_dynamic.RData", package = "SaaRclust")
+EM.obj <- get(load(example.data))
+## Plot theta parameter for 20 single cells
+theta.plt <- plotThetaEstimates(theta.param = EM.obj$theta.param[1:20])
+
+}
 \author{
 David Porubsky
 }

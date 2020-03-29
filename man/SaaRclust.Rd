@@ -38,6 +38,9 @@ SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
 \item{HC.input}{Filaname where hard clustering results are stored}
 
 \item{cellNum}{Specifies the number of single cells to be used in clustering}
+
+\item{log.scale}{Set to \code{TRUE} if probabilty should be calculated in a log scale. Recommended for high reads count 
+numbers expected for larger genomic regions such as contigs.}
 }
 \description{
 Wrapper function to run saarclust pipeline for a given number of long reads reads.

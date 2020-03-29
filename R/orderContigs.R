@@ -74,8 +74,9 @@ orderContigsTSP <- function(contig.states=NULL, dist.matrix=NULL, method='neares
 #'
 #' @param contig.states A \code{data.frame} of strand states per contig and per cell.
 #' @param randomAttempts Number of random trials to solve contig ordering.
-#' @useDynLib SaaRclust
-#' @import Rcpp TSP
+#@useDynLib SaaRclust
+#' @import Rcpp
+#' @import BH
 #' @author Kieran O'Neill, Mark Hills, Mike Gottlieb (Modified by David Porubsky)
 #' @export
 #' 

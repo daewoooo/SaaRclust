@@ -26,6 +26,8 @@ If a \code{configfile} is specified, it will take priority over the command line
 
 \item{min.region.to.order}{A minimum size region to try to order within a cluster.}
 
+\item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
+
 \item{bin.size}{A length of a bin to count reads in.}
 
 \item{step.size}{A size of the genomic interval to move each bin.}

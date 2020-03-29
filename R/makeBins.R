@@ -98,8 +98,9 @@ makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromos
 #' Make dynamic-width bins based on given bin and step size.
 #' NOTE: Here 'bin.size' represents number of mappable positions in each bin !!!
 #'
+#' @param bamfiles A \code{character} vector of paths to BAM files to be used for dynamic binning.
 #' @inheritParams makeFixedBins
-#' @return A \code{\link{GRanges-class}} object with fixed-width bins.
+#' @return A \code{\link{GRanges-class}} object with dynamic-width bins.
 #' @author David Porubsky
 #' @importFrom Rsamtools BamFile
 #' @importFrom bamsignals bamCoverage

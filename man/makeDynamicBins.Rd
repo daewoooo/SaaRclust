@@ -8,6 +8,8 @@ makeDynamicBins(bamfiles = NULL, bin.size = 1e+05, step.size = NULL,
   chromosomes = NULL, keep.small.chr = FALSE)
 }
 \arguments{
+\item{bamfiles}{A \code{character} vector of paths to BAM files to be used for dynamic binning.}
+
 \item{bin.size}{A size of the genomic bin to split genome into.}
 
 \item{step.size}{A size of the genomic interval to move each bin.}
@@ -17,7 +19,7 @@ makeDynamicBins(bamfiles = NULL, bin.size = 1e+05, step.size = NULL,
 \item{keep.small.chr}{Set to \code{TRUE} if chromosome/contigs smaller than the 'bin.size' should be kept.}
 }
 \value{
-A \code{\link{GRanges-class}} object with fixed-width bins.
+A \code{\link{GRanges-class}} object with dynamic-width bins.
 }
 \description{
 Make dynamic-width bins based on given bin and step size.

@@ -17,6 +17,14 @@ A \code{ggplot} object.
 \description{
 Plot distribution of cluster assignment probabilities.
 }
+\examples{
+## Get example files
+example.data <- system.file("extdata/data", "softClust_100K_5e+06bp_dynamic.RData", package = "SaaRclust")
+EM.obj <- get(load(example.data))
+## Plot size and orientation of each cluster
+prob.plt <- plotEMprobs(em.prob = EM.obj$soft.pVal)
+
+}
 \author{
 David Porubsky
 }

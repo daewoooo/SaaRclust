@@ -19,6 +19,9 @@ EMclust(counts.l, theta.param = NULL, pi.param = NULL,
 \item{alpha}{Estimated level of background in Strand-seq reads.}
 
 \item{logL.th}{Set the difference between objective function from the current and the previous interation for EM algorithm to converge.}
+
+\item{log.scale}{Set to \code{TRUE} if probabilty should be calculated in a log scale. Recommended for high reads count 
+numbers expected for larger genomic regions such as contigs.}
 }
 \value{
 A \code{list} of various exported results [pVal, pVal.logL, log.l, theta.param, pi.param].
@@ -28,7 +31,7 @@ This function performs basic steps of EM algorithm.
 }
 \examples{
 ## Get an example file
-exampleFile <- system.file("extdata", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
+exampleFile <- system.file("extdata/data", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
 ## Load BAM count table
 counts.l <- get(load(exampleFile))
 ## Get hard clustering results

@@ -7,13 +7,21 @@
 plotCTGstat(ctg.stat = NULL)
 }
 \arguments{
-\item{clustered.gr}{A \code{data.frame} object with columns containing contig names, their lengths and a unique index.}
+\item{ctg.stat}{A \code{data.frame} object with columns containing contig names, their lengths and a unique index.}
 }
 \value{
 A \code{ggplot} object.
 }
 \description{
 Plot total number and total length of all contigs analyzed and their number after filtering and clustering step.
+}
+\examples{
+## Get example files
+example.data <- system.file("extdata/clustered_assembly", "ctgStat_minCtgSize_1e+07.RData", package = "SaaRclust")
+ctg.stat <- get(load(example.data))
+## Plot statistics of clustered contigs
+ctg.stat.plt <- plotCTGstat(ctg.stat = ctg.stat)
+
 }
 \author{
 David Porubsky

@@ -15,6 +15,14 @@ A \code{ggplot} object.
 \description{
 Plot distribution of cluster sizes.
 }
+\examples{
+## Get example files
+example.data <- system.file("extdata/clustered_assembly", "ordered&oriented_5e+06bp_chunks.RData", package = "SaaRclust")
+ordered.contigs.gr <- get(load(example.data))
+## Plot size and orientation of each cluster
+clust.plt <- plotClusteredContigSizes(clustered.gr = ordered.contigs.gr)
+
+}
 \author{
 David Porubsky
 }

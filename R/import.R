@@ -15,14 +15,14 @@ importData <- function(infile=NULL) {  #TODO modify this function for input wher
   
   #filetype = summary( file(infile) )$class #If it's gzipped, filetype will be gzfile
   if (summary( file(infile) )$class == 'gzfile') {
-    data <- data.table::fread(paste0('zcat ',infile), header=T, verbose = F, showProgress = F)
-    # select columns:
-    data <- data[, .(SSreadNames, SSlibNames, SSflag, SSchrom, SSpos, strand, PBreadNames, PBflag, PBchrom, PBpos, PBreadLen, TargetCoordStart, TargetCoordend, MatchedBasesWithGaps)]
+    data <- data.table::fread(paste0('zcat ', infile), header=TRUE, verbose=FALSE, showProgress=FALSE)
+    ## select columns
+    data <- data[, c('SSreadNames', 'SSlibNames', 'SSflag', 'SSchrom', 'SSpos', 'strand', 'PBreadNames', 'PBflag', 'PBchrom', 'PBpos', 'PBreadLen', 'TargetCoordStart', 'TargetCoordend', 'MatchedBasesWithGaps')]
   } else {
-    data <- data.table::fread(infile, header=T, verbose = F, showProgress = F)
+    data <- data.table::fread(infile, header=TRUE, verbose=FALSE, showProgress=FALSE)
   }
   
-  #make sure strand info is represented as factor variable
+  ## make sure strand info is represented as factor variable
   data$strand <- factor(data$strand)
   
   stopTimedMessage(ptm)
@@ -113,6 +113,8 @@ importTestData <- function(infile=NULL, removeDuplicates = TRUE) {  #TODO modify
 #' @param minSSlibs A range for the minimal and maximal number of StrandS libs being represented per PB read.
 #' @return A filtered \code{data.frame}.
 #' @importFrom dplyr group_by summarise
+#' @importFrom BiocGenerics table
+#' @importFrom rlang .data
 #' @author David Porubsky
 #' @export
 #' 
@@ -135,7 +137,7 @@ filterInput <- function(inputData=NULL, quantileSSreads=c(0,0.9), minSSlibs=c(20
   
   #get number of SS reads per PB read
   if (!is.null(quantileSSreads)) {
-    SSread.perPB <- sort(table(inputData.filt$PBreadNames), decreasing = T) #this won't be needed when output will be already sorted by PBreads
+    SSread.perPB <- sort(BiocGenerics::table(inputData.filt$PBreadNames), decreasing = T) #this won't be needed when output will be already sorted by PBreads
   
     #filter reads based on the mean number of SS reads aligned per each PB read
     quantile.range <- quantile(SSread.perPB, probs = quantileSSreads)
@@ -146,7 +148,7 @@ filterInput <- function(inputData=NULL, quantileSSreads=c(0,0.9), minSSlibs=c(20
   }
   
   #filter reads based on the number of SS libs per PB read [FAST]
-  inputData.filt %>% dplyr::group_by(PBreadNames) %>% dplyr::summarise(counts = length(unique(SSlibNames))) -> SSlib.perPB.counts
+  inputData.filt %>% dplyr::group_by(.data$PBreadNames) %>% dplyr::summarise(counts = length(unique(.data$SSlibNames))) -> SSlib.perPB.counts
   maskNames <- SSlib.perPB.counts$PBreadNames[SSlib.perPB.counts$counts >= minSSlibs[1] & SSlib.perPB.counts$counts <= minSSlibs[2]]
   inputData.filt <- inputData.filt[inputData.filt$PBreadNames %in% maskNames,]
   

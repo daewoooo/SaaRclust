@@ -5,6 +5,7 @@
 #' @param tab.l A \code{list} of PB alignmetns separated per cell.
 #' @return A \code{list} of matrices reporting counts of Watson('-') and Crick('+') reads aligned to each genomic segment per cell. (rows=reads or genomic segments, cols=watson & crick read counts)
 #' @importFrom data.table data.table
+#' @importFrom BiocGenerics table
 #' @author David Porubsky
 #' 
 countDirectionalReads <- function(tab.l=NULL) {
@@ -21,7 +22,7 @@ countDirectionalReads <- function(tab.l=NULL) {
     #counts <- t(sapply(aligns.per.read, function(x) table(x)))
     
     #count directional reads per PB read (FASTEST)  
-    counts <- data.table::data.table(lib.aligns)[,table(strand),by=PBreadNames] #even faster option TEST
+    counts <- data.table::data.table(lib.aligns)[,BiocGenerics::table(strand), by='PBreadNames'] #even faster option TEST
     cov.PBreads <- counts$PBreadNames
     uncov.PBreads <- levels(cov.PBreads)[!levels(cov.PBreads) %in% cov.PBreads]
     counts <- rbind(matrix(counts$V1, ncol=2, byrow = T), matrix(rep(0, 2*length(uncov.PBreads)), ncol=2) )

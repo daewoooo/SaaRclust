@@ -13,9 +13,12 @@ gammaFunction(clust.prob = NULL, pi.scaled = NULL, cellNum = NULL,
 \item{pi.scaled}{Paramter estimate of the size of each cluster scaled by cell number}
 
 \item{cellNum}{Number of Strand-seq cells used for clustering.}
+
+\item{log.scale}{Set to \code{TRUE} if probabilty should be calculated in a log scale. Recommended for high reads count 
+numbers expected for larger genomic regions such as contigs.}
 }
 \value{
-A \code{matrix} of unormalized probalities of cell states per cluster.
+A \code{matrix} of unnormalized probalities of cell states per cluster.
 }
 \description{
 Takes binomial probabilites for every cluster and update these probabilies given the assigment of Pacbio reads to clusters.

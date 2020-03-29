@@ -14,6 +14,10 @@ maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = NULL,
 
 \item{genomic.bins}{A \code{\link[GenomicRanges]{GRanges}} object with defined genomic bins.}
 
+\item{min.mapq}{Minimum mapping quality when importing from BAM files.}
+
+\item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
+
 \item{max.frag}{A maximum fragment length to import from the BAM file.}
 }
 \description{

@@ -36,8 +36,8 @@ counts2ranges <- function(counts.l=NULL, saarclust.obj=NULL, best.prob=1, prob.t
   
   ## Convert rownames into GRanges object 
   df <- data.frame(name=rownames(soft.prob))
-  df <- tidyr::separate(data = df, col = name, sep = ":", into = c("name", "region"))
-  df <- tidyr::separate(data = df, col = region, sep = "-", into = c("start", "end"))
+  df <- tidyr::separate(data = df, col = 'name', sep = ":", into = c("name", "region"))
+  df <- tidyr::separate(data = df, col = 'region', sep = "-", into = c("start", "end"))
   regions.gr <- GenomicRanges::GRanges(seqnames=df$name, ranges=IRanges(start=as.numeric(df$start), end=as.numeric(df$end)))
   
   ## Report cluster ID based on a defined number of highest p-values
@@ -89,8 +89,8 @@ clusters2ranges <- function(saarclust.obj = NULL, best.prob = 1, prob.th = 0.5) 
   
   ## Convert rownames into GRanges object 
   df <- data.frame(name=rownames(soft.prob))
-  df <- tidyr::separate(data = df, col = name, sep = ":", into = c("name", "region"))
-  df <- tidyr::separate(data = df, col = region, sep = "-", into = c("start", "end"))
+  df <- tidyr::separate(data = df, col = 'name', sep = ':', into = c('name', 'region'))
+  df <- tidyr::separate(data = df, col = 'region', sep = '-', into = c('start', 'end'))
   regions.gr <- GenomicRanges::GRanges(seqnames=df$name, ranges=IRanges(start=as.numeric(df$start), end=as.numeric(df$end)))
   
   ## Report cluster ID based on a defined number of highest p-values

@@ -4,7 +4,7 @@
 \alias{countProb}
 \title{Calculate probability of PacBio reads having WW, CC or WC state.}
 \usage{
-countProb(minusCounts, plusCounts, alpha = 0.1, log = FALSE)
+countProb(minusCounts, plusCounts, alpha = 0.1, log.scale = FALSE)
 }
 \arguments{
 \item{minusCounts}{Minus (Watson) read counts aligned to PacBio reads.}
@@ -12,6 +12,9 @@ countProb(minusCounts, plusCounts, alpha = 0.1, log = FALSE)
 \item{plusCounts}{Plus (Crick) read counts aligned to PacBio reads.}
 
 \item{alpha}{Estimated level of background in Strand-seq reads.}
+
+\item{log.scale}{Set to \code{TRUE} if probabilty should be calculated in a log scale. Recommended for high reads count 
+numbers expected for larger genomic regions such as contigs.}
 }
 \value{
 A \code{matrix} of binomial probabilities for a given counts of plus and minus reads for a single cell. (rows=reads/genomic segments, cols=strand states)

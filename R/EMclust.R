@@ -14,7 +14,7 @@
 #' @export
 #' @examples
 #'## Get an example file
-#'exampleFile <- system.file("extdata", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
+#'exampleFile <- system.file("extdata/data", "rawCounts_5e+06bp_dynamic.RData", package = "SaaRclust")
 #'## Load BAM count table
 #'counts.l <- get(load(exampleFile))
 #'## Get hard clustering results
@@ -70,7 +70,7 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
   
       ## Calculate BN probabilities
       if (i == 1) {
-        BN.probs <- countProb(minusCounts = counts[,1], plusCounts = counts[,2], alpha=alpha, log=log.scale)
+        BN.probs <- countProb(minusCounts = counts[,1], plusCounts = counts[,2], alpha=alpha, log.scale=log.scale)
         BN.probs.l[[j]] <- BN.probs
       } else {
         BN.probs <- BN.probs.l[[j]]

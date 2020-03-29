@@ -11,6 +11,8 @@ getCoinheritanceMatrix(contig.states = NULL, scale = FALSE,
 \item{contig.states}{A \code{data.frame} of strand states per contig and per cell.}
 
 \item{scale}{If set to \code{TRUE} returned values will be scaled to 1.}
+
+\item{WWtoCC.penalty}{Penalize cases where there is W and C state in a single cell}
 }
 \value{
 A symetric \code{matrix} of similarities for each contig pair.

@@ -18,7 +18,7 @@ plotClusteredContigs(bedfile, min.mapq = 10, min.contig.size = NULL,
 
 \item{chromosomes}{User defined set of chromosomes to plot.}
 
-\item{bsgenome}{A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.}
+\item{bsgenome}{A \code{BSgenome} object to provide chromosome lengths for plotting.}
 
 \item{blacklist}{A \code{\link{GRanges-class}} object of regions to be removed.}
 

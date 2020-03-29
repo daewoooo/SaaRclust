@@ -14,6 +14,10 @@ importBams(bamfolder = bamfolder, chromosomes = NULL,
 
 \item{chromosomes}{A user defined set of chromosomes for binning (eg. 'chr1')}
 
+\item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
+
+\item{min.mapq}{Minimum mapping quality when importing from BAM files.}
+
 \item{bin.size}{A length of a bin to count reads in.}
 
 \item{step.size}{A size of the genomic interval to move each bin.}

@@ -4,6 +4,7 @@
 #'
 #' @param inputData A \code{data.frame} loaded by \code{\link[SaaRclust]{importTestData}}
 #' @importFrom dplyr group_by summarise
+#' @importFrom rlang .data
 #' @author David Porubsky
 #' 
 getQualMeasure <- function(inputData) {
@@ -13,7 +14,7 @@ getQualMeasure <- function(inputData) {
   SSreads.perPB <- sort(table(inputData$PBreadNames), decreasing = T) #this won't be needed when output will be already sorted by PBreads
   
   #get number of SS libs per PB read
-  inputData %>% dplyr::group_by(PBreadNames) %>% dplyr::summarise(counts = length(unique(SSlibNames))) -> SSlib.perPB
+  inputData %>% dplyr::group_by(.data$PBreadNames) %>% dplyr::summarise(counts = length(unique(.data$SSlibNames))) -> SSlib.perPB
   
   #get number of SS reads per lib per PB read
   SSreads.perPB.l <- split(inputData$SSlibNames, inputData$PBreadNames)
@@ -69,7 +70,6 @@ getClusterAcc <- function(clusters) {
 #' @param tab.filt A \code{data.frame} obejct containing selected the best PacBio alignments.
 #' @param female Set to \code{TRUE} if analyzed data are coming from female individual.
 #' @author Maryam Ghareghani, David Porubsky
-#' @export
 #' 
 hardClustAccuracy <- function(hard.clust, pb.chr, pb.flag, tab.filt, female=TRUE)
 {
@@ -121,8 +121,8 @@ hardClustAccuracy <- function(hard.clust, pb.chr, pb.flag, tab.filt, female=TRUE
 #'
 #' @param num.cells Number of cells used in the analysis.
 #' @param num.clusters Expected number of clusters. (for 22 autosomes == 44 clusters)
+#' @importFrom stats runif
 #' @author David Porubsky
-#' @export
 #' 
 #TODO: set parameter alpha to be optional
 randomTheta <- function(num.cells=100, num.clusters=44) {
@@ -130,7 +130,7 @@ randomTheta <- function(num.cells=100, num.clusters=44) {
   for (j in 1:num.cells) {
     cell.theta <- list()
     for (k in 1:num.clusters) {
-      random.type <- runif(3)
+      random.type <- stats::runif(3)
       max.type <- which.max(random.type)
       if (max.type == 1) {
         theta <- c(0.9, 0.05, 0.05)
@@ -275,6 +275,7 @@ getClusterIdentityPerChr <- function(soft.clust, chr.rows) {
 #' @param inputfolder Path to the data analysis folder
 #' @param prob.th Filter out long reads with max probability below this threshold
 #' @param minLib Filter out long reads with number of StrandS libraries being represented below this threshold
+#' @importFrom utils write.table
 #' @author David Porubsky
 #' 
 exportClusteredReads <- function(inputfolder=NULL, prob.th=NULL, minLib=NULL) {
@@ -337,7 +338,7 @@ exportClusteredReads <- function(inputfolder=NULL, prob.th=NULL, minLib=NULL) {
     for (k in 1:length(readNames.perCluster)) {
       filename <- paste0("reads_cluster", k, "_minLib", minLib, "_probTh", prob.th, ".txt")
       path2file <- file.path(destination, filename)
-      write.table(readNames.perCluster[[k]], file = path2file, append = TRUE, quote = FALSE, row.names = FALSE, col.names = FALSE)
+      utils::write.table(readNames.perCluster[[k]], file = path2file, append = TRUE, quote = FALSE, row.names = FALSE, col.names = FALSE)
     }
   } 
 } 

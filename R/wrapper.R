@@ -2,16 +2,16 @@
 #'
 #' @param inputfolder A folder name where minimap files are stored.
 #' @param store.bestAlign Store best alignements in RData object.
-#' @param HC.only Perform only hard clustering and skip the rest of the pipeline.
 #' @param numAlignments Required number of best PBvsSS alignmnets to selest for hard clustering.
 #' @param verbose Set to \code{TRUE} to print function messages.
-#' @param HC.input Filaname where hard clustering results are stored
+#' @param HC.only Set to \code{TRUE} if only hard (kmeans) clustering should be run.
 #' @param cellNum specifies the number of single cells to be used in clustering
 #' @inheritParams SaaRclust
 #' @inheritParams EMclust
-#' @export
+#' @inheritParams countProb
 #' @author David Porubsky, Maryam Ghareghani
-
+#' @export
+#' 
 runSaaRclust <- function(inputfolder=NULL, outputfolder="SaaRclust_results", num.clusters=54, EM.iter=100, alpha=0.01, minLib=10, upperQ=0.95, logL.th=1, theta.constrain=FALSE, store.counts=FALSE, store.bestAlign=TRUE, numAlignments=30000, HC.only=TRUE, verbose=TRUE, cellNum=NULL, log.scale=FALSE) {
   
   #=========================#

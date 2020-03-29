@@ -33,7 +33,7 @@ maskAlwaysWCandZeroBins <- function(bamfolder=bamfolder, genomic.bins=NULL, min.
                                                      verbose=FALSE, 
                                                      ss=TRUE) 
     )
-    genoT <- countProb(minusCounts = counts[2,], plusCounts = counts[1,], log = TRUE)
+    genoT <- countProb(minusCounts = counts[2,], plusCounts = counts[1,], log.scale = TRUE)
     genoT <- apply(genoT, 1, which.max)
     wc.genoT <- rep(0, length(genoT))
     wc.genoT[genoT == 3] <- 1

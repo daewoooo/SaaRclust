@@ -36,13 +36,14 @@ runSaaRclust(inputfolder = NULL, outputfolder = "SaaRclust_results",
 
 \item{numAlignments}{Required number of best PBvsSS alignmnets to selest for hard clustering.}
 
-\item{HC.only}{Perform only hard clustering and skip the rest of the pipeline.}
+\item{HC.only}{Set to \code{TRUE} if only hard (kmeans) clustering should be run.}
 
 \item{verbose}{Set to \code{TRUE} to print function messages.}
 
 \item{cellNum}{specifies the number of single cells to be used in clustering}
 
-\item{HC.input}{Filaname where hard clustering results are stored}
+\item{log.scale}{Set to \code{TRUE} if probabilty should be calculated in a log scale. Recommended for high reads count 
+numbers expected for larger genomic regions such as contigs.}
 }
 \description{
 Wrapper function to run saarclust pipeline.
