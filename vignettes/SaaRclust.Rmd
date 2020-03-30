@@ -39,10 +39,8 @@ library(SaaRclust)
 
 # Quick Start
 
-Run SaaRclust using pre-computed binned counts of Strand-seq reads aligned to the GRCh38.
-To speed up this process we sent bin size to 5 Mbp and included sequences of 10 Mbp and longer.
-Because Strand-seq data have been aligned to GRCh38 with chromosomes 1-22, X and Y we have set 
-'desired.num.clusters' parameter to 24.
+To demonstrate the functionality of SaaRclust we have have aligned Strand-seq from a human individual to GRCh38. Whole chromosomal scaffolds have been cut in to 5Mb long pieces and run through SaaRclust in order to assign them into clusters that in ideal scenario should reconstruct original whole-chromosome scaffolds. Here one can run SaaRclust using pre-computed binned counts of Strand-seq reads from 83 single-cell libraries aligned to the GRCh38. 
+To speed up this process we sent bin size to 5 Mbp and included sequences/scaffolds of 10 Mbp and longer. Because Strand-seq data have been aligned to GRCh38 with chromosomes 1-22, X we have set 'desired.num.clusters' parameter to 23. We omit chromosome Y because of mapping ambiguity in PAR (pseudo-autosomal regions) regions.
 
 ```
 bamfolder <- system.file("extdata", package = "SaaRclust")
@@ -59,7 +57,7 @@ scaffoldDenovoAssembly(bamfolder = bamfolder,
                        min.contig.size = 10000000,
                        concat.fasta = FALSE,
                        num.clusters = 100, 
-                       desired.num.clusters = 24, 
+                       desired.num.clusters = 23, 
                        min.region.to.order = 1000000, 
                        remove.always.WC = TRUE,
                        mask.regions = FALSE)
@@ -67,13 +65,13 @@ scaffoldDenovoAssembly(bamfolder = bamfolder,
 
 \newpage
 
-# Parameter settings recommendations
+# Selected parameter descriptions
 \textbf{min.contig.size:} This parameter should be set at least 2x the N50 read length used for the assembly in order to filter out singleton reads. Removing small contigs/reads will also speed-up the clustering process. \hfill \break
 \textbf{min.region.to.order:} We recommned to set this parameter if one want to increase the ordering accuracy of contings within clusters (chromosomes). Small contigs tend to introduce a lot of noise in ordering process so we recommend to set this parameter to 500000 bp. \hfill \break
 \textbf{num.clusters:} By default this parameter is to 100 in order to be able to capture small human chromosomes such as chromosome 21 or 22. We recommend to set this number even higher in case you expect large heterozygous inversions in your sample. This way one can ensure proper assignment of such inversions to correct cluster/chromosome. \hfill \break 
 \textbf{desired.num.clusters:} If an user has a prior knowledge on the expected number of chromosomes/clusters for a given sample it can be set by this parameter. If this parameter is not set, SaaRclust will still report a perdicted number of clusters/chromosomes based on shared strand inheritance. \hfill \break
 \textbf{alpha:} Defines an expected level of noise in Strand-seq data. Increase this parameter in case Strand-seq data are of lower quality and contains a lot of background reads (see [@Sanders2017-zn] for more details on Strand-seq library quality). \hfill \break
-\textbf{ord.method:} TODO \hfill \break
+\textbf{ord.method:} Tries to find traversal through the contigs that constitues a single cluster. This can be defined as 'Traveling salesman problem' and is implemented by using 'TSP' package and 'contiBAIT' [@ONeill2017-ti]. In order to achieve a reliable contig ordering we recommend to restrict ordering to contigs of size 500Kb and longer by setting a parameter 'min.region.to.order'. \hfill \break
 
 # SaaRclust results
 Saarclust results are organinzed in three subfolders: 'clustered_assembly', 'data' and 'plots'.
@@ -82,13 +80,14 @@ Saarclust results are organinzed in three subfolders: 'clustered_assembly', 'dat
 \textbf{plots:} Contains some useful plots that allows to evaluate how well genome scaffolding perfomed. \hfill \break
 
 # Data quality exploration
+SaaRclust can produce a number of useful plots that can be helpful to assess how well the genome scaffoding performed.
 
 ```{r, message=FALSE}
-## Load the package
+## Load the SaaRclust package
 library(SaaRclust)
 ```
 
-Plot distribution of strand state probabilities per cluster (columns) and per single cell (rows).
+Plot distribution of strand state probabilities per cluster (columns) and per single cell (rows). Given the random segregation of template strands into doughter cells [@Falconer2012-ut], one would expect approximatelly 50% of WC states and about 25% of WW and CC strand states per cluster (columns). However, in case of genomic regions where short-reads has difficulity to map we often observe a cluster where majority of single-cell has WC strand state. This cluster can often be removed by setting a parameter 'remove.always.WC' to TRUE.
 ```{r, echo=TRUE, message=FALSE}
 ## Get example files
 example.data <- system.file("extdata/data", 
@@ -99,7 +98,7 @@ EM.obj <- get(load(example.data))
 plotThetaEstimates(theta.param = EM.obj$theta.param[1:20])
 ```
 
-Plot size of each cluster and the directionality of contigs within each cluster (dir - direct, revcomp - reverse complement)
+Plot size of each cluster and the directionality of contigs within each cluster (dir - direct, revcomp - reverse complement). This plot useful in order to check to sum of contig sizes assigned to each cluster. In case there is a single cluster with lenght substantially bigger than the rest of the cluster suggest that this cluster is composed of more than two homologs. In this case it is advised to rerun SaaRclust after setting 'num.clusters' parameter to a higher number.
 ```{r, echo=TRUE, message=FALSE}
 ## Get example files
 example.data <- system.file("extdata/clustered_assembly", 
@@ -110,7 +109,7 @@ ordered.contigs.gr <- get(load(example.data))
 plotClusteredContigSizes(clustered.gr = ordered.contigs.gr)
 ```
 
-Plot summary statistics of successfully clustered contigs
+Plot summary statistics of successfully clustered contigs. In this plot one can see the total number of contigs (all.ctgs) present in the assembly, number of contigs after size selection set by 'min.contig.size' parameter (min.ctg.len) and number of successfully clustered contigs at the end of the analysis (clustered.ctgs). Remember that this number also depend on parameters such as 'prob.th' and 'min.region.to.order'.
 ```{r, echo=TRUE, message=FALSE}
 ## Get example files
 example.data <- system.file("extdata/clustered_assembly", 
@@ -119,6 +118,28 @@ example.data <- system.file("extdata/clustered_assembly",
 ctg.stat <- get(load(example.data))
 ## Plot statistics of clustered contigs
 plotCTGstat(ctg.stat = ctg.stat)
+```
+
+Plot clustering accuracy of GRCh38 divided into 5Mb long genomics chunks. In an ideal scenario one will observe a single cluster (unique color) per chromosome. Clustering accuracy can be checked only for denovo assembled genome for which there is a high quality reference genome by mapping clustered contigs back to this reference.
+```{r, message=FALSE}
+## Load reference genome
+library(BSgenome.Hsapiens.UCSC.hg38)
+```
+
+```{r, echo=TRUE, message=FALSE}
+## Get example file
+example.bed <- system.file("extdata/", 
+                            "SaaRclust_GRCh38_rescaffolded.bed", 
+                            package = "SaaRclust")
+## Plot clustering accuracy
+plotClusteredContigs(bedfile = example.bed, 
+                     min.mapq = 10, 
+                     chromosomes = paste0('chr', c(1:22,'X')), 
+                     bsgenome = BSgenome.Hsapiens.UCSC.hg38, 
+                     info.delim = '_', 
+                     info.fields = c('ctg', 'ord', 'id'), 
+                     col.by = 'id', 
+                     report = 'clustering')
 ```
 
 # General Recommendations
