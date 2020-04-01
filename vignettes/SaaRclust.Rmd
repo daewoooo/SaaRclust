@@ -42,6 +42,7 @@ library(SaaRclust)
 To demonstrate the functionality of SaaRclust we have have aligned Strand-seq from a human individual to GRCh38. Whole chromosomal scaffolds have been cut in to 5Mb long pieces and run through SaaRclust in order to assign them into clusters that in ideal scenario should reconstruct original whole-chromosome scaffolds. Here one can run SaaRclust using pre-computed binned counts of Strand-seq reads from 83 single-cell libraries aligned to the GRCh38. 
 To speed up this process we sent bin size to 5 Mbp and included sequences/scaffolds of 10 Mbp and longer. Because Strand-seq data have been aligned to GRCh38 with chromosomes 1-22, X we have set 'desired.num.clusters' parameter to 23. We omit chromosome Y because of mapping ambiguity in PAR (pseudo-autosomal regions) regions.
 
+Run the code below in order to test SaaRclust on example data that represent Strand-seq mappings to GRCh38.
 ```
 bamfolder <- system.file("extdata", package = "SaaRclust")
 scaffoldDenovoAssembly(bamfolder = bamfolder, 
@@ -72,12 +73,13 @@ scaffoldDenovoAssembly(bamfolder = bamfolder,
 \textbf{desired.num.clusters:} If an user has a prior knowledge on the expected number of chromosomes/clusters for a given sample it can be set by this parameter. If this parameter is not set, SaaRclust will still report a perdicted number of clusters/chromosomes based on shared strand inheritance. \hfill \break
 \textbf{alpha:} Defines an expected level of noise in Strand-seq data. Increase this parameter in case Strand-seq data are of lower quality and contains a lot of background reads (see [@Sanders2017-zn] for more details on Strand-seq library quality). \hfill \break
 \textbf{ord.method:} Tries to find traversal through the contigs that constitues a single cluster. This can be defined as 'Traveling salesman problem' and is implemented by using 'TSP' package and 'contiBAIT' [@ONeill2017-ti]. In order to achieve a reliable contig ordering we recommend to restrict ordering to contigs of size 500Kb and longer by setting a parameter 'min.region.to.order'. \hfill \break
+\textbf{bin.method:} Defines the strategy used to split the genome assembly into chunks of a user defined size (see bin.size and step.size parameters). This paramter takes two values: either 'fixed' or 'dynamic'. In case of fixed binning the genome is divided into chunks of the same size. Dynamic binning checks the mappability using supplied Strand-data. In this case the 'bin.size' and 'step.size' parameters represents the number of mappable positions within each bin the instead of number of base-pairs. It means that each bin is dynamically extended in order to accomodate the defined number of mappable positions.\hfill \break
 
 # SaaRclust results
 Saarclust results are organinzed in three subfolders: 'clustered_assembly', 'data' and 'plots'.
 \textbf{clustered assembly:} This folder contains a table of all clustered contigs and their assignment to specific clusters stored as RData file. Also predicted assembly errors are reported here in a .tsv table. Lastly, this folder contains all exported FASTA files that contains contig sequences per cluster/chromosome. \hfill \break
 \textbf{data:} This folder contains all intermediate results that are created during the clustering process. This files are created only if the parameter 'store.data.obj' is set to TRUE. \hfill \break
-\textbf{plots:} Contains some useful plots that allows to evaluate how well genome scaffolding perfomed. \hfill \break
+\textbf{plots:} Contains some useful plots that allow a user to evaluate how well genome scaffolding perfomed. \hfill \break
 
 # Data quality exploration
 SaaRclust can produce a number of useful plots that can be helpful to assess how well the genome scaffoding performed.
@@ -143,12 +145,65 @@ plotClusteredContigs(bedfile = example.bed,
 ```
 
 # General Recommendations
+To speed up the clustering process we recommend to use fixed binning strategy instead of dynamic binning by setting a 'bin.method' parameter to 'fixed'.
 
 ## Recommended settings to scaffold human genome
+In general we have seen a very good performance of these parameters on multiple human genomes.  
+```
+scaffoldDenovoAssembly(bamfolder = <bamfolder>, 
+                       outputfolder = SaaRclust_results,
+                       store.data.obj = TRUE,
+                       reuse.data.obj = TRUE,
+                       pairedEndReads = TRUE,
+                       bin.size = 200000,
+                       step.size = 200000,
+                       bin.method = 'dynamic', 
+                       prob.th = 0.25, 
+                       min.contig.size = 100000,
+                       concat.fasta = TRUE,
+                       num.clusters = 100, 
+                       desired.num.clusters = 24 - female; 25 - male, 
+                       remove.always.WC = TRUE,
+                       mask.regions = FALSE)
+```                       
 
 ## Recommended settings to scaffold human genome with expected large SVs
-
+In case one shall expect a large scale rearrangements in any given assembly we recommend to increase the number of initial clusters by setting 'num.clusters' parameter to a higher number. At the same time we do not recommend to set this number to a higher number than 200.
+```
+scaffoldDenovoAssembly(bamfolder = bamfolder, 
+                       outputfolder = bamfolder,
+                       store.data.obj = TRUE,
+                       reuse.data.obj = TRUE,
+                       pairedEndReads = TRUE,
+                       bin.size = 200000,
+                       step.size = 200000,
+                       bin.method = 'dynamic', 
+                       prob.th = 0.25, 
+                       min.contig.size = 100000,
+                       concat.fasta = TRUE,
+                       num.clusters = 150, 
+                       desired.num.clusters = 25, 
+                       remove.always.WC = TRUE,
+                       mask.regions = FALSE)
+```
 ## Recommended settings to scaffold unknown (non-human) genome
+When it comes to genome assemblies where there is no prior information about number chromosomes we have seen very good performance in reporting a reasonble number clusters that in many cases reflect the real number of chromosome in a given sample. To assure that the number of clusters reported by SaaRclust is reasonable we advise user to check the plot that visualize the size and contig orientation of each cluster.
+```
+scaffoldDenovoAssembly(bamfolder = bamfolder, 
+                       outputfolder = bamfolder,
+                       store.data.obj = TRUE,
+                       reuse.data.obj = TRUE,
+                       pairedEndReads = TRUE,
+                       bin.size = 200000,
+                       step.size = 200000,
+                       bin.method = 'dynamic', 
+                       prob.th = 0.25, 
+                       min.contig.size = 100000,
+                       concat.fasta = TRUE,
+                       num.clusters = 100, 
+                       remove.always.WC = TRUE,
+                       mask.regions = FALSE)
+```
 
 \newpage
 

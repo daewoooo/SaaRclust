@@ -57,12 +57,16 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     cluster.data <- cluster.states.dfl[[i]]
     cluster.m <- cluster.data
     
-    ## Get putative HET inversions
-    #cluster.m <- cluster.data[!cluster.data$clust.ID %in% split.pairs$putative.HETs,]
-    HET.idx <- which(cluster.data$clust.ID %in% split.pairs$putative.HETs)
-    
     ## Remove 'clust.ID' and 'group.ID' columns
     cluster.m <- cluster.m[,-which(colnames(cluster.m) %in% c('clust.ID', 'group.ID'))]
+    
+    ## Get indices of putative HET inversions
+    HET.idx <- which(cluster.data$clust.ID %in% split.pairs$putative.HETs)
+    
+    ## Do not remove putative HET inversions if they consist more than 50% of all contigs in a cluster
+    if ((length(HET.idx) / nrow(cluster.m)) >= 0.5) {
+      HET.idx <- NULL
+    }
     
     ## Remove majority of WC cluster
     # if (remove.always.WC) {
@@ -75,7 +79,7 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     
     if (nrow(cluster.m) == 0) { next }
     
-    ## Reorient misoriented contigs
+    ## Reorient misoriented contigs [TODO: add condition preventing remeving all ctgs by HET.idx!!!]
     if (length(HET.idx) > 0) {
       ## Temporarily remove HET inversions from contig re-orienting procedure
       het.ctg <- cluster.m[HET.idx,]
