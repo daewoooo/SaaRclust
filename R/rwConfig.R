@@ -71,7 +71,7 @@ writeConfig <- function(config, configfile) {
     #     cat(i1," = ",formatstring(config[[i1]]),"\n", file=f)
     # }
     cat("\n[SaaRclust]\n", file=f)
-    for (i1 in c('min.contig.size','min.region.to.order','pairedEndReads','bin.size','step.size','bin.method','store.data.obj','reuse.data.obj','num.clusters','desired.num.clusters','alpha','best.prob','prob.th','ord.method','assembly.fasta','concat.fasta','z.limit','remove.always.WC','mask.regions')) {
+    for (i1 in c('min.mapq','min.contig.size','min.region.to.order','pairedEndReads','bin.size','step.size','bin.method','store.data.obj','reuse.data.obj','num.clusters','desired.num.clusters','alpha','best.prob','prob.th','ord.method','assembly.fasta','concat.fasta','z.limit','remove.always.WC','mask.regions')) {
         cat(i1," = ",formatstring(config[[i1]]),"\n", file=f)
     }
     close(f, type='w')

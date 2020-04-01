@@ -30,7 +30,7 @@
 #'## To export clustred FASTA file, an original FASTA used in BAM alignments has to be submitted as 'assembly.fasta'.
 #'scaffoldDenovoAssembly(bamfolder="bam-data-folder", outputfolder="saarclust-output-folder")}
 #'
-scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.contig.size=100000, min.region.to.order=0, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE) {
+scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.mapq=10, min.contig.size=100000, min.region.to.order=0, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE) {
   ## Get total processing time
   ptm <- proc.time()
   
@@ -63,7 +63,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   }
   
   ## Put all parameters into list and merge with config ##
-  params <- list(min.contig.size=min.contig.size, min.region.to.order=min.region.to.order, pairedEndReads=pairedEndReads, bin.size=bin.size, store.data.obj=store.data.obj, 
+  params <- list(min.mapq=min.mapq, min.contig.size=min.contig.size, min.region.to.order=min.region.to.order, pairedEndReads=pairedEndReads, bin.size=bin.size, store.data.obj=store.data.obj, 
                  step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, desired.num.clusters=desired.num.clusters, alpha=alpha, 
                  best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, 
                  concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC, mask.regions=mask.regions)
@@ -119,13 +119,13 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       } else {
         bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = 50000, step.size = 10000, chromosomes = chroms.in.data)
         blacklist <- suppressWarnings( 
-          maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, pairedEndReads = config[['pairedEndReads']])
+          maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, min.mapq = config[['min.mapq']], pairedEndReads = config[['pairedEndReads']])
         )
       }  
     } else {
       bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = 50000, step.size = 10000, chromosomes = chroms.in.data)
       blacklist <- suppressWarnings( 
-        maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, pairedEndReads = config[['pairedEndReads']])
+        maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, min.mapq = config[['min.mapq']], pairedEndReads = config[['pairedEndReads']])
       )
     } 
     blacklist.gr <- c(blacklist$alwaysWC, blacklist$alwaysZero)
@@ -143,9 +143,9 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       counts.l <- get(load(destination))
     } else {
       if (config[['mask.regions']]) {
-        counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
+        counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], min.mapq = config[['min.mapq']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
       } else {
-        counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
+        counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], min.mapq = config[['min.mapq']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
       }
       ## Remove bins with zero counts across all cells
       counts.sums <- Reduce('+', counts.l)
@@ -158,9 +158,9 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     }
   } else {
     if (config[['mask.regions']]) {
-      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
+      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], min.mapq = config[['min.mapq']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
     } else {
-      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
+      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], min.mapq = config[['min.mapq']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
     }
     ## Remove bins with zero counts across all cells
     counts.sums <- Reduce('+', counts.l)

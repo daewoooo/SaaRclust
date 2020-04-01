@@ -5,7 +5,7 @@
 \title{Main function of the \pkg{\link{SaaRclust}} package to order and orient contigs of denovo genome assembly.}
 \usage{
 scaffoldDenovoAssembly(bamfolder, outputfolder, configfile = NULL,
-  min.contig.size = 1e+05, min.region.to.order = 0,
+  min.mapq = 10, min.contig.size = 1e+05, min.region.to.order = 0,
   pairedEndReads = TRUE, bin.size = 1e+05, step.size = NULL,
   bin.method = "fixed", store.data.obj = TRUE,
   reuse.data.obj = FALSE, num.clusters = 100,
@@ -21,6 +21,8 @@ scaffoldDenovoAssembly(bamfolder, outputfolder, configfile = NULL,
 
 \item{configfile}{A file specifying the parameters of this function (without \code{bamfolder}, \code{outputfolder} and \code{configfile}). 
 If a \code{configfile} is specified, it will take priority over the command line parameters.}
+
+\item{min.mapq}{Minimum mapping quality when importing from BAM files.}
 
 \item{min.contig.size}{A minimal contig size to be processed (default: 100kb).}
 
