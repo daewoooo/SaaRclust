@@ -19,7 +19,7 @@ bibliography: /home/porubsky/SaaRclust/vignettes/strandSeqBib.bib
 
 # Introduction
 
-Strand-seq is a single-cell sequencing technique able to preserve contiguity of individual parental homologues in single-cell [@Falconer2012-ut]. Each parental homolog undergoes independent random segregation during cell division, leading to a unique strand state profile in Strand-seq data. Strand-seq distinguishes three possible template strand states for each chromosome of a diploid genome. The Watson-Watson (WW) strand state is characteristic of two Watson (reads aligned to minus strand) templates inherited from both parental homologues. The Crick-Crick (CC) strand state is characteristic of two Crick (reads aligned to plus strand) templates inherited from both parental homologues. Lastly, the Watson-Crick (WC) strand state is characteristic of a Watson and Crick template being inherited from either parental homologue [@Sanders2017-zn]. Such Strand-seq signal can be used to assign contigs or long sequencing reads to a chromosome of origin. This feature has been shown to be valuable for scaffolding early build genome assemblies as well finding chimeric or misoriented contigs [@Hills2013-ty]. We do so using SaaRclust, an R based package that implements a novel latent variable model and a corresponding Expectation Maximization (EM) algorithm in order to reliably cluster contigs or long sequencing reads by chromosome. SaaRclust was previously introduced for this in silico separation of long sequencing reads by chromosome and direction [@Ghareghani2018-rv]. Here we have extended its functionalities to be able to scaffold contig stage assemblies and to detect and correct assembly error such as chimeric or misoriented contigs. SaaRclust employs an Expectation-Maximization (EM) soft clustering algorithm to handle the uncertainty arising from the sparse Strand-seq data. The main idea underlying our clustering algorithm is that contigs originating from the same chromosome share the same directionality pattern of aligned Strand-seq reads across multiple single cells, that differs from contigs originating from a different chromosome. The EM algorithm is based on iterating between assigning strand states for each Strand-seq library and chromosome and assigning chromosomes to each contig, which are both hidden information at the beginning. EM converges to a local optimum solution of the maximum likelihood problem, e.g., maximizing the likelihood of observed data (number of directional aligned Strand-seq reads to long reads), given the model parameters (strand states), and we have shown SaaRclust to be able to assign even individual long sequencing reads to chromosomes of origin.
+Strand-seq is a single-cell sequencing technique able to preserve contiguity of individual parental homologues in single-cell [@Falconer2012-ut]. Each parental homologue undergoes independent random segregation during cell division, leading to a unique strand state profile in Strand-seq data. Strand-seq distinguishes three possible template strand states for each chromosome of a diploid genome. The Watson-Watson (WW) strand state is characteristic of two Watson (reads aligned to minus strand) templates inherited from both parental homologues. The Crick-Crick (CC) strand state is characteristic of two Crick (reads aligned to plus strand) templates inherited from both parental homologues. Lastly, the Watson-Crick (WC) strand state is characteristic of a Watson and Crick template being inherited from either parental homologue [@Sanders2017-zn]. Such Strand-seq signal can be used to assign contigs or long sequencing reads to a chromosome of origin. This feature has been shown to be valuable for scaffolding early build genome assemblies as well finding chimeric or misoriented contigs [@Hills2013-ty]. We do so using SaaRclust, an R based package that implements a novel latent variable model and a corresponding Expectation Maximization (EM) algorithm in order to reliably cluster contigs or long sequencing reads by chromosome. SaaRclust was previously introduced for this *in silico* separation of long sequencing reads by chromosome and direction [@Ghareghani2018-rv]. Here we have extended its functionalities to be able to scaffold contig stage assemblies and to detect and correct assembly error such as chimeric or misoriented contigs. SaaRclust employs an Expectation-Maximization (EM) soft clustering algorithm to handle the uncertainty arising from the sparse Strand-seq data. The main idea underlying our clustering algorithm is that contigs originating from the same chromosome share the same directionality pattern of aligned Strand-seq reads across multiple single cells, that differs from contigs originating from a different chromosome. The EM algorithm is based on iterating between assigning strand states for each Strand-seq library and chromosome and assigning chromosomes to each contig, which are both hidden information at the beginning. EM converges to a local optimum solution of the maximum likelihood problem, e.g., maximizing the likelihood of observed data (number of directional aligned Strand-seq reads to long reads), given the model parameters (strand states), and we have shown SaaRclust to be able to assign even individual long sequencing reads to chromosomes of origin.
 
 \newpage
 
@@ -27,9 +27,9 @@ Strand-seq is a single-cell sequencing technique able to preserve contiguity of 
 Here are the minimal parameters required to successfully run genome scaffolding using SaaRclust.
 
 \textbf{bamfolder:} A folder name where minimap file(s) is stored. \hfill \break
-\textbf{outputfolder:} A folder containing BAM files with Strand-seq reads aligned to a denovo assembly. \hfill \break
+\textbf{outputfolder:} A folder containing BAM files with Strand-seq reads aligned to a *de novo* assembly. \hfill \break
 \textbf{pairedEndReads:} Make sure to set to TRUE if paired-end reads are being used. \hfill \break
-\textbf{assembly.fasta:} A denovo assembly FASTA file, if one want to export scaffolded denovo assembly in FASTA format.  \hfill \break
+\textbf{assembly.fasta:} A *de novo* assembly FASTA file, if one want to export scaffolded *de novo* assembly in FASTA format.  \hfill \break
 
 For more details on available parameters please run.
 ```
@@ -68,18 +68,18 @@ scaffoldDenovoAssembly(bamfolder = bamfolder,
 
 # Selected parameter descriptions
 \textbf{min.contig.size:} This parameter should be set at least 2x the N50 read length used for the assembly in order to filter out singleton reads. Removing small contigs/reads will also speed-up the clustering process. \hfill \break
-\textbf{min.region.to.order:} We recommned to set this parameter if one want to increase the ordering accuracy of contings within clusters (chromosomes). Small contigs tend to introduce a lot of noise in ordering process so we recommend to set this parameter to 500000 bp. \hfill \break
+\textbf{min.region.to.order:} We recommend to set this parameter if one want to increase the ordering accuracy of contigs within clusters (chromosomes). Small contigs tend to introduce a lot of noise in ordering process so we recommend to set this parameter to 500,000 bp. \hfill \break
 \textbf{num.clusters:} By default this parameter is to 100 in order to be able to capture small human chromosomes such as chromosome 21 or 22. We recommend to set this number even higher in case you expect large heterozygous inversions in your sample. This way one can ensure proper assignment of such inversions to correct cluster/chromosome. \hfill \break 
-\textbf{desired.num.clusters:} If an user has a prior knowledge on the expected number of chromosomes/clusters for a given sample it can be set by this parameter. If this parameter is not set, SaaRclust will still report a perdicted number of clusters/chromosomes based on shared strand inheritance. \hfill \break
+\textbf{desired.num.clusters:} If an user has a prior knowledge on the expected number of chromosomes/clusters for a given sample it can be set by this parameter. If this parameter is not set, SaaRclust will still report a predicted number of clusters/chromosomes based on shared strand inheritance. \hfill \break
 \textbf{alpha:} Defines an expected level of noise in Strand-seq data. Increase this parameter in case Strand-seq data are of lower quality and contains a lot of background reads (see [@Sanders2017-zn] for more details on Strand-seq library quality). \hfill \break
-\textbf{ord.method:} Tries to find traversal through the contigs that constitues a single cluster. This can be defined as 'Traveling salesman problem' and is implemented by using 'TSP' package and 'contiBAIT' [@ONeill2017-ti]. In order to achieve a reliable contig ordering we recommend to restrict ordering to contigs of size 500Kb and longer by setting a parameter 'min.region.to.order'. \hfill \break
-\textbf{bin.method:} Defines the strategy used to split the genome assembly into chunks of a user defined size (see bin.size and step.size parameters). This paramter takes two values: either 'fixed' or 'dynamic'. In case of fixed binning the genome is divided into chunks of the same size. Dynamic binning checks the mappability using supplied Strand-data. In this case the 'bin.size' and 'step.size' parameters represents the number of mappable positions within each bin the instead of number of base-pairs. It means that each bin is dynamically extended in order to accomodate the defined number of mappable positions.\hfill \break
+\textbf{ord.method:} Tries to find traversal through the contigs that constitutes a single cluster. This can be defined as 'Traveling salesman problem' and is implemented by using 'TSP' package and 'contiBAIT' [@ONeill2017-ti]. In order to achieve a reliable contig ordering we recommend to restrict ordering to contigs of size 500Kb and longer by setting a parameter 'min.region.to.order'. \hfill \break
+\textbf{bin.method:} Defines the strategy used to split the genome assembly into chunks of a user defined size (see bin.size and step.size parameters). This parameter takes two values: either 'fixed' or 'dynamic'. In case of fixed binning the genome is divided into chunks of the same size. Dynamic binning checks the mappability using supplied Strand-data. In this case the 'bin.size' and 'step.size' parameters represents the number of mappable positions within each bin the instead of number of base-pairs. It means that each bin is dynamically extended in order to accommodate the defined number of mappable positions.\hfill \break
 
 # SaaRclust results
-Saarclust results are organinzed in three subfolders: 'clustered_assembly', 'data' and 'plots'.
+Saarclust results are organized in three sub-folders: 'clustered_assembly', 'data' and 'plots'.
 \textbf{clustered assembly:} This folder contains a table of all clustered contigs and their assignment to specific clusters stored as RData file. Also predicted assembly errors are reported here in a .tsv table. Lastly, this folder contains all exported FASTA files that contains contig sequences per cluster/chromosome. \hfill \break
 \textbf{data:} This folder contains all intermediate results that are created during the clustering process. This files are created only if the parameter 'store.data.obj' is set to TRUE. \hfill \break
-\textbf{plots:} Contains some useful plots that allow a user to evaluate how well genome scaffolding perfomed. \hfill \break
+\textbf{plots:} Contains some useful plots that allow a user to evaluate how well genome scaffolding performed. \hfill \break
 
 # Data quality exploration
 SaaRclust can produce a number of useful plots that can be helpful to assess how well the genome scaffoding performed.
@@ -89,7 +89,7 @@ SaaRclust can produce a number of useful plots that can be helpful to assess how
 library(SaaRclust)
 ```
 
-Plot distribution of strand state probabilities per cluster (columns) and per single cell (rows). Given the random segregation of template strands into doughter cells [@Falconer2012-ut], one would expect approximatelly 50% of WC states and about 25% of WW and CC strand states per cluster (columns). However, in case of genomic regions where short-reads has difficulity to map we often observe a cluster where majority of single-cell has WC strand state. This cluster can often be removed by setting a parameter 'remove.always.WC' to TRUE.
+Plot distribution of strand state probabilities per cluster (columns) and per single cell (rows). Given the random segregation of template strands into daughter cells [@Falconer2012-ut], one would expect approximately 50% of WC states and about 25% of WW and CC strand states per cluster (columns). However, in case of genomic regions where short-reads has difficulty to map we often observe a cluster where majority of single-cell has WC strand state. This cluster can often be removed by setting a parameter 'remove.always.WC' to TRUE.
 ```{r, echo=TRUE, message=FALSE}
 ## Get example files
 example.data <- system.file("extdata/data", 
@@ -100,7 +100,7 @@ EM.obj <- get(load(example.data))
 plotThetaEstimates(theta.param = EM.obj$theta.param[1:20])
 ```
 
-Plot size of each cluster and the directionality of contigs within each cluster (dir - direct, revcomp - reverse complement). This plot useful in order to check to sum of contig sizes assigned to each cluster. In case there is a single cluster with lenght substantially bigger than the rest of the cluster suggest that this cluster is composed of more than two homologs. In this case it is advised to rerun SaaRclust after setting 'num.clusters' parameter to a higher number.
+Plot size of each cluster and the directionality of contigs within each cluster (dir - direct, revcomp - reverse complement). This plot useful in order to check to sum of contig sizes assigned to each cluster. In case there is a single cluster with length substantially bigger than the rest of the cluster suggest that this cluster is composed of more than two homologues. In this case it is advised to rerun SaaRclust after setting 'num.clusters' parameter to a higher number.
 ```{r, echo=TRUE, message=FALSE}
 ## Get example files
 example.data <- system.file("extdata/clustered_assembly", 
@@ -122,7 +122,7 @@ ctg.stat <- get(load(example.data))
 plotCTGstat(ctg.stat = ctg.stat)
 ```
 
-Plot clustering accuracy of GRCh38 divided into 5Mb long genomics chunks. In an ideal scenario one will observe a single cluster (unique color) per chromosome. Clustering accuracy can be checked only for denovo assembled genome for which there is a high quality reference genome by mapping clustered contigs back to this reference.
+Plot clustering accuracy of GRCh38 divided into 5 Mbp long genomics chunks. In an ideal scenario one will observe a single cluster (unique color) per chromosome. Clustering accuracy can be checked only for *de novo* assembled genome for which there is a high quality reference genome by mapping clustered contigs back to this reference.
 ```{r, message=FALSE}
 ## Load reference genome
 library(BSgenome.Hsapiens.UCSC.hg38)
@@ -187,7 +187,7 @@ scaffoldDenovoAssembly(bamfolder = bamfolder,
                        mask.regions = FALSE)
 ```
 ## Recommended settings to scaffold unknown (non-human) genome
-When it comes to genome assemblies where there is no prior information about number chromosomes we have seen very good performance in reporting a reasonble number clusters that in many cases reflect the real number of chromosome in a given sample. To assure that the number of clusters reported by SaaRclust is reasonable we advise user to check the plot that visualize the size and contig orientation of each cluster.
+When it comes to genome assemblies where there is no prior information about number chromosomes we have seen very good performance in reporting a reasonable number clusters that in many cases reflect the real number of chromosome in a given sample. To assure that the number of clusters reported by SaaRclust is reasonable we advise user to check the plot that visualize the size and contig orientation of each cluster.
 ```
 scaffoldDenovoAssembly(bamfolder = bamfolder, 
                        outputfolder = bamfolder,
