@@ -12,8 +12,11 @@ syncClusterDir <- function(contig.states) {
   ## Remove cell with wc states
   #mask <- apply(contig.states, 2, function(x) all(x != 3))
   #contig.states.sub <- as.matrix(contig.states[,mask])
-  contig.states.sub <- contig.states
+  ## Calculate orderness of a strand state matrix as sum of counts of the most abundant values in each column
+  contig.states.original <- contig.states
+  orderness.original <- sum(apply(contig.states.original, 2, function(x) max(table(x))))
   ## Set wc states to NA
+  contig.states.sub <- contig.states
   contig.states.sub[contig.states.sub == 3] <- NA
   ## Check if non-WC cells have any switch in directionality
   mask <- apply(contig.states.sub, 2, function(x) all(!is.na(x)))
@@ -66,8 +69,17 @@ syncClusterDir <- function(contig.states) {
       ## Rename flipped contigs
       rownames(contig.states)[idx.toFlip] <- contigsToFlip.newID
       rownames(contig.states)[-idx.toFlip] <- paste0(rownames(contig.states)[-idx.toFlip], "_dir")
-      ## Return re-oriented matrix  
-      return(contig.states)
+      ## Re-calcualte orderness of the reordered strand state matrix
+      orderness.reorderd <- sum(apply(contig.states, 2, function(x) max(table(x))))
+      if (orderness.reorderd > orderness.original) {
+        ## Return re-oriented matrix  
+        return(contig.states)
+      } else {
+        ## Return original matrix
+        message("    Attempted orienting with no improvement!!!")
+        rownames(contig.states.original) <- paste0(rownames(contig.states.original), "_dir")
+        return(contig.states.original)
+      }  
     } else {
       message("    Contig orienting failed!!!")
       rownames(contig.states) <- paste0(rownames(contig.states), "_dir")
