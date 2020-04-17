@@ -113,7 +113,7 @@ getCoinheritanceMatrix <- function(contig.states = NULL, scale=FALSE, WWtoCC.pen
 #' 
 addClusterGroup <- function(cluster.gr=NULL, cluster.groups=NULL) {
   ## Initialize cluster group with clust.ID
-  cluster.gr$group.ID <- cluster.gr$clust.ID
+  cluster.gr$group.ID <- paste0('cluster', cluster.gr$clust.ID)
   ## Add cluster group for pair of clusters specified in cluster.pairs
   for (i in seq_along(cluster.groups)) {
     clust.group <- cluster.groups[[i]]
