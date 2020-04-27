@@ -4,8 +4,7 @@
 \alias{hardClust}
 \title{Hard clustering using k-means}
 \usage{
-hardClust(counts.l = NULL, num.clusters = NULL, nstart = 10,
-  iter.max = 10)
+hardClust(counts.l = NULL, num.clusters = NULL, nstart = 10, iter.max = 10)
 }
 \arguments{
 \item{counts.l}{A \code{list} of directional read counts per long read/contig per library.}

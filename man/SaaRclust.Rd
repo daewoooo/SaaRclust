@@ -4,11 +4,23 @@
 \alias{SaaRclust}
 \title{Wrapper function to run saarclust pipeline for a given number of long reads reads.}
 \usage{
-SaaRclust(minimap.file = NULL, outputfolder = "SaaRclust_results",
-  num.clusters = 47, EM.iter = 100, alpha = 0.1, minLib = 10,
-  upperQ = 0.95, theta.param = NULL, pi.param = NULL, logL.th = 1,
-  theta.constrain = FALSE, store.counts = FALSE, HC.input = NULL,
-  cellNum = NULL, log.scale = FALSE)
+SaaRclust(
+  minimap.file = NULL,
+  outputfolder = "SaaRclust_results",
+  num.clusters = 47,
+  EM.iter = 100,
+  alpha = 0.1,
+  minLib = 10,
+  upperQ = 0.95,
+  theta.param = NULL,
+  pi.param = NULL,
+  logL.th = 1,
+  theta.constrain = FALSE,
+  store.counts = FALSE,
+  HC.input = NULL,
+  cellNum = NULL,
+  log.scale = FALSE
+)
 }
 \arguments{
 \item{minimap.file}{A path to the minimap file to load.}

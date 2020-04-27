@@ -4,10 +4,20 @@
 \alias{plotClusteredContigs}
 \title{Plot genome-wide positions of clustered contigs against human reference.}
 \usage{
-plotClusteredContigs(bedfile, min.mapq = 10, min.contig.size = NULL,
-  chromosomes = NULL, bsgenome = NULL, blacklist = NULL,
-  report = "clustering", info.delim = NULL, info.fields = NULL,
-  col.by = NULL, reverse.x = FALSE, title = NULL)
+plotClusteredContigs(
+  bedfile,
+  min.mapq = 10,
+  min.contig.size = NULL,
+  chromosomes = NULL,
+  bsgenome = NULL,
+  blacklist = NULL,
+  report = "clustering",
+  info.delim = NULL,
+  info.fields = NULL,
+  col.by = NULL,
+  reverse.x = FALSE,
+  title = NULL
+)
 }
 \arguments{
 \item{bedfile}{An aligned contigs to the reference sequence in bed format.}

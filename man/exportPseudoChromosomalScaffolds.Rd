@@ -4,8 +4,12 @@
 \alias{exportPseudoChromosomalScaffolds}
 \title{Concatenate FASTA sequences given a set of Genomic Ranges and cluster identity.}
 \usage{
-exportPseudoChromosomalScaffolds(clustered.gr = NULL,
-  assembly.fasta = NULL, outputfolder = NULL, concat.fasta = TRUE)
+exportPseudoChromosomalScaffolds(
+  clustered.gr = NULL,
+  assembly.fasta = NULL,
+  outputfolder = NULL,
+  concat.fasta = TRUE
+)
 }
 \arguments{
 \item{clustered.gr}{A \code{\link{GRanges-class}} object with given fields: dir - contig directionality

@@ -6,8 +6,13 @@
 for recurrent regions of WC strand-state and low read counts. Such bins are reported
 as a custom \code{\link[GenomicRanges]{GRanges}} object or regions to be blacklisted.}
 \usage{
-maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = NULL,
-  min.mapq = 10, pairedEndReads = TRUE, max.frag = 1000)
+maskAlwaysWCandZeroBins(
+  bamfolder = bamfolder,
+  genomic.bins = NULL,
+  min.mapq = 10,
+  pairedEndReads = TRUE,
+  max.frag = 1000
+)
 }
 \arguments{
 \item{bamfolder}{A folder containing BAM files with Strand-seq reads aligned to denovo assembly.}

@@ -4,8 +4,12 @@
 \alias{counts2ranges}
 \title{Report W & C counts and cluster ID as \code{\link{GRanges-class}} object.}
 \usage{
-counts2ranges(counts.l = NULL, saarclust.obj = NULL, best.prob = 1,
-  prob.th = 0.5)
+counts2ranges(
+  counts.l = NULL,
+  saarclust.obj = NULL,
+  best.prob = 1,
+  prob.th = 0.5
+)
 }
 \arguments{
 \item{counts.l}{A \code{list} of plus and minus alignments per genomic region.}

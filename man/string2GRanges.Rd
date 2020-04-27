@@ -16,7 +16,7 @@ A \code{\link{GRanges-class}} object with an extra metacolumn group.ID.
 Convert strings in a data.frame object into a \code{\link{GRanges-class}} object.
 }
 \examples{
-## An example string to convert into \\code{\\link{GRanges-class}} object.
+## An example string to convert into \code{\link{GRanges-class}} object.
 genomic.location.str <- 'chr4:128840654-143665255'
 gr <- string2GRanges(region.string = genomic.location.str)
 

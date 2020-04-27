@@ -4,8 +4,12 @@
 \alias{connectDividedClusters}
 \title{Merge divided clusters likely coming from the same chromosome}
 \usage{
-connectDividedClusters(theta.param = NULL, z.limit = 3.29,
-  remove.always.WC = FALSE, desired.num.clusters = NULL)
+connectDividedClusters(
+  theta.param = NULL,
+  z.limit = 3.29,
+  remove.always.WC = FALSE,
+  desired.num.clusters = NULL
+)
 }
 \arguments{
 \item{theta.param}{A \code{list} of estimated cell types for each cluster and each cell.}

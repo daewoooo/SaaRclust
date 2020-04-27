@@ -4,8 +4,13 @@
 \alias{makeFixedBins}
 \title{Make fixed-width bins}
 \usage{
-makeFixedBins(bamfile = NULL, bin.size = 1e+05, step.size = NULL,
-  chromosomes = NULL, keep.small.chr = FALSE)
+makeFixedBins(
+  bamfile = NULL,
+  bin.size = 1e+05,
+  step.size = NULL,
+  chromosomes = NULL,
+  keep.small.chr = FALSE
+)
 }
 \arguments{
 \item{bamfile}{A BAM file from which the header is read to determine the chromosome lengths. If a \code{bamfile} is specified, option \code{assembly} is ignored.}

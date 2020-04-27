@@ -4,10 +4,18 @@
 \alias{importBams}
 \title{Import BAM(s) and count reads}
 \usage{
-importBams(bamfolder = bamfolder, chromosomes = NULL,
-  pairedEndReads = TRUE, min.mapq = 10, bin.size = 1e+05,
-  step.size = NULL, reads.per.bin = NULL, max.frag = 1000,
-  bin.method = "fixed", blacklist = NULL)
+importBams(
+  bamfolder = bamfolder,
+  chromosomes = NULL,
+  pairedEndReads = TRUE,
+  min.mapq = 10,
+  bin.size = 1e+05,
+  step.size = NULL,
+  reads.per.bin = NULL,
+  max.frag = 1000,
+  bin.method = "fixed",
+  blacklist = NULL
+)
 }
 \arguments{
 \item{bamfolder}{A folder containing BAM files with Strand-seq reads aligned to denovo assembly.}

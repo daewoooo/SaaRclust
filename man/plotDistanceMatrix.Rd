@@ -4,8 +4,11 @@
 \alias{plotDistanceMatrix}
 \title{Plot co-inheritance matrix between a set of contigs or long sequencing reads.}
 \usage{
-plotDistanceMatrix(dist.matrix, col.low = "chartreuse4",
-  col.high = "cadetblue1")
+plotDistanceMatrix(
+  dist.matrix,
+  col.low = "chartreuse4",
+  col.high = "cadetblue1"
+)
 }
 \arguments{
 \item{dist.matrix}{A \code{matrix} of alll pairwise distances between a set of contigs/long-reads.}

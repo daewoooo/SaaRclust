@@ -4,15 +4,31 @@
 \alias{scaffoldDenovoAssembly}
 \title{Main function of the \pkg{\link{SaaRclust}} package to order and orient contigs of denovo genome assembly.}
 \usage{
-scaffoldDenovoAssembly(bamfolder, outputfolder, configfile = NULL,
-  min.mapq = 10, min.contig.size = 1e+05, min.region.to.order = 0,
-  pairedEndReads = TRUE, bin.size = 1e+05, step.size = NULL,
-  bin.method = "fixed", store.data.obj = TRUE,
-  reuse.data.obj = FALSE, num.clusters = 100,
-  desired.num.clusters = NULL, alpha = 0.1, best.prob = 1,
-  prob.th = 0, ord.method = "TSP", assembly.fasta = NULL,
-  concat.fasta = TRUE, z.limit = 3.29, remove.always.WC = FALSE,
-  mask.regions = FALSE)
+scaffoldDenovoAssembly(
+  bamfolder,
+  outputfolder,
+  configfile = NULL,
+  min.mapq = 10,
+  min.contig.size = 1e+05,
+  min.region.to.order = 0,
+  pairedEndReads = TRUE,
+  bin.size = 1e+05,
+  step.size = NULL,
+  bin.method = "fixed",
+  store.data.obj = TRUE,
+  reuse.data.obj = FALSE,
+  num.clusters = 100,
+  desired.num.clusters = NULL,
+  alpha = 0.1,
+  best.prob = 1,
+  prob.th = 0,
+  ord.method = "TSP",
+  assembly.fasta = NULL,
+  concat.fasta = TRUE,
+  z.limit = 3.29,
+  remove.always.WC = FALSE,
+  mask.regions = FALSE
+)
 }
 \arguments{
 \item{bamfolder}{A folder containing BAM files with Strand-seq reads aligned to denovo assembly.}

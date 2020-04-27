@@ -4,8 +4,12 @@
 \alias{plotContigStrandStates}
 \title{Plot contig strand states per cell}
 \usage{
-plotContigStrandStates(contig.states = NULL, cluster.rows = FALSE,
-  cluster.cols = FALSE, filt.cols = FALSE)
+plotContigStrandStates(
+  contig.states = NULL,
+  cluster.rows = FALSE,
+  cluster.cols = FALSE,
+  filt.cols = FALSE
+)
 }
 \arguments{
 \item{contig.states}{A \code{data.frame} of strand states per contig and per cell.}

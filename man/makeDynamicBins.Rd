@@ -4,8 +4,13 @@
 \alias{makeDynamicBins}
 \title{Make dynamic-width bins}
 \usage{
-makeDynamicBins(bamfiles = NULL, bin.size = 1e+05, step.size = NULL,
-  chromosomes = NULL, keep.small.chr = FALSE)
+makeDynamicBins(
+  bamfiles = NULL,
+  bin.size = 1e+05,
+  step.size = NULL,
+  chromosomes = NULL,
+  keep.small.chr = FALSE
+)
 }
 \arguments{
 \item{bamfiles}{A \code{character} vector of paths to BAM files to be used for dynamic binning.}

@@ -4,8 +4,13 @@
 \alias{orderContigsTSP}
 \title{Order contigs based on shared strand states}
 \usage{
-orderContigsTSP(contig.states = NULL, dist.matrix = NULL,
-  method = "nearest_insertion", trials = 1000, filt.cols = TRUE)
+orderContigsTSP(
+  contig.states = NULL,
+  dist.matrix = NULL,
+  method = "nearest_insertion",
+  trials = 1000,
+  filt.cols = TRUE
+)
 }
 \arguments{
 \item{contig.states}{A \code{data.frame} of strand states per contig and per cell.}
