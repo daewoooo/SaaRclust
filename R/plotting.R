@@ -319,7 +319,8 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
       theme_void() +
       theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
       theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-      theme(strip.text.y = element_text(angle = 180))
+      theme(strip.text.y.left = element_text(angle = 0))
+      #theme(strip.text.y = element_text(angle = 180))
     if (length(col.vector) > 50) {
       plt <- plt + scale_fill_manual(values = col.vector, guide="none")
       warning("Plot legend will not be printed because there is more than 50 color categories!")
@@ -344,7 +345,8 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
       theme_void() +
       theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
       theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-      theme(strip.text.y = element_text(angle = 180))
+      theme(strip.text.y.left = element_text(angle = 0))
+      #theme(strip.text.y = element_text(angle = 180))
   } else if (report == 'orienting') {
     plt <- ggplot2::ggplot() + geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill=NA, color="black") +
       facet_grid(seqnames ~ ., switch = 'y') +
@@ -354,7 +356,8 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
       theme_void() +
       theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
       theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-      theme(strip.text.y = element_text(angle = 180))
+      theme(strip.text.y.left = element_text(angle = 0))
+      #theme(strip.text.y = element_text(angle = 180))
   } else {
     message("Please choose to report either 'clustering','ordering' or 'orienting' !!!")
   }  
@@ -376,7 +379,7 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
   }
   
   ## Return final plot
-  if ('ggplot' %in% class(plt)) {
+  if (is.ggplot(plt)) {
     return(plt)
   } else {
     return(NULL)
