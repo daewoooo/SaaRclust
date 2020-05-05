@@ -35,10 +35,12 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
   grl.collapsed <- S4Vectors::endoapply(grl.collapsed, function(x) addClusterGroup(cluster.gr = x, cluster.groups = split.pairs$clusters))
   ## Merge by group ID [!!! this might disrupt ordering and confuse primary cluster IDs !!!] Collapses misorients within the same contig & cluster!!!
   #grl.collapsed <- S4Vectors::endoapply(grl.collapsed, function(x) collapseBins(x, id.field = 4, measure.field = c(2,3)))
+  
   ## Remove ranges smaller than the min.region.to.order
-  if (min.region.to.order > 0) {
-    grl.collapsed <- S4Vectors::endoapply(grl.collapsed, function(x) x[width(x) >= min.region.to.order])
-  }  
+  #if (min.region.to.order > 0) {
+  #  grl.collapsed <- S4Vectors::endoapply(grl.collapsed, function(x) x[width(x) >= min.region.to.order])
+  #}  
+  
   ## Get strand state for each region
   grl.BN.probs <- lapply(grl.collapsed, function(x) countProb(minusCounts = x$W, plusCounts = x$C, alpha=alpha, log.scale=TRUE))
   grl.BN.probs.max <- lapply(grl.BN.probs, function(x) apply(x, 1, which.max))
@@ -68,15 +70,6 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
       HET.idx <- NULL
     }
     
-    ## Remove majority of WC cluster
-    # if (remove.always.WC) {
-    #   #mask <- apply(cluster.m, 1, function(x) all(x == 3))
-    #   wc.counts <- apply(cluster.m, 1, function(x) length(x[x == 3]))
-    #   zscore <- (wc.counts - mean(wc.counts)) / sd(wc.counts)
-    #   mask <- zscore >= 2.576 ## 99% CI
-    #   cluster.m <- cluster.m[!mask,]
-    # }
-    
     if (nrow(cluster.m) == 0) { next }
     
     ## Reorient misoriented contigs [TODO: add condition preventing remeving all ctgs by HET.idx!!!]
@@ -93,8 +86,16 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
       cluster.m <- syncClusterDir(contig.states = cluster.m)
     }  
     
-    ## Order contigs using TSP or contiBAIT heuristic
-    if (nrow(cluster.m) > 1) {
+    ## Order contigs using TSP or contiBAIT heuristic ##
+    ## Remove ranges smaller than the 'min.region.to.order'
+    if (min.region.to.order > 0) {
+      cluster.m.gr <- string2GRanges(rownames(cluster.m))
+      mask <- width(cluster.m.gr) >= min.region.to.order
+      cluster.m <- cluster.m[mask,]
+      cluster.m.gr.masked <- cluster.m.gr[!mask]
+    }
+    
+    if (nrow(cluster.m) > 2) {
       if (ord.method == 'TSP') {
         cluster.m.clustered <- orderContigsTSP(contig.states = cluster.m, filt.cols = FALSE)
       } else if (ord.method == 'greedy') {  
@@ -106,14 +107,23 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
       ordered.contigs <- string2GRanges(region.string = cluster.m.clustered$ordered.contigs)
       ordered.contigs$order <- 1:length(ordered.contigs)
       ordered.contigs$ID <- ID
-    } else {
+    } else if (nrow(cluster.m) == 1 | nrow(cluster.m) == 2) {
       ## Export ordered contigs
       ordered.contigs <- string2GRanges(region.string = rownames(cluster.m))
       ordered.contigs$order <- 1:nrow(cluster.m)
       ordered.contigs$ID <- ID
+    } else {
+      ordered.contigs <- GenomicRanges::GRanges()
+    }
+    ## Add filtered contigs by 'min.region.to.order'
+    if (length(cluster.m.gr.masked) > 0) {
+      cluster.m.gr.masked$order <- 0
+      cluster.m.gr.masked$ID <- ID
+      ordered.contigs <- c(ordered.contigs, cluster.m.gr.masked)
     }
     ordered.contigs.grl[[length(ordered.contigs.grl) + 1]] <- ordered.contigs
   }
+  
   ordered.contigs.gr <- unlist(ordered.contigs.grl, use.names = FALSE)
   ordered.contigs.df <- BiocGenerics::as.data.frame(ordered.contigs.gr)
   if (!is.null(filename) & is.character(filename)) {
