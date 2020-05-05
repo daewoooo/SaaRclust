@@ -93,6 +93,8 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
       mask <- width(cluster.m.gr) >= min.region.to.order
       cluster.m <- cluster.m[mask,]
       cluster.m.gr.masked <- cluster.m.gr[!mask]
+    } else {
+      cluster.m.gr.masked <- GenomicRanges::GRanges()
     }
     
     if (nrow(cluster.m) > 2) {
