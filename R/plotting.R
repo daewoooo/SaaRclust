@@ -379,7 +379,7 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
   }
   
   ## Return final plot
-  if (is.ggplot(plt)) {
+  if (ggplot2::is.ggplot(plt)) {
     return(plt)
   } else {
     return(NULL)
