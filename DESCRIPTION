@@ -10,7 +10,7 @@ Depends:
     R (>= 3.5),
     BH (>= 1.51.0-3),
     cowplot,
-    ggplot2,
+    ggplot2 (>= 3.3.0),
     GenomicRanges
 LinkingTo: Rcpp, BH
 Imports:
