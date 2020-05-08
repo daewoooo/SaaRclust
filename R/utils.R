@@ -262,3 +262,182 @@ reportMisAsmCTGs <- function(gr) {
   report.df <- do.call(rbind, report.l)
   return(report.df)
 }
+
+
+#' Report clustering accuracy of de novo assembled contigs
+#' 
+#' This function takes alignments of de novo assembled contigs to the referene genome in BED format and reports
+#' accuracy of their assignment to unique clusters.
+#' 
+#' @param bed.data A \code{data.frame} object containing alignments of de novo assembly to the reference genome in BED format.
+#' @param cluster.ID A column name the uniquely defines assignment of contigs to unique clusters.
+#' @param contig.ID A column name the uniquely defines contigs aligned to the reference genome.
+#' @return A \code{data.frame} object.
+#' @author David Porubsky
+#' @export
+#' 
+getClusteringAcc <- function(bed.data, cluster.ID='ID', contig.ID='ctg') {
+  required.cols <- c('seqnames', 'start', 'end')
+  ## Split data per chromosome/scaffold
+  if (all(required.cols %in% colnames(bed.data))) {
+    data.l <- split(bed.data, bed.data$seqnames)
+  } else {
+    stop("Reuired columns 'seqnames', 'start' and 'end' not defined in the input data!!!")
+  }  
+  ## Make sure that contig.ID is defined in columns
+  if (!contig.ID %in% colnames(bed.data)) {
+    stop("Defined 'contig.ID' not present in the input data!!!")
+  }  
+  ## Make sure that contig.ID is defined in columns
+  if (!cluster.ID %in% colnames(bed.data)) {
+    stop("Defined 'cluster.ID' not present in the input data!!!")
+  }  
+  
+  results.l <- list()
+  wrong.ctg.grl <- GRangesList()
+  for (i in seq_along(data.l)) {
+    data <- data.l[[i]]
+    seqname <- unique(data$seqnames)
+    if(nrow(data) > 0) {
+      data.gr <- GenomicRanges::makeGRangesFromDataFrame(data, keep.extra.columns = TRUE)
+      ## Get ID of the cluster ID covering the most of the chromosome
+      width.per.cluster <- split(width(data.gr), mcols(data.gr)[,cluster.ID])
+      width.per.cluster <- sapply(width.per.cluster, sum)
+      max.cluster.ID <- names(which.max(width.per.cluster))
+      
+      correct.ctgs <- unique(data[,contig.ID][data[,cluster.ID] == max.cluster.ID])
+      wrong.ctgs <- unique(data[,contig.ID][!data[,contig.ID] %in% correct.ctgs])
+      correct.gr <- data.gr[mcols(data.gr)[,cluster.ID] == max.cluster.ID]
+      wrong.gr <- data.gr[mcols(data.gr)[,contig.ID] %in% wrong.ctgs]
+      correct.ctgs.size <- sum(width(reduce(correct.gr)))
+      wrong.ctgs.size <- sum(width(reduce(wrong.gr)))
+      df <- data.frame(seqnames=seqname,
+                       correct.ctgs=length(correct.ctgs), 
+                       wrong.ctgs=length(wrong.ctgs), 
+                       correct.ctgs.size=as.numeric(correct.ctgs.size), 
+                       wrong.ctgs.size=as.numeric(wrong.ctgs.size), 
+                       row.names = NULL)
+      results.l[[i]] <- df
+      wrong.ctg.grl[[i]] <- wrong.gr
+    }  
+  }
+  results.df <- do.call(rbind, results.l)
+  return(results.df)
+}
+
+
+#' Report orienting accuracy of de novo assembled contigs
+#' 
+#' This function takes alignments of de novo assembled contigs to the referene genome in BED format and reports
+#' accuracy of orienting within each unique cluster.
+#' 
+#' @param dir.ID A column name the uniquely defines mapping directionality of each contigs to the reference genome.
+#' @inheritParams getClusteringAcc
+#' @return A \code{data.frame} object.
+#' @author David Porubsky
+#' @export
+#' 
+getOrientingAcc <- function(bed.data, cluster.ID='ID', dir.ID='dir') {
+  required.cols <- c('seqnames', 'start', 'end')
+  ## Split data per chromosome/scaffold
+  if (all(required.cols %in% colnames(bed.data))) {
+    data.l <- split(bed.data, bed.data$seqnames)
+  } else {
+    stop("Reuired columns 'seqnames', 'start' and 'end' not defined in the input data!!!")
+  }  
+  ## Make sure that dir.ID is defined in columns
+  if (!dir.ID %in% colnames(bed.data)) {
+    stop("Defined 'dir.ID' not present in the input data!!!")
+  }  
+  ## Make sure that contig.ID is defined in columns
+  if (!cluster.ID %in% colnames(bed.data)) {
+    stop("Defined 'cluster.ID' not present in the input data!!!")
+  }  
+  
+  results.l <- list()
+  for (i in seq_along(data.l)) {
+    data <- data.l[[i]]
+    gr <- GenomicRanges::makeGRangesFromDataFrame(data, keep.extra.columns = TRUE)
+    if (length(gr) > 0) {
+      seqname <- as.character(unique(seqnames(gr)))
+      cluster.id <- names(which.max(BiocGenerics::table(mcols(gr)[,cluster.ID])))
+      dir.len <- sapply(split(width(gr), mcols(gr)[,dir.ID]), sum)
+      if (length(dir.len) == 2) {
+        major.dir <- max(dir.len)
+        minor.dir <- min(dir.len)
+      } else {
+        major.dir <- max(dir.len)
+        minor.dir <- 0
+      }
+      df <- data.frame(seqnames=seqname,
+                       cluster.ID=cluster.id,
+                       major.dir=major.dir, 
+                       minor.dir=minor.dir)
+      results.l[[i]] <- df
+    }  
+  }  
+  results.df <- do.call(rbind, results.l)
+  return(results.df)
+} 
+
+
+#' Report ordering accuracy of de novo assembled contigs
+#' 
+#' This function takes alignments of de novo assembled contigs to the referene genome in BED format and reports
+#' accuracy of ordering within each unique cluster.
+#' 
+#' @param order.ID A column name the uniquely defines order of each contigs within a cluster.
+#' @inheritParams getClusteringAcc
+#' @return A \code{data.frame} object.
+#' @author David Porubsky
+#' @export
+#' 
+getOrderingAcc <- function(bed.data, cluster.ID='ID', order.ID='order') {
+  required.cols <- c('seqnames', 'start', 'end')
+  ## Split data per chromosome/scaffold
+  if (all(required.cols %in% colnames(bed.data))) {
+    data.l <- split(bed.data, bed.data$seqnames)
+  } else {
+    stop("Reuired columns 'seqnames', 'start' and 'end' not defined in the input data!!!")
+  }  
+  ## Make sure that order.ID is defined in columns
+  if (!order.ID %in% colnames(bed.data)) {
+    stop("Defined 'order.ID' not present in the input data!!!")
+  }  
+  ## Make sure that contig.ID is defined in columns
+  if (!cluster.ID %in% colnames(bed.data)) {
+    stop("Defined 'cluster.ID' not present in the input data!!!")
+  }  
+  
+  results.l <- list()
+  for (i in seq_along(data.l)) {
+    data <- data.l[[i]]
+    gr <- GenomicRanges::makeGRangesFromDataFrame(data, keep.extra.columns = TRUE)
+    mcols(gr)[,order.ID] <- as.numeric(mcols(gr)[,order.ID])
+    
+    if (length(gr) > 0) {
+      seqname <- as.character(unique(seqnames(gr)))
+      cluster.id <- names(which.max(BiocGenerics::table(mcols(gr)[,cluster.ID])))
+      total.ctg <- length(gr) 
+      
+      ctg.ord <- mcols(gr)[,order.ID]
+      err <- length(which(diff(ctg.ord) < 0))
+      corel1 <- cor(ctg.ord, sort(ctg.ord), method = "pearson")
+      corel2 <- cor(rev(ctg.ord), sort(ctg.ord), method = "pearson")
+      corel <- pmax(corel1, corel2)
+        
+      if (is.na(corel) & length(unique(ctg.ord)) == 1) {
+        corel <- 1
+      }
+      
+      df <- data.frame(seqnames=seqname, 
+                       cluster.ID=cluster.id, 
+                       err.ords=err, 
+                       total.ctg=total.ctg, 
+                       ord.cor=corel)
+      results.l[[i]] <- df
+    }  
+  }
+  results.df <- do.call(rbind, results.l)
+  return(results.df)
+}

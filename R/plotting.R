@@ -241,7 +241,8 @@ plotContigStrandStates <- function(contig.states=NULL, cluster.rows=FALSE, clust
 #' @return A \code{ggplot} object.
 #' @import ggplot2
 #' @importFrom RColorBrewer brewer.pal.info brewer.pal
-#' @importFrom tidyr separate
+#' @importFrom dplyr %>% select summarise mutate
+#' @importFrom tidyr separate gather
 #' @importFrom utils read.table
 #' @importFrom grDevices gray.colors
 #' @importFrom BiocGenerics as.data.frame
@@ -261,10 +262,15 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
   }
   chroms2use <- intersect(chromosomes, chroms.in.data)
   
+  if (length(chroms2use) == 0) {
+    stop("Defined 'chromosomes' not present in the submitted BED file!!!")
+  }
+  
   ## Filter contigs by mapping quality
   if (min.mapq > 0) {
     data <- data[data$mapq >= min.mapq,]
   }
+  
   ## Filter by contig size
   if (!is.null(min.contig.size)) {
     if (min.contig.size > 0) {
@@ -309,7 +315,8 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
   } 
   ## Make sure chromosome levels are in the same order as ideogram
   plt.df$seqnames <- factor(plt.df$seqnames, levels=unique(ideo.df$seqnames))
-  
+  ## Initialize stat obejct
+  stat <- data.frame()
   ## Plot ideogram
   if (report == 'clustering') {
     plt <- ggplot2::ggplot() + geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill="white", color="black") +
@@ -328,6 +335,21 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
       plt <- plt + scale_fill_manual(values = col.vector, name="") +
         theme(legend.position = "bottom")
     }
+    ## Add summary plots
+    if ('cluster.ID' %in% colnames(plt.df) & 'contig.ID' %in% colnames(plt.df)) {
+      stat <- getClusteringAcc(bed.data = plt.df, cluster.ID = 'cluster.ID', contig.ID = 'contig.ID')
+      summary1 <- stat %>% select(correct.ctgs, wrong.ctgs) %>% gather(key = 'categ', value = 'value') %>%
+        group_by(categ) %>% summarise(count=sum(value)) %>% mutate( perc=round((count/sum(count))*100, digits = 3) )
+      summary2 <- stat %>% select(correct.ctgs.size, wrong.ctgs.size) %>% gather(key = 'categ', value = 'value') %>%
+        group_by(categ) %>% summarise(count=sum(value)) %>% mutate( perc=round((count/sum(count))*100, digits = 3) )
+      subtitle <- paste(paste0("Proportion of correctly assigned contigs: ", summary1$perc[summary1$categ == 'correct.ctgs']),
+                        paste0("Assembly proportion correctly assigned: ", summary2$perc[summary2$categ == 'correct.ctgs.size']),
+                        sep = '\n')
+      plt <- plt + labs(subtitle = subtitle)
+    } else {
+      warning("Summary statistics cannot be calculated, unless 'cluster.ID' and 'contig.ID' is defined in 'info.fields'!")
+    } 
+    
   } else if (report == 'ordering' & 'order' %in% colnames(plt.df)) {
     plt.df$order <- as.numeric(plt.df$order)
     ## Set chromosome order colors
@@ -347,6 +369,14 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
       theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
       theme(strip.text.y.left = element_text(angle = 0))
       #theme(strip.text.y = element_text(angle = 180))
+    ## Add summary plots
+    if ('cluster.ID' %in% colnames(plt.df) & 'order' %in% colnames(plt.df)) {
+      stat <-getOrderingAcc(bed.data = plt.df, order.ID = 'order', cluster.ID = 'cluster.ID')
+      median.ord.acc <- median(stat$ord.cor)
+      subtitle <- paste(paste0("Median ordering correlation (Pearson's): ", median.ord.acc))
+      plt <- plt + labs(subtitle = subtitle)
+    }
+    
   } else if (report == 'orienting') {
     plt <- ggplot2::ggplot() + geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill=NA, color="black") +
       facet_grid(seqnames ~ ., switch = 'y') +
@@ -356,8 +386,18 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
       theme_void() +
       theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
       theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-      theme(strip.text.y.left = element_text(angle = 0))
+      theme(strip.text.y.left = element_text(angle = 0)) +
+      theme(legend.position = "bottom")
       #theme(strip.text.y = element_text(angle = 180))
+    ## Add summary plots
+    if ('cluster.ID' %in% colnames(plt.df) &'dir' %in% colnames(plt.df)) {
+      stat <- getOrientingAcc (bed.data = plt.df, dir.ID = 'dir', cluster.ID = 'cluster.ID')
+      summary <- stat %>% select(major.dir, minor.dir) %>% gather(key = 'categ', value = 'value') %>%
+        group_by(categ) %>% summarise(count=sum(value)) %>% mutate( perc=round((count/sum(count))*100, digits = 3) )
+      subtitle <- paste(paste0("Assembly proportion correctly oriented: ", summary$perc[summary$categ == 'major.dir']))
+      plt <- plt + labs(subtitle = subtitle)
+    }
+    
   } else {
     message("Please choose to report either 'clustering','ordering' or 'orienting' !!!")
   }  
@@ -378,11 +418,11 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
     plt <- plt + ggtitle(title)
   }
   
-  ## Return final plot
+  ## Return final plot and accuracy stat results
   if (ggplot2::is.ggplot(plt)) {
-    return(plt)
+    return(list(plot=plt, acc.stat=stat))
   } else {
-    return(NULL)
+    return(null)
   }  
 }
 
