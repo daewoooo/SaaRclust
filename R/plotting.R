@@ -338,10 +338,10 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
     ## Add summary plots
     if ('cluster.ID' %in% colnames(plt.df) & 'contig.ID' %in% colnames(plt.df)) {
       stat <- getClusteringAcc(bed.data = plt.df, cluster.ID = 'cluster.ID', contig.ID = 'contig.ID')
-      summary1 <- stat %>% select(correct.ctgs, wrong.ctgs) %>% gather(key = 'categ', value = 'value') %>%
-        group_by(categ) %>% summarise(count=sum(value)) %>% mutate( perc=round((count/sum(count))*100, digits = 3) )
-      summary2 <- stat %>% select(correct.ctgs.size, wrong.ctgs.size) %>% gather(key = 'categ', value = 'value') %>%
-        group_by(categ) %>% summarise(count=sum(value)) %>% mutate( perc=round((count/sum(count))*100, digits = 3) )
+      summary1 <- stat %>% dplyr::select(.data$correct.ctgs, .data$wrong.ctgs) %>% tidyr::gather(key = 'categ', value = 'value') %>%
+        dplyr::group_by(.data$categ) %>% dplyr::summarise(count=sum(.data$value)) %>% dplyr::mutate( perc=round((.data$count/sum(.data$count))*100, digits = 3) )
+      summary2 <- stat %>% dplyr::select(.data$correct.ctgs.size, .data$wrong.ctgs.size) %>% tidyr::gather(key = 'categ', value = 'value') %>%
+        dplyr::group_by(.data$categ) %>% dplyr::summarise(count=sum(.data$value)) %>% dplyr::mutate( perc=round((.data$count/sum(.data$count))*100, digits = 3) )
       subtitle <- paste(paste0("Proportion of correctly assigned contigs: ", summary1$perc[summary1$categ == 'correct.ctgs']),
                         paste0("Assembly proportion correctly assigned: ", summary2$perc[summary2$categ == 'correct.ctgs.size']),
                         sep = '\n')
@@ -392,8 +392,8 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
     ## Add summary plots
     if ('cluster.ID' %in% colnames(plt.df) &'dir' %in% colnames(plt.df)) {
       stat <- getOrientingAcc (bed.data = plt.df, dir.ID = 'dir', cluster.ID = 'cluster.ID')
-      summary <- stat %>% select(major.dir, minor.dir) %>% gather(key = 'categ', value = 'value') %>%
-        group_by(categ) %>% summarise(count=sum(value)) %>% mutate( perc=round((count/sum(count))*100, digits = 3) )
+      summary <- stat %>% dplyr::select(.data$major.dir, .data$minor.dir) %>% tidyr::gather(key = 'categ', value = 'value') %>%
+        dplyr::group_by(.data$categ) %>% dplyr::summarise(count=sum(.data$value)) %>% dplyr::mutate( perc=round((.data$count/sum(.data$count))*100, digits = 3) )
       subtitle <- paste(paste0("Assembly proportion correctly oriented: ", summary$perc[summary$categ == 'major.dir']))
       plt <- plt + labs(subtitle = subtitle)
     }
@@ -422,7 +422,7 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
   if (ggplot2::is.ggplot(plt)) {
     return(list(plot=plt, acc.stat=stat))
   } else {
-    return(null)
+    return(NULL)
   }  
 }
 
