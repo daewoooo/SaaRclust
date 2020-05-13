@@ -118,7 +118,7 @@ addClusterGroup <- function(cluster.gr=NULL, cluster.groups=NULL) {
   for (i in seq_along(cluster.groups)) {
     clust.group <- cluster.groups[[i]]
     ## Assign common cluster group for a pair of clusters
-    if (clust.group %in% cluster.gr$clust.ID) {
+    if (any(clust.group %in% cluster.gr$clust.ID)) {
       cluster.gr.sub <- cluster.gr[cluster.gr$clust.ID %in% clust.group]
       cluster.gr.sub$group.ID <- paste0('cluster',i)
       cluster.gr[cluster.gr$clust.ID %in% clust.group] <- cluster.gr.sub
