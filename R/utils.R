@@ -318,7 +318,7 @@ getClusteringAcc <- function(bed.data, cluster.ID='ID', contig.ID='ctg') {
                        wrong.ctgs.size=as.numeric(wrong.ctgs.size), 
                        row.names = NULL)
       results.l[[i]] <- df
-      wrong.ctg.grl[[i]] <- wrong.gr
+      wrong.ctg.grl[[length(wrong.ctg.grl) + 1]] <- wrong.gr
     }  
   }
   results.df <- do.call(rbind, results.l)
