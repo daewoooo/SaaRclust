@@ -651,3 +651,29 @@ plotCTGstat <- function(ctg.stat=NULL) {
   return(final.plt)
 }   
   
+
+#' Plot distribution of zscores reflecting abundance of WC states per cluster.
+#'
+#' @param zscores A \code{vector} of zscore values that reflect abundance of WC states per cluster and per Strand-seq library.
+#' @return A \code{ggplot} object.
+#' @import ggplot2
+#' @author David Porubsky
+#' @export
+plotStrandStateZscore <- function(zscores=NULL) {
+  ptm <- startTimedMessage("Plotting abudance of WC states")
+  plt.df <- data.frame(zscore=zscores, cl.num=1:length(zscores))
+  wc <- plt.df[plt.df$zscore >= 2.576,]
+  wwcc <- plt.df[plt.df$zscore <= -2,]
+  plt <- ggplot2::ggplot(plt.df) +
+    geom_rect(aes(xmin=-Inf, xmax=Inf, ymin=2.576, ymax=Inf, fill='Majority of WC states')) +
+    geom_rect(aes(xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=-2, fill='Lack of WC states')) +
+    geom_point(aes(x=cl.num, y=zscore)) +
+    geom_point(data=rbind(wc, wwcc), aes(x=cl.num, y=zscore), color='white') +
+    geom_text(data=wc, aes(x = cl.num, y=zscore, label=cl.num), vjust=1.5) +
+    geom_text(data=wwcc, aes(x = cl.num, y=zscore, label=cl.num), vjust=-1) +
+    scale_fill_manual(values = c('darkgoldenrod1', 'cadetblue2'), name='') +
+    xlab(paste0("Initial cluster IDs (n=", length(zscores), ")")) +
+    theme_bw()
+  stopTimedMessage(ptm)
+  return(plt)
+}

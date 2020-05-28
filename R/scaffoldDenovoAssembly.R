@@ -11,6 +11,8 @@
 #' @param store.data.obj A logical indicating whether or not intermediate Rdata objects should be stored.
 #' @param reuse.data.obj A logical indicating whether or not existing files in \code{outputfolder} should be reused.
 #' @param mask.regions Set to \code{TRUE} if regions that appear as WC in majority of cells and low coverage regions should be masked.
+#' @param eval.haploid If set to \code{TRUE} likely haploid clusters won't be merged based on WC state probabilities. This option
+#' helps to properly resolve sex chromosomes in males.  
 #' @inheritParams importBams
 #' @inheritParams hardClust
 #' @inheritParams countProb
@@ -30,7 +32,7 @@
 #'## To export clustred FASTA file, an original FASTA used in BAM alignments has to be submitted as 'assembly.fasta'.
 #'scaffoldDenovoAssembly(bamfolder="bam-data-folder", outputfolder="saarclust-output-folder")}
 #'
-scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.mapq=10, min.contig.size=100000, min.region.to.order=0, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE) {
+scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.mapq=10, min.contig.size=100000, min.region.to.order=0, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE, eval.haploid=FALSE) {
   ## Get total processing time
   ptm <- proc.time()
   
@@ -66,7 +68,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   params <- list(min.mapq=min.mapq, min.contig.size=min.contig.size, min.region.to.order=min.region.to.order, pairedEndReads=pairedEndReads, bin.size=bin.size, store.data.obj=store.data.obj, 
                  step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, desired.num.clusters=desired.num.clusters, alpha=alpha, 
                  best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, 
-                 concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC, mask.regions=mask.regions)
+                 concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC, mask.regions=mask.regions, eval.haploid=eval.haploid)
   config <- c(config, params[setdiff(names(params), names(config))])
   
   ## Make a copy of the config file ##
@@ -237,11 +239,11 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Find clusters with WC state in majority of cells ##
   theta.sums <- Reduce("+", EM.obj$theta.param)
   theta.zscore <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
-  wc.clust.idx <- which(theta.zscore > 2.576) ## 99% confdence level
+  wc.clust.idx <- which(theta.zscore >= 2.576) ## 99% confdence level
   if (length(wc.clust.idx) == 0) {
     wc.clust.idx <- which.max(theta.zscore)
   }
-    
+  
   ## Get names of always WC regions
   if (length(wc.clust.idx) > 0) {
     ## Get probability table
@@ -264,25 +266,40 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   if (config[['remove.always.WC']]) {
     if (length(wc.clust.idx) > 0) {
       ## Remove cluster with the most WC states
-      message("Removing cluster ", paste(wc.clust.idx, collapse = ", "), " with the most WC states!!!")
+      message("Removing cluster ", paste(wc.clust.idx, collapse = ", "), " with the most WC states !!!")
       EM.obj$theta.param <- lapply(EM.obj$theta.param, function(x) x[-wc.clust.idx,])
       EM.obj$soft.pVal <- EM.obj$soft.pVal[,-wc.clust.idx]
       EM.obj$pi.param <- EM.obj$pi.param[-wc.clust.idx]
     }
   }
   
+  ## Find clusters with WW and CC state in majority of cells [haploid clusters] ##
+  if (config[['eval.haploid']]) {
+    theta.sums <- Reduce("+", EM.obj$theta.param)
+    theta.zscore.hap <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
+    hap.clust.idx <- which(theta.zscore.hap <= -2)
+    if (length(hap.clust.idx) > 0) {
+      message("Haploid clusters detected ", paste(hap.clust.idx, collapse = ", "), " !!!")
+    } else {
+      message("NO Haploid clusters detected !!!")
+      hap.clust.idx <- NULL
+    }  
+  } else {  
+    hap.clust.idx <- NULL
+  }
+    
   ## Get cluster IDs that belong to the same chromosome/scaffold ##
   nclust <- nrow(EM.obj$theta.param[[1]])
   if (!is.null(config[['desired.num.clusters']])) {
     if (nclust > 2 & config[['num.clusters']] > config[['desired.num.clusters']]) {
-      split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']])
+      split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']], hap.clust.idx=hap.clust.idx)
     } else {
       clusters <- BiocGenerics::as.list(c(1:nclust))
       names(clusters) <- c(1:nclust)
       split.pairs <- list(clusters=clusters, putative.HETs=NULL)
     }
   } else if (nclust > 2) {
-    split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']])
+    split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']], hap.clust.idx=hap.clust.idx)
   } else {
     clusters <- as.list(c(1:nclust))
     names(clusters) <- c(1:nclust)
@@ -384,6 +401,16 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
          width = config[['num.clusters']] / 10, 
          height = length(EM.obj$theta.param) / 10, 
          limitsize = FALSE)
+  )
+  
+  ## Plot abundance of WC states per initial clusters (n=num.clusters)
+  zscore.plt <- plotStrandStateZscore(zscores = theta.zscore)
+  suppressWarnings(
+  ggplot2::ggsave(filename = file.path(pltpath, 'zscores_wc_states.pdf'), 
+                  plot = zscore.plt, 
+                  width = 8, 
+                  height = 4, 
+                  limitsize = FALSE)
   )
   
   ## Plot probability distribution
