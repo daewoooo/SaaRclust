@@ -20,7 +20,7 @@
 #'## Merge clusters that belong to the same chromosome/scaffold
 #'connected.clusters <- connectDividedClusters(theta.param=EM.obj$theta.param)
 #'
-connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always.WC=FALSE, desired.num.clusters=NULL, hap.clust.idx=NULL) {
+connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always.WC=FALSE, desired.num.clusters=NULL) {
   
   ## Helper function ##
   ## Calculate euclidean distance for pair of datapoints
@@ -40,16 +40,16 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   ## Get all possible cluster pairs
   pairs <- t(utils::combn(nrow(theta.param[[1]]), 2))
   
-  ## If haploid cluster indices are defined, remove them from cluster similarity calculation for WC states [haploid => never WC]
-  if (!is.null(hap.clust.idx) & length(hap.clust.idx) > 0) {
-    #mask <- pairs[,1] %in% hap.clust.idx & pairs[,2] %in% hap.clust.idx
-    mask.hap <- which(pairs[,1] %in% hap.clust.idx & pairs[,2] %in% hap.clust.idx)
-    #pairs.sub <- pairs
-    #pairs.sub <- pairs[!mask,]
-  } else {
-    mask.hap <- NULL
-    #pairs.sub <- pairs
-  }
+  # ## If haploid cluster indices are defined, remove them from cluster similarity calculation for WC states [haploid => never WC]
+  # if (!is.null(hap.clust.idx) & length(hap.clust.idx) > 0) {
+  #   #mask <- pairs[,1] %in% hap.clust.idx & pairs[,2] %in% hap.clust.idx
+  #   mask.hap <- which(pairs[,1] %in% hap.clust.idx & pairs[,2] %in% hap.clust.idx)
+  #   #pairs.sub <- pairs
+  #   #pairs.sub <- pairs[!mask,]
+  # } else {
+  #   mask.hap <- NULL
+  #   #pairs.sub <- pairs
+  # }
   
   dist.wc <- list()
   dist.ww <- list()
@@ -76,10 +76,10 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   dist.wc.m <- do.call(cbind, dist.wc)
   simil.wc.m <- max(dist.wc.m) - dist.wc.m
   simil.wc.sum <- rowSums(simil.wc.m)
-  ## Set similarity of between haploid clusters to a minimal defined similarity for a pair of clusters
-  if (length(mask.hap) > 0) {
-    simil.wc.sum[mask.hap] <- min(simil.wc.sum)
-  }  
+  # ## Set similarity of between haploid clusters to a minimal defined similarity for a pair of clusters
+  # if (length(mask.hap) > 0) {
+  #   simil.wc.sum[mask.hap] <- min(simil.wc.sum)
+  # }  
   zscores <- (simil.wc.sum - mean(simil.wc.sum)) / stats::sd(simil.wc.sum)
   vertices.wc <- cbind(pairs, zscores)
   vertices.wc <- vertices.wc[order(vertices.wc[,3], decreasing = TRUE),]

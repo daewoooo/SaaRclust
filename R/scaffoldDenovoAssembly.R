@@ -11,8 +11,7 @@
 #' @param store.data.obj A logical indicating whether or not intermediate Rdata objects should be stored.
 #' @param reuse.data.obj A logical indicating whether or not existing files in \code{outputfolder} should be reused.
 #' @param mask.regions Set to \code{TRUE} if regions that appear as WC in majority of cells and low coverage regions should be masked.
-#' @param eval.haploid If set to \code{TRUE} likely haploid clusters won't be merged based on WC state probabilities. This option
-#' helps to properly resolve sex chromosomes in males.  
+#' @param eval.haploid If set to \code{TRUE} haploid contigs (or part of contigs) will be reported as RData object.  
 #' @inheritParams importBams
 #' @inheritParams hardClust
 #' @inheritParams countProb
@@ -111,11 +110,11 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   
   ## Create a mask of regions with and excess of read coverage that appears always WC
   ## and bins that have very low read counts
-  destination <- file.path(datapath, paste0("maskRegions_", config[['bin.size']],"bp_", config[['bin.method']], ".RData"))
+  destination <- file.path(datapath, paste0("maskRegions.RData"))
   if (config[['mask.regions']]) {
     if (config[['reuse.data.obj']]) {
       if (file.exists(destination)) {
-        message("Loading previously generated region MASK ...\n", destination)
+        message("Loading previously generated region mask ...\n", destination)
         blacklist <- get(load(destination))
         #blacklist.gr <- c(blacklist$alwaysWC, blacklist$alwaysZero)
       } else {
@@ -272,34 +271,19 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       EM.obj$pi.param <- EM.obj$pi.param[-wc.clust.idx]
     }
   }
-  
-  ## Find clusters with WW and CC state in majority of cells [haploid clusters] ##
-  if (config[['eval.haploid']]) {
-    theta.sums <- Reduce("+", EM.obj$theta.param)
-    theta.zscore.hap <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
-    hap.clust.idx <- which(theta.zscore.hap <= -2)
-    if (length(hap.clust.idx) > 0) {
-      message("Haploid clusters detected ", paste(hap.clust.idx, collapse = ", "), " !!!")
-    } else {
-      message("NO Haploid clusters detected !!!")
-      hap.clust.idx <- NULL
-    }  
-  } else {  
-    hap.clust.idx <- NULL
-  }
     
   ## Get cluster IDs that belong to the same chromosome/scaffold ##
   nclust <- nrow(EM.obj$theta.param[[1]])
   if (!is.null(config[['desired.num.clusters']])) {
     if (nclust > 2 & config[['num.clusters']] > config[['desired.num.clusters']]) {
-      split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']], hap.clust.idx=hap.clust.idx)
+      split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']])
     } else {
       clusters <- BiocGenerics::as.list(c(1:nclust))
       names(clusters) <- c(1:nclust)
       split.pairs <- list(clusters=clusters, putative.HETs=NULL)
     }
   } else if (nclust > 2) {
-    split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']], hap.clust.idx=hap.clust.idx)
+    split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']])
   } else {
     clusters <- as.list(c(1:nclust))
     names(clusters) <- c(1:nclust)
@@ -314,6 +298,27 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   
   ## Assign contigs to clusters based on soft probabilities ##
   clustered.grl <- counts2ranges(counts.l, saarclust.obj=EM.obj, best.prob=config[['best.prob']], prob.th=config[['prob.th']])
+  
+  ## Find clusters with WW and CC state in majority of cells [haploid clusters] ##
+  if (config[['eval.haploid']]) {
+    theta.sums <- Reduce("+", EM.obj$theta.param)
+    theta.zscore.hap <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
+    hap.clust.idx <- which(theta.zscore.hap <= -2)
+    if (length(hap.clust.idx) > 0) {
+      message("Haploid clusters detected ", paste(hap.clust.idx, collapse = ", "), " !!!")
+      ## Get haploid contigs
+      ctg2clusters <- clustered.grl[[1]][,1]
+      hap.ctgs <- GenomicRanges::reduce(ctg2clusters[ctg2clusters$clust.ID %in% hap.clust.idx])
+      ## Store data object
+      destination <- file.path(datapath, paste0("haploid_contig_regions.RData"))
+      save(hap.ctgs, file = destination)
+    } else {
+      message("NO haploid clusters detected !!!")
+      #hap.clust.idx <- NULL
+    }  
+  } #else {  
+  #hap.clust.idx <- NULL
+  #}
   
   ## Order and orient contigs ##
   destination <- file.path(asmpath, paste0("ordered&oriented_", config[['bin.size']], "bp_", config[['bin.method']], ".tsv"))

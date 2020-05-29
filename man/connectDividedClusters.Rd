@@ -8,8 +8,7 @@ connectDividedClusters(
   theta.param = NULL,
   z.limit = 3.29,
   remove.always.WC = FALSE,
-  desired.num.clusters = NULL,
-  hap.clust.idx = NULL
+  desired.num.clusters = NULL
 )
 }
 \arguments{
