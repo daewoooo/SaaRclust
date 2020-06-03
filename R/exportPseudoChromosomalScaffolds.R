@@ -11,6 +11,7 @@
 #' @param concat.fasta Set to \code{TRUE} if you want to concatenate FASTA sequences within a cluster by 100 N's.
 #' @importFrom Rsamtools indexFa FaFile scanFa scanFaIndex
 #' @importFrom Biostrings reverseComplement DNAStringSet writeXStringSet
+#' @importFrom BiocGenerics as.data.frame
 #' @author David Porubsky
 #' @export
 exportPseudoChromosomalScaffolds <- function(clustered.gr=NULL, assembly.fasta=NULL, outputfolder=NULL, concat.fasta=TRUE) {
@@ -48,7 +49,9 @@ exportPseudoChromosomalScaffolds <- function(clustered.gr=NULL, assembly.fasta=N
         destination <- file.path(outputfolder, paste0(cluster.ID, '.fasta')) 
         Biostrings::writeXStringSet(x = cluster.seq.collapsed, filepath = destination, format = 'fasta')
       } else {
-        new.names <- paste0(names(cluster.seq), '_', cluster.regions$order, '_', cluster.regions$ID)
+        #new.names <- paste0(names(cluster.seq), '_', cluster.regions$order, '_', cluster.regions$ploidy, '_', cluster.regions$ID)
+        mcols.names <- do.call('paste', c(BiocGenerics::as.data.frame(mcols(cluster.regions)[,-1]), list(sep='_')))
+        new.names <- paste(names(cluster.seq), mcols.names, sep = '_')
         names(cluster.seq) <- new.names
         ## Write final FASTA
         destination <- file.path(outputfolder, paste0(cluster.ID, '.fasta')) 

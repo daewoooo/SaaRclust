@@ -28,7 +28,7 @@ scaffoldDenovoAssembly(
   z.limit = 3.29,
   remove.always.WC = FALSE,
   mask.regions = FALSE,
-  eval.haploid = FALSE
+  eval.ploidy = FALSE
 )
 }
 \arguments{
@@ -79,7 +79,7 @@ If a \code{configfile} is specified, it will take priority over the command line
 
 \item{mask.regions}{Set to \code{TRUE} if regions that appear as WC in majority of cells and low coverage regions should be masked.}
 
-\item{eval.haploid}{If set to \code{TRUE} haploid contigs (or part of contigs) will be reported as RData object.}
+\item{eval.ploidy}{If set to \code{TRUE} haploid contigs (or part of contigs) will be reported as RData object.}
 }
 \description{
 This function is an easy-to-use wrapper to take Strand-seq reads aligned to the denovo genome assembly

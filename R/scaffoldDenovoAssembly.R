@@ -11,7 +11,7 @@
 #' @param store.data.obj A logical indicating whether or not intermediate Rdata objects should be stored.
 #' @param reuse.data.obj A logical indicating whether or not existing files in \code{outputfolder} should be reused.
 #' @param mask.regions Set to \code{TRUE} if regions that appear as WC in majority of cells and low coverage regions should be masked.
-#' @param eval.haploid If set to \code{TRUE} haploid contigs (or part of contigs) will be reported as RData object.  
+#' @param eval.ploidy If set to \code{TRUE} haploid contigs (or part of contigs) will be reported as RData object.  
 #' @inheritParams importBams
 #' @inheritParams hardClust
 #' @inheritParams countProb
@@ -31,7 +31,7 @@
 #'## To export clustred FASTA file, an original FASTA used in BAM alignments has to be submitted as 'assembly.fasta'.
 #'scaffoldDenovoAssembly(bamfolder="bam-data-folder", outputfolder="saarclust-output-folder")}
 #'
-scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.mapq=10, min.contig.size=100000, min.region.to.order=0, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE, eval.haploid=FALSE) {
+scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.mapq=10, min.contig.size=100000, min.region.to.order=0, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE, eval.ploidy=FALSE) {
   ## Get total processing time
   ptm <- proc.time()
   
@@ -67,7 +67,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   params <- list(min.mapq=min.mapq, min.contig.size=min.contig.size, min.region.to.order=min.region.to.order, pairedEndReads=pairedEndReads, bin.size=bin.size, store.data.obj=store.data.obj, 
                  step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, desired.num.clusters=desired.num.clusters, alpha=alpha, 
                  best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, 
-                 concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC, mask.regions=mask.regions, eval.haploid=eval.haploid)
+                 concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC, mask.regions=mask.regions, eval.ploidy=eval.ploidy)
   config <- c(config, params[setdiff(names(params), names(config))])
   
   ## Make a copy of the config file ##
@@ -223,18 +223,6 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     save(EM.obj, file = destination)
   }
   
-  # ## Remove always WC cluster
-  # if (config[['remove.always.WC']]) {
-  #   ## Find cluster with WC state in majority of cells
-  #   theta.sums <- Reduce("+", EM.obj$theta.param)
-  #   remove.clust <- which.max(theta.sums[,3])
-  #   ## Remove cluster with the most WC states
-  #   message("\nRemoving cluster ", remove.clust, " with the most WC states!!!")
-  #   EM.obj$theta.param <- lapply(EM.obj$theta.param, function(x) x[-remove.clust,])
-  #   EM.obj$soft.pVal <- EM.obj$soft.pVal[,-remove.clust]
-  #   EM.obj$pi.param <- EM.obj$pi.param[-remove.clust]
-  # }
-  
   ## Find clusters with WC state in majority of cells ##
   theta.sums <- Reduce("+", EM.obj$theta.param)
   theta.zscore <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
@@ -300,23 +288,23 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   clustered.grl <- counts2ranges(counts.l, saarclust.obj=EM.obj, best.prob=config[['best.prob']], prob.th=config[['prob.th']])
   
   ## Find clusters with WW and CC state in majority of cells [haploid clusters] ##
-  if (config[['eval.haploid']]) {
-    theta.sums <- Reduce("+", EM.obj$theta.param)
-    theta.zscore.hap <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
-    hap.clust.idx <- which(theta.zscore.hap <= -2)
-    if (length(hap.clust.idx) > 0) {
-      message("Haploid clusters detected ", paste(hap.clust.idx, collapse = ", "), " !!!")
-      ## Get haploid contigs
-      ctg2clusters <- clustered.grl[[1]][,1]
-      hap.ctgs <- GenomicRanges::reduce(ctg2clusters[ctg2clusters$clust.ID %in% hap.clust.idx])
-      ## Store data object
-      destination <- file.path(datapath, paste0("haploid_contig_regions.RData"))
-      save(hap.ctgs, file = destination)
-    } else {
-      message("NO haploid clusters detected !!!")
-      #hap.clust.idx <- NULL
-    }  
-  } #else {  
+  #if (config[['eval.haploid']]) {
+  theta.sums <- Reduce("+", EM.obj$theta.param)
+  theta.zscore.hap <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
+  hap.clust.idx <- which(theta.zscore.hap <= -2)
+  if (length(hap.clust.idx) > 0) {
+    message("Haploid clusters detected ", paste(hap.clust.idx, collapse = ", "), " !!!")
+    ## Get haploid contigs
+    ctg2clusters <- clustered.grl[[1]][,1]
+    hap.ctgs <- GenomicRanges::reduce(ctg2clusters[ctg2clusters$clust.ID %in% hap.clust.idx])
+    ## Store data object
+    destination <- file.path(datapath, paste0("haploid_contig_regions.RData"))
+    save(hap.ctgs, file = destination)
+  } else {
+    message("NO haploid clusters detected !!!")
+    #hap.clust.idx <- NULL
+  }  
+  #} #else {  
   #hap.clust.idx <- NULL
   #}
   
@@ -327,6 +315,14 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   
   ## Extend gaps between ranges
   ordered.contigs.gr <- expandGaps(ordered.contigs.gr)
+  
+  ## Add ploidy information 
+  #ordered.contigs.gr$ploidy <- '2n'
+  if (config[['eval.ploidy']]) {
+    ordered.contigs.gr$ploidy <- '2n'
+    mcols(ordered.contigs.gr[as.character(seqnames(ordered.contigs.gr)) %in% as.character(seqnames(hap.ctgs))])$ploidy <- '1n'
+    #mcols(ordered.contigs.gr[seqnames(ordered.contigs.gr) %in% seqnames(wc.ctgs)])$ploidy <- '>2n'
+  }
 
   ## Store data object
   destination <- file.path(asmpath, paste0("ordered&oriented_", config[['bin.size']], "bp_chunks.RData"))
@@ -396,7 +392,6 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       message("Submitted 'assembly.fasta' does not exists !!!")
     }  
   }
-  ## TODO return final clustered object??? 
   
   ## Plot theta parameter
   theta.plt <- plotThetaEstimates(theta.param = EM.obj$theta.param)
