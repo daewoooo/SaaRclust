@@ -667,10 +667,10 @@ plotStrandStateZscore <- function(zscores=NULL) {
   plt <- ggplot2::ggplot(plt.df) +
     geom_rect(aes(xmin=-Inf, xmax=Inf, ymin=2.576, ymax=Inf, fill='Majority of WC states')) +
     geom_rect(aes(xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=-2, fill='Lack of WC states')) +
-    geom_point(aes(x=cl.num, y=zscore)) +
-    geom_point(data=rbind(wc, wwcc), aes(x=cl.num, y=zscore), color='white') +
-    geom_text(data=wc, aes(x = cl.num, y=zscore, label=cl.num), vjust=1.5) +
-    geom_text(data=wwcc, aes(x = cl.num, y=zscore, label=cl.num), vjust=-1) +
+    geom_point(aes_string(x='cl.num', y='zscore')) +
+    geom_point(data=rbind(wc, wwcc), aes_string(x='cl.num', y='zscore'), color='white') +
+    geom_text(data=wc, aes_string(x = 'cl.num', y='zscore', label='cl.num'), vjust=1.5) +
+    geom_text(data=wwcc, aes_string(x = 'cl.num', y='zscore', label='cl.num'), vjust=-1) +
     scale_fill_manual(values = c('darkgoldenrod1', 'cadetblue2'), name='') +
     xlab(paste0("Initial cluster IDs (n=", length(zscores), ")")) +
     theme_bw()

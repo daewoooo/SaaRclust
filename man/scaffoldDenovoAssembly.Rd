@@ -79,7 +79,7 @@ If a \code{configfile} is specified, it will take priority over the command line
 
 \item{mask.regions}{Set to \code{TRUE} if regions that appear as WC in majority of cells and low coverage regions should be masked.}
 
-\item{eval.ploidy}{If set to \code{TRUE} haploid contigs (or part of contigs) will be reported as RData object.}
+\item{eval.ploidy}{If set to \code{TRUE} estimated ploidy of each contig will be reported and appended to each contig name.}
 }
 \description{
 This function is an easy-to-use wrapper to take Strand-seq reads aligned to the denovo genome assembly

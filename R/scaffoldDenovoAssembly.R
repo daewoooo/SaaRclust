@@ -11,7 +11,7 @@
 #' @param store.data.obj A logical indicating whether or not intermediate Rdata objects should be stored.
 #' @param reuse.data.obj A logical indicating whether or not existing files in \code{outputfolder} should be reused.
 #' @param mask.regions Set to \code{TRUE} if regions that appear as WC in majority of cells and low coverage regions should be masked.
-#' @param eval.ploidy If set to \code{TRUE} haploid contigs (or part of contigs) will be reported as RData object.  
+#' @param eval.ploidy If set to \code{TRUE} estimated ploidy of each contig will be reported and appended to each contig name.  
 #' @inheritParams importBams
 #' @inheritParams hardClust
 #' @inheritParams countProb
