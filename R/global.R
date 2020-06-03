@@ -9,3 +9,5 @@
 #' @import GenomicRanges
 #' @importFrom methods as is
 NULL
+
+class.saarclust <- "saarclust"

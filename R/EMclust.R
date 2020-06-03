@@ -268,7 +268,10 @@ EMclust <- function(counts.l, theta.param=NULL, pi.param=NULL, num.iter=100, alp
     #cluts.tab.norm <- cluts.tab/rowSums(cluts.tab)
   #}
   
-  message("DONE!!!")  
-  return(list(soft.pVal=soft.probs.tab.norm, log.l=unlist(log.like.l), theta.param=theta.param, pi.param=pi.param))
+  message("DONE!!!")
+  
+  data.obj <- list(soft.pVal=soft.probs.tab.norm, log.l=unlist(log.like.l), theta.param=theta.param, pi.param=pi.param)
+  class(data.obj) <- class.saarclust
+  return(data.obj)
 }  
 
