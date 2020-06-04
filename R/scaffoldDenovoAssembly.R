@@ -12,6 +12,7 @@
 #' @param reuse.data.obj A logical indicating whether or not existing files in \code{outputfolder} should be reused.
 #' @param mask.regions Set to \code{TRUE} if regions that appear as WC in majority of cells and low coverage regions should be masked.
 #' @param eval.ploidy If set to \code{TRUE} estimated ploidy of each contig will be reported and appended to each contig name.  
+#' @param em.param.estim A \code{\link{saarclust}} object with theta and pi estimates to be used in EM procedure (Soft clustering step).
 #' @inheritParams importBams
 #' @inheritParams hardClust
 #' @inheritParams countProb
@@ -31,7 +32,7 @@
 #'## To export clustred FASTA file, an original FASTA used in BAM alignments has to be submitted as 'assembly.fasta'.
 #'scaffoldDenovoAssembly(bamfolder="bam-data-folder", outputfolder="saarclust-output-folder")}
 #'
-scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.mapq=10, min.contig.size=100000, min.region.to.order=0, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE, eval.ploidy=FALSE) {
+scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.mapq=10, min.contig.size=100000, min.region.to.order=0, chromosomes=NULL, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE, eval.ploidy=FALSE, em.param.estim=NULL) {
   ## Get total processing time
   ptm <- proc.time()
   
@@ -64,10 +65,10 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   }
   
   ## Put all parameters into list and merge with config ##
-  params <- list(min.mapq=min.mapq, min.contig.size=min.contig.size, min.region.to.order=min.region.to.order, pairedEndReads=pairedEndReads, bin.size=bin.size, store.data.obj=store.data.obj, 
-                 step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, desired.num.clusters=desired.num.clusters, alpha=alpha, 
-                 best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, 
-                 concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC, mask.regions=mask.regions, eval.ploidy=eval.ploidy)
+  params <- list(min.mapq=min.mapq, min.contig.size=min.contig.size, min.region.to.order=min.region.to.order, chromosomes=chromosomes, pairedEndReads=pairedEndReads, bin.size=bin.size, 
+                 store.data.obj=store.data.obj, step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, desired.num.clusters=desired.num.clusters, 
+                 alpha=alpha, best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, concat.fasta=concat.fasta, z.limit=z.limit, 
+                 remove.always.WC=remove.always.WC, mask.regions=mask.regions, eval.ploidy=eval.ploidy, em.param.estim=em.param.estim)
   config <- c(config, params[setdiff(names(params), names(config))])
   
   ## Make a copy of the config file ##
@@ -107,6 +108,15 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Keep only contigs/scaffolds of size defined by min.contig.size
   filt <- chrom.lengths >= config[['min.contig.size']]
   chroms.in.data <- names(chrom.lengths[filt])
+  
+  ## Proces only user defined chromosomes/contigs
+  if (!is.null(chromosomes) & is.character(chromosomes)) {
+    if (all(chromosomes %in% chroms.in.data)) {
+      chroms.in.data <- chromosomes
+    } else {
+      warning("Not all sequence names defined in 'chromosomes' found in the data, proceeding with all sequences !!!")
+    }
+  }
   
   ## Create a mask of regions with and excess of read coverage that appears always WC
   ## and bins that have very low read counts
@@ -177,9 +187,28 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     save(counts.l, file = destination)
   }
   
+  ## Check user input of 'em.param.estim' ##
+  if (!is.null(config[['em.param.estim']])) {
+    ## Load theta and pi parameter estimates from the user defined saarclust object in 'em.param.estim'
+    saarclust.obj <- get(load(config[['em.param.estim']]))
+    if (class(saarclust.obj) == 'saarclust') {
+      theta.param <- saarclust.obj$theta.param
+      pi.param <- saarclust.obj$pi.param
+      if (length(theta.param) == length(counts.l)) {
+        message("Loading previously generated 'theta' and 'pi' parameter estimates ...\n", config[['em.param.estim']])
+      } else {
+        warning("Submitted 'em.param.estim' contains ", length(theta.param), " cells while binned counts were created from ", length(counts.l), " cells, setting 'em.param.estim' to NULL." )
+        config[['em.param.estim']] <- NULL
+      }
+    } else {
+      warning("Submitted 'em.param.estim' is not a 'saarclust' object. Setting 'em.param.estim' to NULL.")
+      config[['em.param.estim']] <- NULL
+    }
+  }
+  
   ## Perform hard clustering ##
   destination <- file.path(datapath, paste0("hardClust_", config[['num.clusters']], "K_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
-  if (config[['reuse.data.obj']]) {
+  if (config[['reuse.data.obj']] & is.null(config[['em.param.estim']])) {
     if (file.exists(destination)) {
       message("Loading previously generated hard clustering results ...\n", destination)
       hardClust.ord <- get(load(destination))
@@ -187,35 +216,34 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       set.seed(1000) ## to reproduce hard clustering results
       hardClust.ord <- hardClust(counts.l, num.clusters=config[['num.clusters']], nstart = 1000)
     }
-  } else {
+  } else if (is.null(config[['em.param.estim']])) {
     set.seed(1000) ## to reproduce hard clustering results
     hardClust.ord <- hardClust(counts.l, num.clusters=config[['num.clusters']], nstart = 1000)
-  }  
+  }
   ## Store data object
   if (config[['store.data.obj']]) {
     save(hardClust.ord, file = destination)
+  }
+  
+  ## Estimate EM parameters
+  if (is.null(config[['em.param.estim']])) {
+    ## Estimate theta parameter from hard clustering results
+    theta.param <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=config[['alpha']])
+    ## Estimate pi parameter from hard clustering results
+    readsPerCluts <- BiocGenerics::table(hardClust.ord)
+    pi.param <- readsPerCluts / sum(readsPerCluts)
   }
 
   ## RUN EM ##
   destination <- file.path(datapath, paste0("softClust_", config[['num.clusters']], "K_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
   if (config[['reuse.data.obj']]) {
-    if (file.exists(destination)) {
+    if (file.exists(destination) & is.null(config[['em.param.estim']])) {
       message("Loading previously generated soft clustering results ...\n", destination)
       EM.obj <- get(load(destination))
     } else {
-      ## Estimate theta parameter
-      theta.param <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=config[['alpha']])
-      ## Estimate pi parameter
-      readsPerCluts <- BiocGenerics::table(hardClust.ord)
-      pi.param <- readsPerCluts / sum(readsPerCluts)
       EM.obj <- EMclust(counts.l, theta.param=theta.param, pi.param=pi.param, num.iter=20, alpha=config[['alpha']], logL.th=1, log.scale=TRUE)
     }
   } else {
-    ## Estimate theta parameter
-    theta.param <- estimateTheta(counts.l, hard.clust=hardClust.ord, alpha=config[['alpha']])
-    ## Estimate pi parameter
-    readsPerCluts <- BiocGenerics::table(hardClust.ord)
-    pi.param <- readsPerCluts / sum(readsPerCluts)
     EM.obj <- EMclust(counts.l, theta.param=theta.param, pi.param=pi.param, num.iter=20, alpha=config[['alpha']], logL.th=1, log.scale=TRUE)
   }
   ## Store data object
@@ -241,11 +269,12 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     soft.prob <- soft.prob[mask,]
     clust.ID <- apply(soft.prob, 1, which.max)
     always.wc.ctgs <- names(clust.ID)[clust.ID %in% wc.clust.idx]
-    
+    always.wc.ctgs.gr <- string2GRanges(always.wc.ctgs)
+    always.wc.ctgs.gr <- always.wc.ctgs.gr[,0]
     ## Store data object
-    destination <- file.path(datapath, paste0("alwaysWCregions_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
+    destination <- file.path(datapath, paste0("alwaysWCregions", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
     if (store.data.obj) {
-      save(always.wc.ctgs, file = destination)
+      save(always.wc.ctgs.gr, file = destination)
     }
   } 
   
@@ -288,7 +317,6 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   clustered.grl <- counts2ranges(counts.l, saarclust.obj=EM.obj, best.prob=config[['best.prob']], prob.th=config[['prob.th']])
   
   ## Find clusters with WW and CC state in majority of cells [haploid clusters] ##
-  #if (config[['eval.haploid']]) {
   theta.sums <- Reduce("+", EM.obj$theta.param)
   theta.zscore.hap <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
   hap.clust.idx <- which(theta.zscore.hap <= -2)
@@ -302,11 +330,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     save(hap.ctgs, file = destination)
   } else {
     message("NO haploid clusters detected !!!")
-    #hap.clust.idx <- NULL
-  }  
-  #} #else {  
-  #hap.clust.idx <- NULL
-  #}
+  }
   
   ## Order and orient contigs ##
   destination <- file.path(asmpath, paste0("ordered&oriented_", config[['bin.size']], "bp_", config[['bin.method']], ".tsv"))
@@ -317,11 +341,10 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ordered.contigs.gr <- expandGaps(ordered.contigs.gr)
   
   ## Add ploidy information 
-  #ordered.contigs.gr$ploidy <- '2n'
   if (config[['eval.ploidy']]) {
     ordered.contigs.gr$ploidy <- '2n'
     mcols(ordered.contigs.gr[as.character(seqnames(ordered.contigs.gr)) %in% as.character(seqnames(hap.ctgs))])$ploidy <- '1n'
-    #mcols(ordered.contigs.gr[seqnames(ordered.contigs.gr) %in% seqnames(wc.ctgs)])$ploidy <- '>2n'
+    #mcols(ordered.contigs.gr[as.character(seqnames(ordered.contigs.gr)) %in% as.character(seqnames(always.wc.ctgs.gr))])$ploidy <- '>2n'
   }
 
   ## Store data object

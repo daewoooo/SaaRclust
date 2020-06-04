@@ -11,6 +11,7 @@ scaffoldDenovoAssembly(
   min.mapq = 10,
   min.contig.size = 1e+05,
   min.region.to.order = 0,
+  chromosomes = NULL,
   pairedEndReads = TRUE,
   bin.size = 1e+05,
   step.size = NULL,
@@ -28,7 +29,8 @@ scaffoldDenovoAssembly(
   z.limit = 3.29,
   remove.always.WC = FALSE,
   mask.regions = FALSE,
-  eval.ploidy = FALSE
+  eval.ploidy = FALSE,
+  em.param.estim = NULL
 )
 }
 \arguments{
@@ -44,6 +46,8 @@ If a \code{configfile} is specified, it will take priority over the command line
 \item{min.contig.size}{A minimal contig size to be processed (default: 100kb).}
 
 \item{min.region.to.order}{A minimum size region to try to order within a cluster.}
+
+\item{chromosomes}{A user defined set of chromosomes for binning (eg. 'chr1')}
 
 \item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
 
@@ -80,6 +84,8 @@ If a \code{configfile} is specified, it will take priority over the command line
 \item{mask.regions}{Set to \code{TRUE} if regions that appear as WC in majority of cells and low coverage regions should be masked.}
 
 \item{eval.ploidy}{If set to \code{TRUE} estimated ploidy of each contig will be reported and appended to each contig name.}
+
+\item{em.param.estim}{A \code{\link{saarclust}} object with theta and pi estimates to be used in EM procedure (Soft clustering step).}
 }
 \description{
 This function is an easy-to-use wrapper to take Strand-seq reads aligned to the denovo genome assembly
