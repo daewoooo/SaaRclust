@@ -365,7 +365,8 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     ## Collapse consecutive ranges
     putative.errors.gr <- GenomicRanges::sort(putative.errors.gr)
     putative.errors.gr$collapse.ID <- paste0(putative.errors.gr$dir, '_', putative.errors.gr$ID)
-    putative.errors.gr <- SaaRclust::collapseBins(putative.errors.gr, id.field = 4)
+    id.field <- ncol(mcols(putative.errors.gr))
+    putative.errors.gr <- SaaRclust::collapseBins(putative.errors.gr, id.field = id.field)
     ## Store data object
     destination <- file.path(datapath, paste0("putativeAsmErrors_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
     if (store.data.obj) {
