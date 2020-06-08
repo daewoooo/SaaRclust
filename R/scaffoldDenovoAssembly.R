@@ -111,10 +111,10 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   
   ## Proces only user defined chromosomes/contigs
   if (!is.null(chromosomes) & is.character(chromosomes)) {
-    if (all(chromosomes %in% chroms.in.data)) {
-      chroms.in.data <- chromosomes
+    if (any(chromosomes %in% chroms.in.data)) {
+      chroms.in.data <- chroms.in.data[chroms.in.data %in% chromosomes] 
     } else {
-      warning("Not all sequence names defined in 'chromosomes' found in the data, proceeding with all sequences !!!")
+      warning("None of the sequence names defined in 'chromosomes' found, after 'min.contig.size' filtering !!!")
     }
   }
   
