@@ -72,7 +72,7 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     
     if (nrow(cluster.m) == 0) { next }
     
-    ## Reorient misoriented contigs [TODO: add condition preventing remeving all ctgs by HET.idx!!!]
+    ## Reorient misoriented contigs ##
     if (length(HET.idx) > 0) {
       ## Temporarily remove HET inversions from contig re-orienting procedure
       het.ctg <- cluster.m[HET.idx,]
@@ -123,6 +123,30 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
       cluster.m.gr.masked$ID <- ID
       ordered.contigs <- c(ordered.contigs, cluster.m.gr.masked)
     }
+    
+    ## Collapse neighbouring regions of the same contig and having the same directionality [TESTING]
+    ## Define helper function
+    collapseOrdContigs <- function(gr) {
+      if (length(gr) > 1) {
+        if (length(unique(gr$dir)) == 1) {
+          gr.new <- reduce(gr)
+          mcols(gr.new) <- mcols(gr[which.max(width(gr))])
+          return(gr.new)
+        } else {
+          return(gr)
+        }
+      } else {
+        return(gr)
+      }
+    }
+    
+    hits <- findOverlaps(ordered.contigs, reduce(ordered.contigs))
+    contigs.grl <- split(ordered.contigs, subjectHits(hits))
+    contigs.grl <- endoapply(contigs.grl, collapseOrdContigs)
+    ordered.contigs <- unlist(contigs.grl, use.names = FALSE)
+    ordered.contigs$order[ordered.contigs$order > 0] <- 1:length(ordered.contigs[ordered.contigs$order > 0])
+    
+    ## Store ordered and oriented regions per cluster
     ordered.contigs.grl[[length(ordered.contigs.grl) + 1]] <- ordered.contigs
   }
   

@@ -112,7 +112,8 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Proces only user defined chromosomes/contigs
   if (!is.null(chromosomes) & is.character(chromosomes)) {
     if (any(chromosomes %in% chroms.in.data)) {
-      chroms.in.data <- chroms.in.data[chroms.in.data %in% chromosomes] 
+      chroms.in.data <- chroms.in.data[chroms.in.data %in% chromosomes]
+      chrom.lengths <- chrom.lengths[names(chrom.lengths) %in% chromosomes]
     } else {
       warning("None of the sequence names defined in 'chromosomes' found, after 'min.contig.size' filtering !!!")
     }
@@ -222,7 +223,9 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   }
   ## Store data object
   if (config[['store.data.obj']]) {
-    save(hardClust.ord, file = destination)
+    if (exists('hardClust.ord')) {
+      save(hardClust.ord, file = destination)
+    }  
   }
   
   ## Estimate EM parameters
@@ -340,11 +343,16 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Extend gaps between ranges
   ordered.contigs.gr <- expandGaps(ordered.contigs.gr)
   
-  ## Add ploidy information 
+  ## Add ploidy information [TESTING]
   if (config[['eval.ploidy']]) {
-    ordered.contigs.gr$ploidy <- '2n'
-    mcols(ordered.contigs.gr[as.character(seqnames(ordered.contigs.gr)) %in% as.character(seqnames(hap.ctgs))])$ploidy <- '1n'
-    #mcols(ordered.contigs.gr[as.character(seqnames(ordered.contigs.gr)) %in% as.character(seqnames(always.wc.ctgs.gr))])$ploidy <- '>2n'
+    if (exists('hap.ctgs')) {
+      if (length(hap.ctgs) > 0) {
+        ordered.contigs.gr <- labelGenomicRegions(gr = ordered.contigs.gr, label.gr = hap.ctgs, label.gr.ID = '1n')
+      }  
+    }  
+    if(!config[['remove.always.WC']] & length(always.wc.ctgs.gr) > 0) {
+      ordered.contigs.gr <- labelGenomicRegions(gr = ordered.contigs.gr, label.gr = always.wc.ctgs.gr, label.gr.ID = '>2n')
+    }  
   }
 
   ## Store data object

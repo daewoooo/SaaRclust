@@ -17,7 +17,7 @@
 #'## Prepare genomic bins
 #'genomic.bins <- makeFixedBins(bamfile = bamfile, bin.size = 200000, step.size = 200000, chromosomes = 'chr1')
 #'
-makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromosomes=NULL, keep.small.chr=FALSE) {
+makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromosomes=NULL, keep.small.chr=TRUE) {
   
   ptm <- startTimedMessage("Preparing fixed-width bins for bin size ", bin.size)
   
@@ -50,37 +50,46 @@ makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromos
     warning('Could not find length information for the following chromosomes: ', diffs)
   }
   
-  chrom.lengths.floor <- floor(chrom.lengths / bin.size) * bin.size
-  bins <- unlist(GenomicRanges::tileGenome(chrom.lengths.floor[chroms2use], tilewidth=bin.size), use.names=FALSE)
-  ## remove chromosomes that are smaller than bin.size?
-  bins <- bins[end(bins) > 0]
+  bins <- GenomicRanges::GRanges()
+  if (any(chrom.lengths[chroms2use] >= bin.size)) {
+    ## Bin only contigs equal or larger than set bin size
+    chroms2bin <- names(chrom.lengths)[chrom.lengths[chroms2use] >= bin.size]
+    chrom.lengths.floor <- floor(chrom.lengths / bin.size) * bin.size
+    bins <- unlist(GenomicRanges::tileGenome(chrom.lengths.floor[chroms2bin], tilewidth=bin.size), use.names=FALSE)
+    ## Remove chromosomes that are smaller than bin.size?
+    #bins <- bins[end(bins) > 0]
   
-  if (any(width(bins) != bin.size)) {
-    stop("tileGenome failed")
-  }
-  
-  ## Add sequence lengths
-  seqlengths(bins) <- chrom.lengths[chroms2use]
-  
-  ## Add step size if defined
-  if (!is.null(step.size)) {
-    shift.bp <- 0
-    bins.list.step <- GenomicRanges::GRangesList()
-    while (shift.bp < bin.size) {
-      bins.list.step[[as.character(shift.bp)]] <- suppressWarnings( trim(GenomicRanges::shift(bins, shift.bp)) )
-      shift.bp <- step.size + shift.bp
+    if (any(width(bins) != bin.size)) {
+      stop("tileGenome failed")
     }
-    bins <- sort(unlist(bins.list.step, use.names = FALSE))  
+    
+    ## Add step size if defined
+    if (!is.null(step.size)) {
+      shift.bp <- 0
+      bins.list.step <- GenomicRanges::GRangesList()
+      while (shift.bp < bin.size) {
+        bins.list.step[[as.character(shift.bp)]] <- suppressWarnings( trim(GenomicRanges::shift(bins, shift.bp)) )
+        shift.bp <- step.size + shift.bp
+      }
+      bins <- sort(unlist(bins.list.step, use.names = FALSE))  
+    }
   }
-  
+    
   ## Keep chromosomes/contigs smaller than the bin.size if desired
   if (keep.small.chr) {
     chroms2keep <- chroms2use[!chroms2use %in% unique(seqnames(bins))]
     if (length(chroms2keep) > 0) {
       chroms2keep.gr <- GenomicRanges::GRanges(seqnames = chroms2keep, ranges=IRanges(start = 1, end = chrom.lengths[chroms2keep]))
-      bins <- GenomicRanges::sort(c(bins, chroms2keep.gr))
+      if (length(bins) > 0) {
+        bins <- suppressWarnings( c(bins, chroms2keep.gr) )
+      } else {
+        bins <- chroms2keep.gr
+      }  
     }  
   }
+  
+  ## Add sequence lengths
+  seqlengths(bins) <- chrom.lengths[seqlevels(bins)]
   
   ## Report chromosome/contigs smaller than the bin.size
   skipped.chroms <- setdiff(seqlevels(bins), as.character(unique(seqnames(bins))))

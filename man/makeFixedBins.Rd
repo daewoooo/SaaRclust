@@ -9,7 +9,7 @@ makeFixedBins(
   bin.size = 1e+05,
   step.size = NULL,
   chromosomes = NULL,
-  keep.small.chr = FALSE
+  keep.small.chr = TRUE
 )
 }
 \arguments{

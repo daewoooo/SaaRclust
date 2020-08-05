@@ -31,6 +31,8 @@ exportPseudoChromosomalScaffolds <- function(clustered.gr=NULL, assembly.fasta=N
     cluster.regions <- clustered.grl[[i]]
     cluster.ID <- unique(cluster.regions$ID)
     ptm <- startTimedMessage(paste0("Exporting FASTA for: ", cluster.ID))
+    ## Sort ranges based on predicted order
+    cluster.regions <- cluster.regions[order(cluster.regions$order)]
     ## Remove sequences not present in the FASTA index
     fa.idx <- Rsamtools::scanFaIndex(fa.file)
     cluster.regions <- suppressWarnings( subsetByOverlaps(cluster.regions, fa.idx) )
@@ -40,6 +42,9 @@ exportPseudoChromosomalScaffolds <- function(clustered.gr=NULL, assembly.fasta=N
       ## Reverse complement based on 'dir' field
       revcomp <- which(cluster.regions$dir == 'revcomp')
       cluster.seq[revcomp] <- Biostrings::reverseComplement(cluster.seq[revcomp])
+      ## Reverse based on 'dir' field
+      #rev <- which(cluster.regions$dir == 'rev')
+      #cluster.seq[rev] <- Biostrings::reverse(cluster.seq[rev])
       if (concat.fasta) {
         ## Concatenate all sequences into a single FASTA separated by 100 N's.
         delim <- paste(rep('N', 100), collapse = '')

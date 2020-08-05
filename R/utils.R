@@ -441,3 +441,45 @@ getOrderingAcc <- function(bed.data, cluster.ID='ID', order.ID='order') {
   results.df <- do.call(rbind, results.l)
   return(results.df)
 }
+
+
+#' Subtract and label set of genomic ranges in other set of genomic ranges.
+#' 
+#' This function takes a \code{\link{GRanges-class}} object of genomic regions to be labeled by user defined label
+#'  in other \code{\link{GRanges-class}} object.
+#' 
+#' @param gr A \code{\link{GRanges-class}} object to be labeled based on the overlap with 'label.gr' object.
+#' @param label.gr A \code{\link{GRanges-class}} object of genomic regions to be labeled inside 'gr' object.
+#' @param label.gr.ID A user defined label to be used to mark 'label.gr' regions inside 'gr'.
+#' @return A \code{\link{GRanges-class}} object.
+#' @author David Porubsky
+#' @export
+#' 
+labelGenomicRegions <- function(gr=NULL, label.gr=NULL, label.gr.ID=NULL) {
+  ## Helper function
+  markPartial <- function(gr=NULL, label.gr=NULL, label.gr.ID=NULL) {
+    label.gr.sub <- IRanges::subsetByOverlaps(label.gr, gr)
+    gr.new <- GenomicRanges::disjoin(c(gr[,0], label.gr.sub))
+    mcols(gr.new) <- mcols(gr)
+    hits <- IRanges::findOverlaps(label.gr.sub, gr.new)
+    mcols(gr.new[subjectHits(hits)])$ploidy <- '1n'
+    return(gr.new)
+  }
+  ## Set ploidy for contigs completely contained in 'label.gr' ranges
+  gr$ploidy <- '2n'
+  hits <- suppressWarnings( IRanges::findOverlaps(label.gr, gr, type = 'equal') )
+  if (length(hits) > 0) {
+    mcols(gr[subjectHits(hits)])$ploidy <- '1n'
+  }  
+  ## Label regions overlapping only partialy with 'label.gr' ranges
+  label.gr.partial <- label.gr[-queryHits(hits)]
+  gr.partial <- suppressWarnings( IRanges::subsetByOverlaps(gr, label.gr.partial) )
+  gr <- suppressWarnings( IRanges::subsetByOverlaps(gr, label.gr.partial, invert = TRUE) )
+  gr.extras <- GenomicRanges::GRangesList()
+  for (i in seq_along(gr.partial)) {
+    gr.extras[[i]] <- markPartial(gr = gr.partial[i], label.gr = label.gr.partial, label.gr.ID = label.gr.ID)
+  }
+  gr.extras <- unique(unlist(gr.extras))
+  gr <- sort(c(gr, gr.extras))  
+  return(gr)
+}
