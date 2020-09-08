@@ -38,6 +38,7 @@ makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromos
     chromosomes <- chroms.in.data
   }
   chroms2use <- intersect(chromosomes, chroms.in.data)
+  chrom.lengths <- chrom.lengths[names(chrom.lengths) %in% chroms2use]
   ## Stop if none of the specified chromosomes exist
   if (length(chroms2use) == 0) {
     chrstring <- paste0(chromosomes, collapse=', ')
@@ -51,11 +52,11 @@ makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromos
   }
   
   bins <- GenomicRanges::GRanges()
-  if (any(chrom.lengths[chroms2use] >= bin.size)) {
+  if (any(chrom.lengths >= bin.size)) {
     ## Bin only contigs equal or larger than set bin size
-    chroms2bin <- names(chrom.lengths)[chrom.lengths[chroms2use] >= bin.size]
+    chroms2bin <- names(chrom.lengths)[chrom.lengths >= bin.size]
     chrom.lengths.floor <- floor(chrom.lengths / bin.size) * bin.size
-    bins <- unlist(GenomicRanges::tileGenome(chrom.lengths.floor[chroms2bin], tilewidth=bin.size), use.names=FALSE)
+    bins <- unlist(GenomicRanges::tileGenome(chrom.lengths.floor, tilewidth=bin.size), use.names=FALSE)
     ## Remove chromosomes that are smaller than bin.size?
     #bins <- bins[end(bins) > 0]
   
