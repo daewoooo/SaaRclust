@@ -60,7 +60,7 @@ maskAlwaysWCandZeroBins <- function(bamfolder=bamfolder, genomic.bins=NULL, min.
   
   ## Find bins that have close to zero counts
   z.score <- (total.read.sums - median(total.read.sums)) / sd(total.read.sums)
-  zero.bins <- which(z.score <= -3)
+  zero.bins <- which(z.score <= -2.57)
   if (length(zero.bins) > 0) {
     alwaysZero <- GenomicRanges::reduce(genomic.bins[zero.bins])
   } else {
