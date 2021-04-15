@@ -11,7 +11,7 @@ Depends:
     BH (>= 1.51.0-3),
     cowplot,
     ggplot2 (>= 3.3.0),
-    GenomicRanges
+    GenomicRanges,
 LinkingTo: Rcpp, BH
 Imports:
     methods,
@@ -33,6 +33,7 @@ Imports:
     Rsamtools,
     Biostrings,
     bamsignals,
+    BSgenome,
     GenomicAlignments,
     GenomeInfoDb (>= 1.12.3),
     BiocGenerics,
