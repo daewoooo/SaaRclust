@@ -85,7 +85,7 @@ If a \code{configfile} is specified, it will take priority over the command line
 
 \item{eval.ploidy}{If set to \code{TRUE} estimated ploidy of each contig will be reported and appended to each contig name.}
 
-\item{em.param.estim}{A \code{\link{saarclust}} object with theta and pi estimates to be used in EM procedure (Soft clustering step).}
+\item{em.param.estim}{A \code{\link{SaaRclust}} object with theta and pi estimates to be used in EM procedure (Soft clustering step).}
 }
 \description{
 This function is an easy-to-use wrapper to take Strand-seq reads aligned to the denovo genome assembly

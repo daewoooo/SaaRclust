@@ -12,7 +12,7 @@
 #' @param reuse.data.obj A logical indicating whether or not existing files in \code{outputfolder} should be reused.
 #' @param mask.regions Set to \code{TRUE} if regions that appear as WC in majority of cells and low coverage regions should be masked.
 #' @param eval.ploidy If set to \code{TRUE} estimated ploidy of each contig will be reported and appended to each contig name.  
-#' @param em.param.estim A \code{\link{saarclust}} object with theta and pi estimates to be used in EM procedure (Soft clustering step).
+#' @param em.param.estim A \code{\link{SaaRclust}} object with theta and pi estimates to be used in EM procedure (Soft clustering step).
 #' @inheritParams importBams
 #' @inheritParams hardClust
 #' @inheritParams countProb

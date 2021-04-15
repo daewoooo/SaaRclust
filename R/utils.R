@@ -462,7 +462,7 @@ labelGenomicRegions <- function(gr=NULL, label.gr=NULL, label.gr.ID=NULL) {
     gr.new <- GenomicRanges::disjoin(c(gr[,0], label.gr.sub))
     mcols(gr.new) <- mcols(gr)
     hits <- IRanges::findOverlaps(label.gr.sub, gr.new)
-    mcols(gr.new[subjectHits(hits)])$ploidy <- '1n'
+    mcols(gr.new[S4Vectors::subjectHits(hits)])$ploidy <- '1n'
     return(gr.new)
   }
   ## Set ploidy for contigs completely contained in 'label.gr' ranges
@@ -472,7 +472,7 @@ labelGenomicRegions <- function(gr=NULL, label.gr=NULL, label.gr.ID=NULL) {
     mcols(gr[subjectHits(hits)])$ploidy <- '1n'
   }  
   ## Label regions overlapping only partialy with 'label.gr' ranges
-  label.gr.partial <- label.gr[-queryHits(hits)]
+  label.gr.partial <- label.gr[-S4Vectors::queryHits(hits)]
   gr.partial <- suppressWarnings( IRanges::subsetByOverlaps(gr, label.gr.partial) )
   gr <- suppressWarnings( IRanges::subsetByOverlaps(gr, label.gr.partial, invert = TRUE) )
   gr.extras <- GenomicRanges::GRangesList()
