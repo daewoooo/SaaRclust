@@ -20,6 +20,7 @@ scaffoldDenovoAssembly(
   reuse.data.obj = FALSE,
   num.clusters = 100,
   desired.num.clusters = NULL,
+  max.cluster.length.mbp = 0,
   alpha = 0.1,
   best.prob = 1,
   prob.th = 0,
@@ -63,7 +64,9 @@ If a \code{configfile} is specified, it will take priority over the command line
 
 \item{num.clusters}{Desired number of clusters or cluster centers (k-means clustering).}
 
-\item{desired.num.clusters}{Desired number of clusters after cluster merging step.}
+\item{desired.num.clusters}{Desired number of clusters after merging divided clusters.}
+
+\item{max.cluster.length.mbp}{Maximum allowed cluster length in mega-base-pairs after merging divided clusters.}
 
 \item{alpha}{Estimated level of background in Strand-seq reads.}
 

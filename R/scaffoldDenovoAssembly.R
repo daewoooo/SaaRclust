@@ -32,7 +32,7 @@
 #'## To export clustred FASTA file, an original FASTA used in BAM alignments has to be submitted as 'assembly.fasta'.
 #'scaffoldDenovoAssembly(bamfolder="bam-data-folder", outputfolder="saarclust-output-folder")}
 #'
-scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.mapq=10, min.contig.size=100000, min.region.to.order=0, chromosomes=NULL, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE, eval.ploidy=FALSE, em.param.estim=NULL) {
+scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.mapq=10, min.contig.size=100000, min.region.to.order=0, chromosomes=NULL, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, max.cluster.length.mbp=0, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE, eval.ploidy=FALSE, em.param.estim=NULL) {
   ## Get total processing time
   ptm <- proc.time()
   
@@ -67,8 +67,8 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ## Put all parameters into list and merge with config ##
   params <- list(min.mapq=min.mapq, min.contig.size=min.contig.size, min.region.to.order=min.region.to.order, chromosomes=chromosomes, pairedEndReads=pairedEndReads, bin.size=bin.size, 
                  store.data.obj=store.data.obj, step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, desired.num.clusters=desired.num.clusters, 
-                 alpha=alpha, best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, concat.fasta=concat.fasta, z.limit=z.limit, 
-                 remove.always.WC=remove.always.WC, mask.regions=mask.regions, eval.ploidy=eval.ploidy, em.param.estim=em.param.estim)
+                 max.cluster.length.mbp=max.cluster.length.mbp, alpha=alpha, best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, concat.fasta=concat.fasta, 
+                 z.limit=z.limit, remove.always.WC=remove.always.WC, mask.regions=mask.regions, eval.ploidy=eval.ploidy, em.param.estim=em.param.estim)
   config <- c(config, params[setdiff(names(params), names(config))])
   
   ## Make a copy of the config file ##
@@ -292,18 +292,31 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     }
   }
     
+  ## Assign contigs to clusters based on soft probabilities ##
+  clustered.grl <- counts2ranges(counts.l, saarclust.obj=EM.obj, best.prob=config[['best.prob']], prob.th=config[['prob.th']])
+  ## Get regions assigned to each cluster
+  regions.clustered <- clustered.grl[[1]][,1]
+  
   ## Get cluster IDs that belong to the same chromosome/scaffold ##
   nclust <- nrow(EM.obj$theta.param[[1]])
   if (!is.null(config[['desired.num.clusters']])) {
     if (nclust > 2 & config[['num.clusters']] > config[['desired.num.clusters']]) {
-      split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']])
+      split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, 
+                                            clustered.gr=regions.clustered, 
+                                            z.limit=config[['z.limit']], 
+                                            desired.num.clusters=config[['desired.num.clusters']], 
+                                            max.cluster.length.mbp=config[['max.cluster.length.mbp']])
     } else {
       clusters <- BiocGenerics::as.list(c(1:nclust))
       names(clusters) <- c(1:nclust)
       split.pairs <- list(clusters=clusters, putative.HETs=NULL)
     }
   } else if (nclust > 2) {
-    split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param, z.limit=config[['z.limit']], desired.num.clusters=config[['desired.num.clusters']])
+    split.pairs <- connectDividedClusters(theta.param=EM.obj$theta.param,
+                                          clustered.gr=regions.clustered,
+                                          z.limit=config[['z.limit']], 
+                                          desired.num.clusters=config[['desired.num.clusters']],
+                                          max.cluster.length.mbp=config[['max.cluster.length.mbp']])
   } else {
     clusters <- as.list(c(1:nclust))
     names(clusters) <- c(1:nclust)
@@ -317,7 +330,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   }
   
   ## Assign contigs to clusters based on soft probabilities ##
-  clustered.grl <- counts2ranges(counts.l, saarclust.obj=EM.obj, best.prob=config[['best.prob']], prob.th=config[['prob.th']])
+  #clustered.grl <- counts2ranges(counts.l, saarclust.obj=EM.obj, best.prob=config[['best.prob']], prob.th=config[['prob.th']])
   
   ## Find clusters with WW and CC state in majority of cells [haploid clusters] ##
   theta.sums <- Reduce("+", EM.obj$theta.param)

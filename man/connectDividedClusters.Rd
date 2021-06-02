@@ -6,19 +6,25 @@
 \usage{
 connectDividedClusters(
   theta.param = NULL,
+  clustered.gr = NULL,
   z.limit = 3.29,
   remove.always.WC = FALSE,
-  desired.num.clusters = NULL
+  desired.num.clusters = NULL,
+  max.cluster.length.mbp = 0
 )
 }
 \arguments{
 \item{theta.param}{A \code{list} of estimated cell types for each cluster and each cell.}
 
+\item{clustered.gr}{A \code{\link{GRanges-class}} object containing original cluster assignment of all binned contigs.}
+
 \item{z.limit}{Connect clusters with z-score equal or above this limit.}
 
 \item{remove.always.WC}{Set to \code{TRUE} if the cluster with majority of WC states should be removed.}
 
-\item{desired.num.clusters}{Desired number of clusters after cluster merging step.}
+\item{desired.num.clusters}{Desired number of clusters after merging divided clusters.}
+
+\item{max.cluster.length.mbp}{Maximum allowed cluster length in mega-base-pairs after merging divided clusters.}
 }
 \value{
 A \code{matrix} of pairs of clusters IDs that belong to the same chromosome.

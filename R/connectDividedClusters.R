@@ -4,12 +4,15 @@
 #' directionality across multiple Strand-seq libraries.
 #'
 #' @param theta.param A \code{list} of estimated cell types for each cluster and each cell.
+#' @param clustered.gr A \code{\link{GRanges-class}} object containing original cluster assignment of all binned contigs.
 #' @param z.limit Connect clusters with z-score equal or above this limit.
 #' @param remove.always.WC Set to \code{TRUE} if the cluster with majority of WC states should be removed.
-#' @param desired.num.clusters Desired number of clusters after cluster merging step.
+#' @param desired.num.clusters Desired number of clusters after merging divided clusters.
+#' @param max.cluster.length.mbp Maximum allowed cluster length in mega-base-pairs after merging divided clusters.
 #' @return A \code{matrix} of pairs of clusters IDs that belong to the same chromosome.
 #' @importFrom igraph graph groups components
 #' @importFrom BiocGenerics as.list
+#' @importFrom data.table as.data.table
 #' @author David Porubsky
 #' @export
 #' @examples
@@ -20,7 +23,7 @@
 #'## Merge clusters that belong to the same chromosome/scaffold
 #'connected.clusters <- connectDividedClusters(theta.param=EM.obj$theta.param)
 #'
-connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always.WC=FALSE, desired.num.clusters=NULL) {
+connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=3.29, remove.always.WC=FALSE, desired.num.clusters=NULL, max.cluster.length.mbp=0) {
   
   ## Helper function ##
   ## Calculate euclidean distance for pair of datapoints
@@ -114,13 +117,27 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
   vertices <- rbind(vertices.wc, vertices.ww, vertices.cc, vertices.het)  
   vertices <- vertices[order(vertices[,3], decreasing = TRUE),]
   
-  ## There is a user defined desired.num.clusters keep decresing z.limit to reach user defined
+  ## If there is a user defined desired.num.clusters keep decreasing z.limit to reach user defined
   ## number of clusters
   if (!is.null(desired.num.clusters)) {
     cl.num <- nrow(theta.param[[1]])
+    if (!is.null(clustered.gr)) {
+      clustered.dt <- data.table::as.data.table(clustered.gr)
+      cl.sizes <- clustered.dt[, sum(width), by=clust.ID]
+      cl.sizes.bp <- cl.sizes$V1
+    } #else {
+      #cl.sizes <- data.frame(clust.ID, )
+      #cl.sizes.bp <- rep(0, )
+    #}  
+    
+    ## Set parameters based on user input 
+    if (max.cluster.length.mbp == 0 | is.null(clustered.gr)) {
+      max.cluster.length.mbp <- ceiling(sum(cl.sizes) / 1000000)
+    }
+    
     clusters <- NULL
     clusters.prev <- NULL
-    while (desired.num.clusters < cl.num) {
+    while (desired.num.clusters < cl.num & all(cl.sizes.bp < (max.cluster.length.mbp * 1000000))) {
       ## Keep previous iteration 
       if (!is.null(clusters)) {
         clusters.prev <- clusters
@@ -133,6 +150,7 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
         G <- igraph::graph(vertices.sub, directed = FALSE)
         clusters <- igraph::groups(igraph::components(G, mode = 'strong'))
         cl.num <- length(clusters)
+        cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$V1[cl.sizes$clust.ID %in% x]) )
         z.limit <- z.limit - 0.1
       } else {
         break
@@ -140,6 +158,10 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
     }
     ## Report previous iteration in case current number of clusters is smaller than 'desired.num.clusters'
     if (length(clusters) < desired.num.clusters & !is.null(clusters.prev)) {
+      clusters <- clusters.prev
+    }
+    ## Report previous iteration in case any cluster is larger than allowed 'max.cluster.length.mbp'
+    if (any(cl.sizes.bp > (max.cluster.length.mbp * 1000000)) & !is.null(clusters.prev)) {
       clusters <- clusters.prev
     }
   } else {
@@ -153,6 +175,7 @@ connectDividedClusters <- function(theta.param=NULL, z.limit=3.29, remove.always
       clusters <- NULL
     }  
   }
+  ## Note notify if any of the clusters are larger than 'max.cluster.length.mbp'
   
   if (is.null(clusters)) {
     nclust <- nrow(theta.param[[1]])
