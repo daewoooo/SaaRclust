@@ -9,14 +9,34 @@
 #' @export
 #' 
 syncClusterDir <- function(contig.states) {
-  ## Remove cell with wc states
+  ## Remove cells with high number wc states
   #mask <- apply(contig.states, 2, function(x) all(x != 3))
   #contig.states.sub <- as.matrix(contig.states[,mask])
+  ## Remove cells suggesting HET inversion pattern
+  contig.wc.states <- contig.states
+  contig.wc.states[contig.wc.states != 3] <- 0
+  col.state.sums <- colSums(contig.wc.states)
+  cell.clusters <- stats::cutree(stats::hclust(stats::dist(col.state.sums)), k = 2)
+  cell.clusters.state.sums <- stats::aggregate(col.state.sums, by=list(cell.clusters), FUN=sum)
+  ## Keep set of cells with higher number of ww and cc states a thus having lover calSums values
+  keep.cell.cluster <- cell.clusters.state.sums[,1][which.min(cell.clusters.state.sums[,2])]
+  keep.cells <- names(cell.clusters)[cell.clusters == keep.cell.cluster]
+  ## Skip filtering cell filtering if less than 25% of all cell would remain
+  if (length(keep.cells) > 0) {
+    if (length(keep.cells) < round(ncol(contig.states) * 0.25)) {
+      contig.states.sub <- contig.states
+    } else {
+      contig.states.sub <- contig.states[,colnames(contig.states) %in% keep.cells]
+    }
+  } else {
+    contig.states.sub <- contig.states
+  }
+  
   ## Calculate orderness of a strand state matrix as sum of counts of the most abundant values in each column
   contig.states.original <- contig.states
   orderness.original <- sum(apply(contig.states.original, 2, function(x) max(table(x))))
   ## Set wc states to NA
-  contig.states.sub <- contig.states
+  #contig.states.sub <- contig.states
   contig.states.sub[contig.states.sub == 3] <- NA
   ## Check if non-WC cells have any switch in directionality
   mask <- apply(contig.states.sub, 2, function(x) all(!is.na(x)))

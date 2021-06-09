@@ -67,7 +67,7 @@ orderAndOrientClusters <- function(clustered.grl, split.pairs, ord.method='TSP',
     
     ## Do not remove putative HET inversions if they consist more than 50% of all contigs in a cluster
     if ((length(HET.idx) / nrow(cluster.m)) >= 0.5) {
-      HET.idx <- NULL
+      HET.idx <- integer()
     }
     
     if (nrow(cluster.m) == 0) { next }
