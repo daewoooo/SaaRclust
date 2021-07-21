@@ -32,7 +32,7 @@ Imports:
     IRanges,
     Rsamtools,
     Biostrings,
-    bamsignals (>= 1.22.0), 
+    bamsignals, 
     BSgenome,
     GenomicAlignments,
     GenomeInfoDb (>= 1.12.3),
