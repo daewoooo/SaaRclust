@@ -26,7 +26,7 @@ collapseBins <- function(gr, id.field=0, measure.field=NULL) {
   if (!is.null(measure.field)) {
     run.ID  <- factor(rep(seq_along(unique.ID.runLength), unique.ID.runLength))
     for (field in measure.field) {
-      mcols(collapsed.gr)[,field] <-  tapply(mcols(gr)[,field], run.ID, sum)
+      mcols(collapsed.gr)[,field] <-  as.numeric(tapply(mcols(gr)[,field], run.ID, sum))
       #collapsed.gr$C <-  tapply(gr$C, run.ID, sum)
       #collapsed.gr$W <-  tapply(gr$W, run.ID, sum)
     }
