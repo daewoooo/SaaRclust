@@ -13,6 +13,7 @@ scaffoldDenovoAssembly(
   min.region.to.order = 0,
   chromosomes = NULL,
   pairedEndReads = TRUE,
+  custom.bins = NULL,
   bin.size = 1e+05,
   step.size = NULL,
   bin.method = "fixed",
@@ -22,7 +23,6 @@ scaffoldDenovoAssembly(
   desired.num.clusters = NULL,
   max.cluster.length.mbp = 0,
   alpha = 0.1,
-  best.prob = 1,
   prob.th = 0,
   ord.method = "TSP",
   assembly.fasta = NULL,
@@ -31,6 +31,7 @@ scaffoldDenovoAssembly(
   remove.always.WC = FALSE,
   mask.regions = FALSE,
   eval.ploidy = FALSE,
+  allow.contig.cuts = FALSE,
   em.param.estim = NULL
 )
 }
@@ -52,6 +53,8 @@ If a \code{configfile} is specified, it will take priority over the command line
 
 \item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
 
+\item{custom.bins}{A \code{\link[GenomicRanges]{GRanges}} object containing user defined set of bins to count reads in.}
+
 \item{bin.size}{A length of a bin to count reads in.}
 
 \item{step.size}{A size of the genomic interval to move each bin.}
@@ -70,8 +73,6 @@ If a \code{configfile} is specified, it will take priority over the command line
 
 \item{alpha}{Estimated level of background in Strand-seq reads.}
 
-\item{best.prob}{Set number of highest probability clusters reported per genomic region.}
-
 \item{prob.th}{Only regions with this probability and higher will be reported.}
 
 \item{ord.method}{A method ('TSP' or 'greedy') used to order contigs within a cluster (default: 'TSP')}
@@ -87,6 +88,8 @@ If a \code{configfile} is specified, it will take priority over the command line
 \item{mask.regions}{Set to \code{TRUE} if regions that appear as WC in majority of cells and low coverage regions should be masked.}
 
 \item{eval.ploidy}{If set to \code{TRUE} estimated ploidy of each contig will be reported and appended to each contig name.}
+
+\item{allow.contig.cuts}{If set to \code{TRUE} contigs that were assigned to more than one cluster or direction will be cut.}
 
 \item{em.param.estim}{A \code{\link{SaaRclust}} object with theta and pi estimates to be used in EM procedure (Soft clustering step).}
 }

@@ -9,6 +9,7 @@ importBams(
   chromosomes = NULL,
   pairedEndReads = TRUE,
   min.mapq = 10,
+  custom.bins = NULL,
   bin.size = 1e+05,
   step.size = NULL,
   reads.per.bin = NULL,
@@ -25,6 +26,8 @@ importBams(
 \item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
 
 \item{min.mapq}{Minimum mapping quality when importing from BAM files.}
+
+\item{custom.bins}{A \code{\link[GenomicRanges]{GRanges}} object containing user defined set of bins to count reads in.}
 
 \item{bin.size}{A length of a bin to count reads in.}
 

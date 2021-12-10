@@ -51,4 +51,4 @@ License: file LICENSE
 LazyLoad: yes
 VignetteBuilder: knitr, rmarkdown
 URL: https://github.com/daewoooo/SaaRclust.git
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
