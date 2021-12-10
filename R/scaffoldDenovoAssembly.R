@@ -11,7 +11,8 @@
 #' @param store.data.obj A logical indicating whether or not intermediate Rdata objects should be stored.
 #' @param reuse.data.obj A logical indicating whether or not existing files in \code{outputfolder} should be reused.
 #' @param mask.regions Set to \code{TRUE} if regions that appear as WC in majority of cells and low coverage regions should be masked.
-#' @param eval.ploidy If set to \code{TRUE} estimated ploidy of each contig will be reported and appended to each contig name.  
+#' @param eval.ploidy If set to \code{TRUE} estimated ploidy of each contig will be reported and appended to each contig name.
+#' @param allow.contig.cuts If set to \code{TRUE} contigs that were assigned to more than one cluster or direction will be cut.
 #' @param em.param.estim A \code{\link{SaaRclust}} object with theta and pi estimates to be used in EM procedure (Soft clustering step).
 #' @inheritParams importBams
 #' @inheritParams hardClust
@@ -32,7 +33,7 @@
 #'## To export clustred FASTA file, an original FASTA used in BAM alignments has to be submitted as 'assembly.fasta'.
 #'scaffoldDenovoAssembly(bamfolder="bam-data-folder", outputfolder="saarclust-output-folder")}
 #'
-scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.mapq=10, min.contig.size=100000, min.region.to.order=0, chromosomes=NULL, pairedEndReads=TRUE, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, max.cluster.length.mbp=0, alpha=0.1, best.prob=1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE, eval.ploidy=FALSE, em.param.estim=NULL) {
+scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min.mapq=10, min.contig.size=100000, min.region.to.order=0, chromosomes=NULL, pairedEndReads=TRUE, custom.bins = NULL, bin.size=100000, step.size=NULL, bin.method='fixed', store.data.obj=TRUE, reuse.data.obj=FALSE, num.clusters=100, desired.num.clusters=NULL, max.cluster.length.mbp=0, alpha=0.1, prob.th=0, ord.method='TSP', assembly.fasta=NULL, concat.fasta=TRUE, z.limit=3.29, remove.always.WC=FALSE, mask.regions=FALSE, eval.ploidy=FALSE, allow.contig.cuts=FALSE, em.param.estim=NULL) {
   ## Get total processing time
   ptm <- proc.time()
   
@@ -65,10 +66,11 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   }
   
   ## Put all parameters into list and merge with config ##
-  params <- list(min.mapq=min.mapq, min.contig.size=min.contig.size, min.region.to.order=min.region.to.order, chromosomes=chromosomes, pairedEndReads=pairedEndReads, bin.size=bin.size, 
-                 store.data.obj=store.data.obj, step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters, desired.num.clusters=desired.num.clusters, 
-                 max.cluster.length.mbp=max.cluster.length.mbp, alpha=alpha, best.prob=best.prob, prob.th=prob.th, ord.method=ord.method, assembly.fasta=assembly.fasta, concat.fasta=concat.fasta, 
-                 z.limit=z.limit, remove.always.WC=remove.always.WC, mask.regions=mask.regions, eval.ploidy=eval.ploidy, em.param.estim=em.param.estim)
+  params <- list(min.mapq=min.mapq, min.contig.size=min.contig.size, min.region.to.order=min.region.to.order, chromosomes=chromosomes, pairedEndReads=pairedEndReads, custom.bins=custom.bins, 
+                 bin.size=bin.size, store.data.obj=store.data.obj, step.size=step.size, bin.method=bin.method, reuse.data.obj=reuse.data.obj, num.clusters=num.clusters,
+                 desired.num.clusters=desired.num.clusters, max.cluster.length.mbp=max.cluster.length.mbp, alpha=alpha, prob.th=prob.th, ord.method=ord.method, 
+                 assembly.fasta=assembly.fasta, concat.fasta=concat.fasta, z.limit=z.limit, remove.always.WC=remove.always.WC, mask.regions=mask.regions, eval.ploidy=eval.ploidy, 
+                 allow.contig.cuts=allow.contig.cuts, em.param.estim=em.param.estim)
   config <- c(config, params[setdiff(names(params), names(config))])
   
   ## Make a copy of the config file ##
@@ -109,7 +111,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   filt <- chrom.lengths >= config[['min.contig.size']]
   chroms.in.data <- names(chrom.lengths[filt])
   
-  ## Proces only user defined chromosomes/contigs
+  ## Process only user defined chromosomes/contigs
   if (!is.null(chromosomes) & is.character(chromosomes)) {
     if (any(chromosomes %in% chroms.in.data)) {
       chroms.in.data <- chroms.in.data[chroms.in.data %in% chromosomes]
@@ -155,9 +157,9 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       counts.l <- get(load(destination))
     } else {
       if (config[['mask.regions']]) {
-        counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], min.mapq = config[['min.mapq']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
+        counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], min.mapq = config[['min.mapq']], custom.bins = config[['custom.bins']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
       } else {
-        counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], min.mapq = config[['min.mapq']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
+        counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], min.mapq = config[['min.mapq']], custom.bins = config[['custom.bins']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
       }
       ## Remove bins with zero counts across all cells
       counts.sums <- Reduce('+', counts.l)
@@ -170,9 +172,9 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     }
   } else {
     if (config[['mask.regions']]) {
-      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], min.mapq = config[['min.mapq']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
+      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], min.mapq = config[['min.mapq']], custom.bins = config[['custom.bins']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']], blacklist = blacklist.gr)
     } else {
-      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], min.mapq = config[['min.mapq']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
+      counts.l <- importBams(bamfolder = bamfolder, chromosomes = chroms.in.data, pairedEndReads = config[['pairedEndReads']], min.mapq = config[['min.mapq']], custom.bins = config[['custom.bins']], bin.size = config[['bin.size']], step.size = config[['step.size']], bin.method = config[['bin.method']])
     }
     ## Remove bins with zero counts across all cells
     counts.sums <- Reduce('+', counts.l)
@@ -258,15 +260,15 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   theta.sums <- Reduce("+", EM.obj$theta.param)
   theta.zscore <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
   wc.clust.idx <- which(theta.zscore >= 2.576) ## 99% confdence level
-  if (length(wc.clust.idx) == 0) {
-    wc.clust.idx <- which.max(theta.zscore)
-  }
+  # if (length(wc.clust.idx) == 0) {
+  #   wc.clust.idx <- which.max(theta.zscore)
+  # }
   
   ## Get names of always WC regions
   if (length(wc.clust.idx) > 0) {
     ## Get probability table
     soft.prob <- EM.obj$soft.pVal
-    ## Remove segments that do not reach reguired prob.th
+    ## Remove segments that do not reach required prob.th
     row.max.prob <- apply(soft.prob, 1, max)
     mask <- row.max.prob >= config[['prob.th']]
     soft.prob <- soft.prob[mask,]
@@ -279,7 +281,9 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     if (store.data.obj) {
       save(always.wc.ctgs.gr, file = destination)
     }
-  } 
+  } else {
+    always.wc.ctgs.gr <- NULL
+  }
   
   ## Remove always WC clusters
   if (config[['remove.always.WC']]) {
@@ -291,11 +295,27 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       EM.obj$pi.param <- EM.obj$pi.param[-wc.clust.idx]
     }
   }
-    
+  
   ## Assign contigs to clusters based on soft probabilities ##
-  clustered.grl <- counts2ranges(counts.l, saarclust.obj=EM.obj, best.prob=config[['best.prob']], prob.th=config[['prob.th']])
+  clustered.grl <- counts2ranges(counts.l, saarclust.obj=EM.obj, best.prob=1, prob.th=config[['prob.th']])
   ## Get regions assigned to each cluster
   regions.clustered <- clustered.grl[[1]][,1]
+  
+  ## Find clusters with WW and CC state in majority of cells [haploid clusters] ##
+  theta.sums <- Reduce("+", EM.obj$theta.param)
+  theta.zscore.hap <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
+  hap.clust.idx <- which(theta.zscore.hap <= -2)
+  if (length(hap.clust.idx) > 0) {
+    message("Haploid clusters detected ", paste(hap.clust.idx, collapse = ", "), " !!!")
+    ## Get haploid contigs
+    ctg2clusters <- clustered.grl[[1]][,1]
+    hap.ctgs <- GenomicRanges::reduce(ctg2clusters[ctg2clusters$clust.ID %in% hap.clust.idx])
+    ## Store data object
+    destination <- file.path(datapath, paste0("haploid_contig_regions.RData"))
+    save(hap.ctgs, file = destination)
+  } else {
+    message("NO haploid clusters detected !!!")
+  }
   
   ## Get cluster IDs that belong to the same chromosome/scaffold ##
   nclust <- nrow(EM.obj$theta.param[[1]])
@@ -330,33 +350,18 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   }
   
   ## Assign contigs to clusters based on soft probabilities ##
-  #clustered.grl <- counts2ranges(counts.l, saarclust.obj=EM.obj, best.prob=config[['best.prob']], prob.th=config[['prob.th']])
-  
-  ## Find clusters with WW and CC state in majority of cells [haploid clusters] ##
-  theta.sums <- Reduce("+", EM.obj$theta.param)
-  theta.zscore.hap <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
-  hap.clust.idx <- which(theta.zscore.hap <= -2)
-  if (length(hap.clust.idx) > 0) {
-    message("Haploid clusters detected ", paste(hap.clust.idx, collapse = ", "), " !!!")
-    ## Get haploid contigs
-    ctg2clusters <- clustered.grl[[1]][,1]
-    hap.ctgs <- GenomicRanges::reduce(ctg2clusters[ctg2clusters$clust.ID %in% hap.clust.idx])
-    ## Store data object
-    destination <- file.path(datapath, paste0("haploid_contig_regions.RData"))
-    save(hap.ctgs, file = destination)
-  } else {
-    message("NO haploid clusters detected !!!")
-  }
+  #clustered.grl <- counts2ranges(counts.l, saarclust.obj=EM.obj, best.prob=1, prob.th=config[['prob.th']])
   
   ## Order and orient contigs ##
-  destination <- file.path(asmpath, paste0("ordered&oriented_", config[['bin.size']], "bp_", config[['bin.method']], ".tsv"))
+  #destination <- file.path(asmpath, paste0("ordered&oriented_", config[['bin.size']], "bp_", config[['bin.method']], ".tsv"))
+  destination <- NULL
   ordered.contigs.gr <- orderAndOrientClusters(clustered.grl=clustered.grl, split.pairs=split.pairs, ord.method=config[['ord.method']], alpha=config[['alpha']], min.region.to.order=config[['min.region.to.order']], filename=destination)
   GenomeInfoDb::seqlengths(ordered.contigs.gr) <- chrom.lengths[GenomeInfoDb::seqlevels(ordered.contigs.gr)]
   
   ## Extend gaps between ranges
   ordered.contigs.gr <- expandGaps(ordered.contigs.gr)
   
-  ## Add ploidy information [TESTING]
+  ## Add contig ploidy information ##
   if (config[['eval.ploidy']]) {
     if (exists('hap.ctgs')) {
       if (length(hap.ctgs) > 0) {
@@ -367,14 +372,8 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       ordered.contigs.gr <- labelGenomicRegions(gr = ordered.contigs.gr, label.gr = always.wc.ctgs.gr, label.gr.ID = '>2n')
     }  
   }
-
-  ## Store data object
-  destination <- file.path(asmpath, paste0("ordered&oriented_", config[['bin.size']], "bp_chunks.RData"))
-  if (store.data.obj) {
-    save(ordered.contigs.gr, file = destination)
-  }
   
-  ## Report contigs assigned to more than one cluster or with putative misorient
+  ## Report contigs assigned to more than one cluster or with putative misorient ##
   putative.errors <- ordered.contigs.gr
   putative.errors.grl <- GenomicRanges::split(putative.errors, GenomicRanges::seqnames(putative.errors))
   putative.errors.grl <- putative.errors.grl[lengths(putative.errors.grl) > 1]
@@ -398,12 +397,39 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     destination <- file.path(asmpath, paste0("asmErrorsReport_", config[['bin.size']], "bp_", config[['bin.method']], ".tsv"))
     utils::write.table(putative.errors.report, file = destination, quote = FALSE, row.names = FALSE, append = FALSE, sep = "\t")
   }
+
+  ## UNCut putative assembly errors ##
+  if (!config[['allow.contig.cuts']]) {
+    ## Concatenate divided contigs (assigned to more than one cluster or direction) into a single contig range
+    grl <- putative.errors.grl
+    concat.grl <- GenomicRanges::GRangesList()
+    for (i in seq_along(grl)) {
+      gr.sub <- grl[[i]]
+      ## Get the largest chunk of a divided contig
+      gr.sub.max <- gr.sub[which.max(width(gr.sub))]
+      ## Get full contig size
+      gr.full <- range(gr.sub)
+      ## Add mcols from the largest chunk of a divided contig
+      GenomicRanges::mcols(gr.full) <- GenomicRanges::mcols(gr.sub.max)
+      concat.grl[[i]] <- gr.full
+    }
+    gr <- unlist(concat.grl, use.names = FALSE)
+    ## Replace divided contigs with their continuous range
+    ordered.contigs.gr <- ordered.contigs.gr[!as.character(GenomicRanges::seqnames(ordered.contigs.gr)) %in% as.character(GenomicRanges::seqnames(gr))]
+    ordered.contigs.gr <- GenomicRanges::sort(c(ordered.contigs.gr, gr))
+  }
+
+  ## Store data object
+  destination <- file.path(datapath, paste0("ordered&oriented_", config[['bin.size']], "bp_chunks.RData"))
+  if (store.data.obj) {
+    save(ordered.contigs.gr, file = destination)
+  }
   
   ## Report contigs that have been filtered out
-  filtered.ctgs <- chrom.lengths[!names(chrom.lengths) %in% seqlevels(ordered.contigs.gr)]
+  filtered.ctgs <- chrom.lengths[!names(chrom.lengths) %in% GenomeInfoDb::seqlevels(ordered.contigs.gr)]
   if (length(filtered.ctgs) > 0) {
-    filtered.ctgs.gr <- GenomicRanges::GRanges(seqnames = names(filtered.ctgs), ranges=IRanges(start = 1, end = filtered.ctgs))
-    seqlengths(filtered.ctgs.gr) <- filtered.ctgs
+    filtered.ctgs.gr <- GenomicRanges::GRanges(seqnames = names(filtered.ctgs), ranges=IRanges::IRanges(start = 1, end = filtered.ctgs))
+    GenomeInfoDb::seqlengths(filtered.ctgs.gr) <- filtered.ctgs
     if (length(filtered.ctgs.gr) > 0) {
       destination <- file.path(datapath, paste0("filteredContigs_", config[['bin.size']], "bp_", config[['bin.method']], ".RData"))
       if (store.data.obj) {
@@ -423,11 +449,33 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
                                 stringsAsFactors = FALSE, row.names = NULL, 
                                 index = "clustered.ctgs")
   ctg.stat <- rbind(all.ctgs, size.select.ctgs, clustered.ctgs)
+  
   ## Store data object
-  destination <- file.path(asmpath, paste0("ctgStat_minCtgSize_", config[['min.contig.size']], ".RData"))
+  destination <- file.path(datapath, paste0("ctgStat_minCtgSize_", config[['min.contig.size']], ".RData"))
   if (store.data.obj) {
     save(ctg.stat, file = destination)
   }
+  
+  ## Get contig report table ##
+  ctgs.report <- data.frame(ctg=names(chrom.lengths), ctg.len=chrom.lengths, stringsAsFactors = FALSE, row.names = NULL)
+  ctgs.report$sizeSelect <- FALSE
+  ctgs.report$sizeSelect[ctgs.report$ctg %in% size.select.ctgs$ctg] <- TRUE
+  ctgs.report$Clustered <- FALSE
+  ctgs.report$Clustered[ctgs.report$ctg %in% clustered.ctgs$ctg] <- TRUE
+  ctgs.report$putative.error <- FALSE
+  ctgs.report$putative.error[ctgs.report$ctg %in% putative.errors.report$seqnames] <- TRUE
+  ctgs.report$Dir <- NA
+  ctgs.report$Dir[match(seqlevels(ordered.contigs.gr), ctgs.report$ctg)] <- ordered.contigs.gr$dir
+  ctgs.report$Cluster.ID <- NA
+  ctgs.report$Cluster.ID[match(seqlevels(ordered.contigs.gr), ctgs.report$ctg)] <- ordered.contigs.gr$ID
+  if (config[['eval.ploidy']]) {
+    ctgs.report$Ploidy <- NA
+    ctgs.report$Ploidy[match(seqlevels(ordered.contigs.gr), ctgs.report$ctg)] <- ordered.contigs.gr$ploidy
+  }
+  ctgs.report <- ctgs.report[order(ctgs.report$Cluster.ID, ctgs.report$ctg.len),]
+  ## Export summary table of assembly errors
+  destination <- file.path(asmpath, paste0("ctgReport_", config[['bin.size']], "bp_", config[['bin.method']], ".tsv"))
+  utils::write.table(ctgs.report, file = destination, quote = FALSE, row.names = FALSE, append = FALSE, sep = "\t")
   
   ## Export clustered FASTA ##
   if (!is.null(config[['assembly.fasta']]) & is.character(config[['assembly.fasta']])) {

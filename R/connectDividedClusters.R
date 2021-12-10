@@ -34,16 +34,18 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
   ## Find clusters with WC state in majority of cells
   theta.sums <- Reduce("+", theta.param)
   theta.zscore <- (theta.sums[,3] - mean(theta.sums[,3])) / stats::sd(theta.sums[,3])
-  wc.clust.idx <- which(theta.zscore > 2.5)
+  wc.clust.idx <- which(theta.zscore > 2.576) ## 99% confdence level
   ## Remove cluster with the most WC states
   if (remove.always.WC) {
-    theta.param <- lapply(theta.param, function(x) x[-wc.clust.idx,])
+    if (length(wc.clust.idx) == 0) {
+      theta.param <- lapply(theta.param, function(x) x[-wc.clust.idx,])
+    }  
   }
   
   ## Get all possible cluster pairs
   pairs <- t(utils::combn(nrow(theta.param[[1]]), 2))
   
-  ## If haploid cluster indices are defined, remove them from cluster similarity calculation for WC states [haploid => never WC]
+  # ## If haploid cluster indices are defined, remove them from cluster similarity calculation for WC states [haploid => never WC]
   # if (!is.null(hap.clust.idx) & length(hap.clust.idx) > 0) {
   #   #mask <- pairs[,1] %in% hap.clust.idx & pairs[,2] %in% hap.clust.idx
   #   mask.hap <- which(pairs[,1] %in% hap.clust.idx & pairs[,2] %in% hap.clust.idx)
@@ -81,7 +83,8 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
   simil.wc.sum <- rowSums(simil.wc.m)
   # ## Set similarity between haploid clusters to a minimal defined similarity for a pair of clusters
   # if (length(mask.hap) > 0) {
-  #   simil.wc.sum[mask.hap] <- min(simil.wc.sum)
+  #   #simil.wc.sum[mask.hap] <- min(simil.wc.sum)
+  #   simil.wc.sum[mask.hap] <- 0
   # }
   zscores <- (simil.wc.sum - mean(simil.wc.sum)) / stats::sd(simil.wc.sum)
   vertices.wc <- cbind(pairs, zscores)
@@ -106,7 +109,8 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
   simil.het.sum <- rowSums(simil.het.m)
   # ## Set similarity between haploid clusters to a minimal defined similarity for a pair of clusters
   # if (length(mask.hap) > 0) {
-  #   simil.het.sum[mask.hap] <- min(simil.het.sum)
+  #   #simil.het.sum[mask.hap] <- min(simil.het.sum)
+  #   simil.het.sum[mask.hap] <- 0
   # }
   zscores <- (simil.het.sum - mean(simil.het.sum)) / stats::sd(simil.het.sum)
   vertices.het <- cbind(pairs, zscores)
@@ -155,7 +159,7 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
         clusters <- igraph::groups(igraph::components(G, mode = 'strong'))
         cl.num <- length(clusters)
         cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$V1[cl.sizes$clust.ID %in% x]) )
-        z.limit <- z.limit - 0.1
+        z.limit <- z.limit - 0.01
       } else {
         break
       } 
@@ -163,10 +167,12 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
     ## Report previous iteration in case current number of clusters is smaller than 'desired.num.clusters'
     if (length(clusters) < desired.num.clusters & !is.null(clusters.prev)) {
       clusters <- clusters.prev
+      cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$V1[cl.sizes$clust.ID %in% x]) )
     }
     ## Report previous iteration in case any cluster is larger than allowed 'max.cluster.length.mbp'
     if (any(cl.sizes.bp > (max.cluster.length.mbp * 1000000)) & !is.null(clusters.prev)) {
       clusters <- clusters.prev
+      cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$V1[cl.sizes$clust.ID %in% x]) )
     }
   } else {
     vertices.sub <- vertices[vertices[,3] >= z.limit,]
@@ -180,12 +186,16 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
     }  
   }
   ## Note notify if any of the clusters are larger than 'max.cluster.length.mbp'
+  if (any(cl.sizes.bp > (max.cluster.length.mbp * 1000000))) {
+    large.cl <- which(cl.sizes.bp > (max.cluster.length.mbp * 1000000))
+    message(paste0("\n    [connectDividedClusters] Cluster(s) ", paste(large.cl, collapse = ','), " is larger than the user defined 'max.cluster.length.mbp'!!!"), appendLF = FALSE)
+  }
   
   if (is.null(clusters)) {
     nclust <- nrow(theta.param[[1]])
     clusters <- BiocGenerics::as.list(c(1:nclust))
     names(clusters) <- c(1:nclust)
-    warning("[connectDividedClusters] No clusters could be merged.")
+    message("\n    [connectDividedClusters] No clusters could be merged.", appendLF = FALSE)
   }
   
   stopTimedMessage(ptm)

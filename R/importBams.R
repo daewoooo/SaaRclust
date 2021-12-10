@@ -6,6 +6,7 @@
 #' @param bamfolder A folder containing BAM files with Strand-seq reads aligned to denovo assembly.
 #' @param pairedEndReads Set to \code{TRUE} if you have paired-end reads in your file.
 #' @param min.mapq Minimum mapping quality when importing from BAM files.
+#' @param custom.bins A \code{\link[GenomicRanges]{GRanges}} object containing user defined set of bins to count reads in.
 #' @param bin.size A length of a bin to count reads in.
 #' @param reads.per.bin An approximate number of desired reads per bin. The bin size will be selected accordingly. Forces 'bin.method' to be 'fixed'.
 #' @param max.frag A maximum fragment length to import from the BAM file.
@@ -22,7 +23,7 @@
 #'## Required parameters to get BAM count table from BAM files stored "bam-data-folder" using default settings.
 #'importBams(bamfolder="bam-data-folder")}
 #'
-importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRUE, min.mapq=10, bin.size=100000, step.size=NULL, reads.per.bin=NULL, max.frag=1000, bin.method='fixed', blacklist=NULL) {
+importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRUE, min.mapq=10, custom.bins=NULL, bin.size=100000, step.size=NULL, reads.per.bin=NULL, max.frag=1000, bin.method='fixed', blacklist=NULL) {
   ## Get total processing time
   ptm <- proc.time()
   message("Preparing BAM count table")
@@ -67,12 +68,15 @@ importBams <- function(bamfolder=bamfolder, chromosomes=NULL, pairedEndReads=TRU
   chr.gr <- GenomicRanges::GRanges(seqnames=chroms2use, ranges=IRanges(start=1, end=chrom.lengths))
   
   ## Make genome bins
-  if (!is.null(bin.size) & bin.method == 'fixed') {
+  if (!is.null(custom.bins) & class(custom.bins) == "GRanges") {
+    message("Using bins defined in 'custom.bins' parameter ...")
+    bins.gr <- custom.bins
+  } else if (!is.null(bin.size) & bin.method == 'fixed') {
     bins.gr <- makeFixedBins(bamfile = bamfile, bin.size = bin.size, step.size = step.size, chromosomes = chroms2use, keep.small.chr = TRUE)
   } else if (!is.null(bin.size) & bin.method == 'dynamic') {
     bins.gr <- makeDynamicBins(bamfiles = bamfiles, bin.size = bin.size, step.size = step.size, chromosomes = chroms2use, keep.small.chr = TRUE)
   } else {
-    warning("Unsupported binning method!!!, Set 'bin.method' to 'fixed' or 'dynamic'")
+    warning("Unsupported binning method!!!, Set 'bin.method' to 'fixed' or 'dynamic' or set use 'custom.bins'")
   }
   
   ## Set parameter for bamsignals counts
