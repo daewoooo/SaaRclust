@@ -72,7 +72,9 @@ makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromos
         bins.list.step[[as.character(shift.bp)]] <- suppressWarnings( trim(GenomicRanges::shift(bins, shift.bp)) )
         shift.bp <- step.size + shift.bp
       }
-      bins <- sort(unlist(bins.list.step, use.names = FALSE))  
+      bins <- sort(unlist(bins.list.step, use.names = FALSE))
+      ## Remove partial bins
+      bins <- bins[width(bins) == bin.size]
     }
   }
     
