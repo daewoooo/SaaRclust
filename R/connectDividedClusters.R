@@ -130,6 +130,7 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
   if (!is.null(desired.num.clusters)) {
     cl.num <- nrow(theta.param[[1]])
     if (!is.null(clustered.gr)) {
+      ## Initialize cluster sizes
       clustered.dt <- data.table::as.data.table(clustered.gr)
       cl.sizes <- clustered.dt[, sum(width), by=clust.ID]
       cl.sizes.bp <- cl.sizes$V1
@@ -181,6 +182,10 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
       ## Find strongly connected clusters
       G <- igraph::graph(vertices.sub, directed = FALSE)
       clusters <- igraph::groups(igraph::components(G, mode = 'strong'))
+      ## Get cluster sizes
+      clustered.dt <- data.table::as.data.table(clustered.gr)
+      cl.sizes <- clustered.dt[, sum(width), by=clust.ID]
+      cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$V1[cl.sizes$clust.ID %in% x]) )
     } else {
       clusters <- NULL
     }  
