@@ -191,10 +191,12 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
     }  
   }
   ## Note notify if any of the clusters are larger than 'max.cluster.length.mbp'
-  if (any(cl.sizes.bp > (max.cluster.length.mbp * 1000000))) {
-    large.cl <- which(cl.sizes.bp > (max.cluster.length.mbp * 1000000))
-    message(paste0("\n    [connectDividedClusters] Cluster(s) ", paste(large.cl, collapse = ','), " is larger than the user defined 'max.cluster.length.mbp'!!!"), appendLF = FALSE)
-  }
+  if (max.cluster.length.mbp > 0) {
+    if (any(cl.sizes.bp > (max.cluster.length.mbp * 1000000))) {
+      large.cl <- which(cl.sizes.bp > (max.cluster.length.mbp * 1000000))
+      message(paste0("\n    [connectDividedClusters] Cluster(s) ", paste(large.cl, collapse = ','), " is larger than the user defined 'max.cluster.length.mbp'!!!"), appendLF = FALSE)
+    }
+  }  
   
   if (is.null(clusters)) {
     nclust <- nrow(theta.param[[1]])
