@@ -55,7 +55,7 @@ makeFixedBins <- function(bamfile=NULL, bin.size=100000, step.size=NULL, chromos
   if (any(chrom.lengths >= bin.size)) {
     ## Bin only contigs equal or larger than set bin size
     chroms2bin <- names(chrom.lengths)[chrom.lengths >= bin.size]
-    chrom.lengths.floor <- floor(chrom.lengths / bin.size) * bin.size
+    chrom.lengths.floor <- floor(chrom.lengths[names(chrom.lengths) %in% chroms2bin] / bin.size) * bin.size
     bins <- unlist(GenomicRanges::tileGenome(chrom.lengths.floor, tilewidth=bin.size), use.names=FALSE)
     ## Remove chromosomes that are smaller than bin.size?
     #bins <- bins[end(bins) > 0]
