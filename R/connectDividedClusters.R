@@ -45,6 +45,11 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
   ## Get all possible cluster pairs
   pairs <- t(utils::combn(nrow(theta.param[[1]]), 2))
   
+  ## If object clustered.gr is not defined, it is not possible to ensure 'max.cluster.length.mbp'
+  if (!is.null(clustered.gr)) {
+    max.cluster.length.mbp <- 0
+  }  
+  
   # ## If haploid cluster indices are defined, remove them from cluster similarity calculation for WC states [haploid => never WC]
   # if (!is.null(hap.clust.idx) & length(hap.clust.idx) > 0) {
   #   #mask <- pairs[,1] %in% hap.clust.idx & pairs[,2] %in% hap.clust.idx
@@ -182,10 +187,12 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
       ## Find strongly connected clusters
       G <- igraph::graph(vertices.sub, directed = FALSE)
       clusters <- igraph::groups(igraph::components(G, mode = 'strong'))
-      ## Get cluster sizes
-      clustered.dt <- data.table::as.data.table(clustered.gr)
-      cl.sizes <- clustered.dt[, sum(width), by=clust.ID]
-      cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$V1[cl.sizes$clust.ID %in% x]) )
+      if (!is.null(clustered.gr)) {
+        ## Get cluster sizes
+        clustered.dt <- data.table::as.data.table(clustered.gr)
+        cl.sizes <- clustered.dt[, sum(width), by=clust.ID]
+        cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$V1[cl.sizes$clust.ID %in% x]) )
+      }  
     } else {
       clusters <- NULL
     }  
