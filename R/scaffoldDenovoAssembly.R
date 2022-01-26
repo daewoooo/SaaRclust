@@ -396,6 +396,8 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     putative.errors.report <- reportMisAsmCTGs(gr = putative.errors.gr)
     destination <- file.path(asmpath, paste0("asmErrorsReport_", config[['bin.size']], "bp_", config[['bin.method']], ".tsv"))
     utils::write.table(putative.errors.report, file = destination, quote = FALSE, row.names = FALSE, append = FALSE, sep = "\t")
+  } else {
+    putative.errors.report <- NULL
   }
 
   ## UNCut putative assembly errors ##
@@ -463,7 +465,9 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   ctgs.report$Clustered <- FALSE
   ctgs.report$Clustered[ctgs.report$ctg %in% clustered.ctgs$ctg] <- TRUE
   ctgs.report$putative.error <- FALSE
-  ctgs.report$putative.error[ctgs.report$ctg %in% putative.errors.report$seqnames] <- TRUE
+  if (!is.null(putative.errors.report)) {
+    ctgs.report$putative.error[ctgs.report$ctg %in% putative.errors.report$seqnames] <- TRUE
+  }  
   ctgs.report$Dir <- NA
   ctgs.report$Dir[match(seqlevels(ordered.contigs.gr), ctgs.report$ctg)] <- ordered.contigs.gr$dir
   ctgs.report$Cluster.ID <- NA
