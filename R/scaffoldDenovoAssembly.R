@@ -367,7 +367,9 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
       if (length(hap.ctgs) > 0) {
         ordered.contigs.gr <- labelGenomicRegions(gr = ordered.contigs.gr, label.gr = hap.ctgs, label.gr.ID = '1n')
       }  
-    }  
+    } else {
+      ordered.contigs.gr$ploidy <- '2n'
+    } 
     if(!config[['remove.always.WC']] & length(always.wc.ctgs.gr) > 0) {
       ordered.contigs.gr <- labelGenomicRegions(gr = ordered.contigs.gr, label.gr = always.wc.ctgs.gr, label.gr.ID = '>2n')
     }  
