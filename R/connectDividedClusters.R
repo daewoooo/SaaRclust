@@ -46,7 +46,7 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
   pairs <- t(utils::combn(nrow(theta.param[[1]]), 2))
   
   ## If object clustered.gr is not defined, it is not possible to ensure 'max.cluster.length.mbp'
-  if (!is.null(clustered.gr)) {
+  if (is.null(clustered.gr)) {
     max.cluster.length.mbp <- 0
   }  
   
