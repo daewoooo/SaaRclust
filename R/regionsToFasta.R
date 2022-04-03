@@ -7,6 +7,7 @@
 #' @param gr A \code{\link{GRanges-class}} object of genomic regions to extract genomic sequence from. 
 #' @param bsgenome A \code{\link{BSgenome-class}} object of reference genome to get the genomic sequence from. 
 #' @param asm.fasta An assembly FASTA file to extract DNA sequence determined by 'gr' parameter.
+#' @param index.field A user defined column number to be used as a header id for the exported FASTA.
 #' @param expand Expand ends of each genomic region by this length (in bp).
 #' @param fasta.save A path to a filename where to store final FASTA file.
 #' @importFrom Rsamtools indexFa FaFile scanFa scanFaIndex
@@ -15,7 +16,7 @@
 #' @author David Porubsky
 #' @export
 #'
-regions2FASTA <- function(gr, bsgenome=NULL, asm.fasta=NULL, expand=0, fasta.save=NULL) {
+regions2FASTA <- function(gr, bsgenome=NULL, asm.fasta=NULL, index.field=NULL, expand=0, fasta.save=NULL) {
   ## Load BSgenome object
   if (class(bsgenome) != 'BSgenome') {
     if (is.character(bsgenome)) {
@@ -53,9 +54,16 @@ regions2FASTA <- function(gr, bsgenome=NULL, asm.fasta=NULL, expand=0, fasta.sav
     gr <- suppressWarnings( subsetByOverlaps(gr, fa.idx) )
     ## Read in contigs for a given cluster
     gr.seq <- Rsamtools::scanFa(file = fa.file, param = gr, as = "DNAStringSet")
-    names(gr.seq) <- as.character(gr)
+    names(gr.seq) <- gsub(as.character(gr), pattern = ':', replacement = '_')
   } else {
     stop("Please set a 'bsgenome' or 'asm.fasta' parameter!!!")
+  }
+  
+  ## Used user defined column to name FASTA sequences
+  if (!is.null(index.field) & index.field > 0) {
+    if (index.field <= length(GenomicRanges::mcols(gr))) {
+      names(gr.seq) <- as.character(GenomicRanges::mcols(gr)[[index.field]])
+    }
   }
   
   ## Write final FASTA

@@ -251,7 +251,7 @@ plotContigStrandStates <- function(contig.states=NULL, cluster.rows=FALSE, clust
 #' 
 plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chromosomes=NULL, bsgenome=NULL, blacklist=NULL, report='clustering', info.delim=NULL, info.fields=NULL, col.by=NULL, reverse.x=FALSE, title=NULL) {
   
-  ## Read-in mapped congtigs to the human reference genome
+  ## Read-in mapped contigs to the human reference genome
   data <- utils::read.table(bedfile, stringsAsFactors = FALSE)
   colnames(data) <- c('seqnames', 'start', 'end', 'info', 'mapq', 'dir')
   
@@ -299,7 +299,8 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
   } else {
     data.gr <- GenomicRanges::makeGRangesFromDataFrame(data)
     data.gr <- range(data.gr)
-    seq.len <- end(data.gr[seqnames(data.gr) %in% chroms2use])
+    data.gr <- data.gr[as.character(seqnames(data.gr)) %in% chroms2use]
+    seq.len <- as.numeric(GenomicRanges::end(data.gr))
     ideo.df <- data.frame(seqnames=as.character(seqnames(data.gr)), length=seq.len)
     ideo.df <- ideo.df[order(seq.len, decreasing = TRUE),]
     ideo.df$seqnames <- factor(ideo.df$seqnames, levels=unique(ideo.df$seqnames))
@@ -319,9 +320,10 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
   stat <- data.frame()
   ## Plot ideogram
   if (report == 'clustering') {
-    plt <- ggplot2::ggplot() + geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill="white", color="black") +
+    plt <- ggplot2::ggplot() + 
       facet_grid(seqnames ~ ., switch = 'y') +
       geom_rect(data=plt.df, aes(xmin=start, xmax=end, ymin=0, ymax=1, fill=eval(parse(text=col.by)))) +
+      geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill=NA, color="black") +
       scale_x_continuous(expand = c(0,0)) +
       theme_void() +
       theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
@@ -360,9 +362,10 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
       plt.df$ord.color[chr.idx] <- colors[plt.df$order[chr.idx]]
     }
     
-    plt <- ggplot2::ggplot() + geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill=NA, color="black") +
+    plt <- ggplot2::ggplot() + 
       facet_grid(seqnames ~ ., switch = 'y') +
       geom_rect(data=plt.df, aes(xmin=start, xmax=end, ymin=0, ymax=1), fill=plt.df$ord.color) +
+      geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill=NA, color="black") +
       scale_x_continuous(expand = c(0,0)) +
       theme_void() +
       theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
@@ -378,9 +381,10 @@ plotClusteredContigs <- function(bedfile, min.mapq=10, min.contig.size=NULL, chr
     }
     
   } else if (report == 'orienting') {
-    plt <- ggplot2::ggplot() + geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill=NA, color="black") +
+    plt <- ggplot2::ggplot() +
       facet_grid(seqnames ~ ., switch = 'y') +
       geom_rect(data=plt.df, aes(xmin=start, xmax=end, ymin=0, ymax=1, fill=dir)) +
+      geom_rect(data = ideo.df, aes(xmin=0, xmax=length, ymin=0, ymax=1), fill=NA, color="black") +
       scale_fill_manual(values = c('chocolate1', 'cadetblue4')) +
       scale_x_continuous(expand = c(0,0)) +
       theme_void() +

@@ -8,6 +8,7 @@ regions2FASTA(
   gr,
   bsgenome = NULL,
   asm.fasta = NULL,
+  index.field = NULL,
   expand = 0,
   fasta.save = NULL
 )
@@ -18,6 +19,8 @@ regions2FASTA(
 \item{bsgenome}{A \code{\link{BSgenome-class}} object of reference genome to get the genomic sequence from.}
 
 \item{asm.fasta}{An assembly FASTA file to extract DNA sequence determined by 'gr' parameter.}
+
+\item{index.field}{A user defined column number to be used as a header id for the exported FASTA.}
 
 \item{expand}{Expand ends of each genomic region by this length (in bp).}
 

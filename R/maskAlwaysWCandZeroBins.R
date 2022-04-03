@@ -33,7 +33,7 @@ maskAlwaysWCandZeroBins <- function(bamfolder=bamfolder, genomic.bins=NULL, min.
                                                      verbose=FALSE, 
                                                      ss=TRUE) 
     )
-    genoT <- countProb(minusCounts = counts[2,], plusCounts = counts[1,], log.scale = TRUE)
+    genoT <- SaaRclust::countProb(minusCounts = counts[2,], plusCounts = counts[1,], log.scale = TRUE, alpha = 0.05)
     genoT <- apply(genoT, 1, which.max)
     wc.genoT <- rep(0, length(genoT))
     wc.genoT[genoT == 3] <- 1
@@ -46,7 +46,6 @@ maskAlwaysWCandZeroBins <- function(bamfolder=bamfolder, genomic.bins=NULL, min.
   total.read.counts.m <- do.call(cbind, total.read.counts)
   total.read.sums <- rowSums(total.read.counts.m)
   
-  ## Find bins that are always WC in a majority of cells
   ## Remove bins that are WC in more than 70% of all cells (bamfiles)
   #z.score <- (wc.counts.sums - median(wc.counts.sums)) / sd(wc.counts.sums)
   #mask.bins <- which(z.score >= 3)
@@ -59,14 +58,24 @@ maskAlwaysWCandZeroBins <- function(bamfolder=bamfolder, genomic.bins=NULL, min.
   } 
   
   ## Find bins that have close to zero counts
+  ## NOTE: This feature will remove all alignments from region with low coverage such as acrocentrics!!!
+  # z.score <- (total.read.sums - median(total.read.sums)) / sd(total.read.sums)
+  # zero.bins <- which(z.score <= -2.57)
+  # if (length(zero.bins) > 0) {
+  #   alwaysZero <- GenomicRanges::reduce(genomic.bins[zero.bins])
+  # } else {
+  #   alwaysZero <- NULL
+  # } 
+  
+  ## Find bins with an excess of coverage
   z.score <- (total.read.sums - median(total.read.sums)) / sd(total.read.sums)
-  zero.bins <- which(z.score <= -2.57)
-  if (length(zero.bins) > 0) {
-    alwaysZero <- GenomicRanges::reduce(genomic.bins[zero.bins])
+  collapse.bins <- which(z.score >= 2.57)
+  if (length(collapse.bins) > 0) {
+    collapses <- GenomicRanges::reduce(genomic.bins[collapse.bins])
   } else {
-    alwaysZero <- NULL
+    collapses <- NULL
   } 
   
   stopTimedMessage(ptm)
-  return(list(alwaysWC=alwaysWC, alwaysZero=alwaysZero))
+  return(list(alwaysWC=alwaysWC, collapses=collapses))
 }

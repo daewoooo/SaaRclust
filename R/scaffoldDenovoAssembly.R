@@ -142,7 +142,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
         maskAlwaysWCandZeroBins(bamfolder = bamfolder, genomic.bins = bins.gr, min.mapq = config[['min.mapq']], pairedEndReads = config[['pairedEndReads']])
       )
     } 
-    blacklist.gr <- c(blacklist$alwaysWC, blacklist$alwaysZero)
+    blacklist.gr <- c(blacklist$alwaysWC, blacklist$collapses)
     ## Store data object
     if (config[['store.data.obj']]) {
       save(blacklist, file = destination)
@@ -289,7 +289,7 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   if (config[['remove.always.WC']]) {
     if (length(wc.clust.idx) > 0) {
       ## Remove cluster with the most WC states
-      message("Removing cluster ", paste(wc.clust.idx, collapse = ", "), " with the most WC states !!!")
+      message("Removing cluster(s) ", paste(wc.clust.idx, collapse = ", "), " with the most WC states !!!")
       EM.obj$theta.param <- lapply(EM.obj$theta.param, function(x) x[-wc.clust.idx,])
       EM.obj$soft.pVal <- EM.obj$soft.pVal[,-wc.clust.idx]
       EM.obj$pi.param <- EM.obj$pi.param[-wc.clust.idx]
@@ -306,15 +306,16 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
   theta.zscore.hap <- (theta.sums[,3] - mean(theta.sums[,3])) / sd(theta.sums[,3])
   hap.clust.idx <- which(theta.zscore.hap <= -2)
   if (length(hap.clust.idx) > 0) {
-    message("Haploid clusters detected ", paste(hap.clust.idx, collapse = ", "), " !!!")
+    message("Haploid cluster(s) detected ", paste(hap.clust.idx, collapse = ", "), " !!!")
     ## Get haploid contigs
     ctg2clusters <- clustered.grl[[1]][,1]
-    hap.ctgs <- GenomicRanges::reduce(ctg2clusters[ctg2clusters$clust.ID %in% hap.clust.idx])
+    #hap.ctgs <- GenomicRanges::reduce(ctg2clusters[ctg2clusters$clust.ID %in% hap.clust.idx])
+    hap.ctgs <- ctg2clusters[ctg2clusters$clust.ID %in% hap.clust.idx]
     ## Store data object
     destination <- file.path(datapath, paste0("haploid_contig_regions.RData"))
     save(hap.ctgs, file = destination)
   } else {
-    message("NO haploid clusters detected !!!")
+    message("NO haploid cluster(s) detected !!!")
   }
   
   ## Get cluster IDs that belong to the same chromosome/scaffold ##
@@ -366,7 +367,9 @@ scaffoldDenovoAssembly <- function(bamfolder, outputfolder, configfile=NULL, min
     if (exists('hap.ctgs')) {
       if (length(hap.ctgs) > 0) {
         ordered.contigs.gr <- labelGenomicRegions(gr = ordered.contigs.gr, label.gr = hap.ctgs, label.gr.ID = '1n')
-      }  
+      } else {
+        ordered.contigs.gr$ploidy <- NA
+      } 
     } else {
       ordered.contigs.gr$ploidy <- '2n'
     } 

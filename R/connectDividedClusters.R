@@ -12,7 +12,9 @@
 #' @return A \code{matrix} of pairs of clusters IDs that belong to the same chromosome.
 #' @importFrom igraph graph groups components
 #' @importFrom BiocGenerics as.list
-#' @importFrom data.table as.data.table
+#' @importFrom data.table data.table
+#' @importFrom S4Vectors lapply
+#' @importFrom GenomicRanges reduce
 #' @author David Porubsky
 #' @export
 #' @examples
@@ -136,9 +138,14 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
     cl.num <- nrow(theta.param[[1]])
     if (!is.null(clustered.gr)) {
       ## Initialize cluster sizes
-      clustered.dt <- data.table::as.data.table(clustered.gr)
-      cl.sizes <- clustered.dt[, sum(width), by=clust.ID]
-      cl.sizes.bp <- cl.sizes$V1
+      clustered.grl <- split(clustered.gr, clustered.gr$clust.ID)
+      cl.sizes <- S4Vectors::lapply(clustered.grl, function(x) sum(width(GenomicRanges::reduce(x))))
+      cl.sizes <- unlist(cl.sizes)
+      cl.sizes <- data.table::data.table(clust.ID=names(cl.sizes), size=cl.sizes)
+      cl.sizes.bp <- cl.sizes$size
+      #clustered.dt <- data.table::as.data.table(clustered.gr)
+      #cl.sizes <- clustered.dt[, sum(width), by=clust.ID]
+      #cl.sizes.bp <- cl.sizes$V1
     } #else {
       #cl.sizes <- data.frame(clust.ID, )
       #cl.sizes.bp <- rep(0, )
@@ -146,7 +153,7 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
     
     ## Set parameters based on user input 
     if (max.cluster.length.mbp == 0 | is.null(clustered.gr)) {
-      max.cluster.length.mbp <- ceiling(sum(cl.sizes) / 1000000)
+      max.cluster.length.mbp <- ceiling(sum(cl.sizes.bp) / 1000000)
     }
     
     clusters <- NULL
@@ -164,7 +171,7 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
         G <- igraph::graph(vertices.sub, directed = FALSE)
         clusters <- igraph::groups(igraph::components(G, mode = 'strong'))
         cl.num <- length(clusters)
-        cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$V1[cl.sizes$clust.ID %in% x]) )
+        cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$size[cl.sizes$clust.ID %in% x]) )
         z.limit <- z.limit - 0.01
       } else {
         break
@@ -173,12 +180,12 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
     ## Report previous iteration in case current number of clusters is smaller than 'desired.num.clusters'
     if (length(clusters) < desired.num.clusters & !is.null(clusters.prev)) {
       clusters <- clusters.prev
-      cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$V1[cl.sizes$clust.ID %in% x]) )
+      cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$size[cl.sizes$clust.ID %in% x]) )
     }
     ## Report previous iteration in case any cluster is larger than allowed 'max.cluster.length.mbp'
     if (any(cl.sizes.bp > (max.cluster.length.mbp * 1000000)) & !is.null(clusters.prev)) {
       clusters <- clusters.prev
-      cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$V1[cl.sizes$clust.ID %in% x]) )
+      cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$size[cl.sizes$clust.ID %in% x]) )
     }
   } else {
     vertices.sub <- vertices[vertices[,3] >= z.limit,]
@@ -191,7 +198,7 @@ connectDividedClusters <- function(theta.param=NULL, clustered.gr=NULL, z.limit=
         ## Get cluster sizes
         clustered.dt <- data.table::as.data.table(clustered.gr)
         cl.sizes <- clustered.dt[, sum(width), by=clust.ID]
-        cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$V1[cl.sizes$clust.ID %in% x]) )
+        cl.sizes.bp <- sapply( clusters, function(x) sum(cl.sizes$size[cl.sizes$clust.ID %in% x]) )
       }  
     } else {
       clusters <- NULL
