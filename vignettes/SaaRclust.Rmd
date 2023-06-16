@@ -9,6 +9,7 @@ vignette: >
     %\VignetteIndexEntry{Vignette Title}
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}
+    %\newenvironment{CSLReferences}
     
 bibliography: /home/porubsky/SaaRclust/vignettes/strandSeqBib.bib
 ---    

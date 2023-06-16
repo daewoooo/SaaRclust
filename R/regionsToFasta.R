@@ -38,8 +38,12 @@ regions2FASTA <- function(gr, bsgenome=NULL, asm.fasta=NULL, index.field=NULL, e
   ## Expand regions of interest by certain size (downstream and upstream)
   if (expand > 0) {
     gr.seqLen <- seqlengths(gr)[as.character(seqnames(gr))]
-    start(gr) <- pmax(1, start(gr) - expand)
-    end(gr) <- pmin(gr.seqLen, end(gr) + expand)
+    if (!is.na(gr.seqLen)) {
+      start(gr) <- pmax(1, start(gr) - expand)
+      end(gr) <- pmin(gr.seqLen, end(gr) + expand)
+    } else {
+      warning("Could not expand the exported regions, missing 'seqlengths' in submitted 'gr' object!")
+    }  
   }
   
   if (!is.null(bsgenome)) {
@@ -60,7 +64,7 @@ regions2FASTA <- function(gr, bsgenome=NULL, asm.fasta=NULL, index.field=NULL, e
   }
   
   ## Used user defined column to name FASTA sequences
-  if (!is.null(index.field) & index.field > 0) {
+  if (!is.null(index.field)) {
     if (index.field <= length(GenomicRanges::mcols(gr))) {
       names(gr.seq) <- as.character(GenomicRanges::mcols(gr)[[index.field]])
     }
