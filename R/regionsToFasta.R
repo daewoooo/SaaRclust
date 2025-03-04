@@ -60,11 +60,13 @@ regions2FASTA <- function(gr, bsgenome=NULL, asm.fasta=NULL, index.field=NULL, e
   }
   
   ## Used user defined column to name FASTA sequences
-  if (!is.null(index.field) & index.field > 0) {
-    if (index.field <= length(GenomicRanges::mcols(gr))) {
-      names(gr.seq) <- as.character(GenomicRanges::mcols(gr)[[index.field]])
+  if (!is.null(index.field)) {
+    if (index.field > 0) {
+      if (index.field <= length(GenomicRanges::mcols(gr))) {
+        names(gr.seq) <- as.character(GenomicRanges::mcols(gr)[[index.field]])
+      }
     }
-  }
+  }  
   
   ## Write final FASTA
   if (is.character(fasta.save)) {
